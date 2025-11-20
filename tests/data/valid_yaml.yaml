@@ -1,0 +1,10 @@
+# Test configuration file - sensitive values should be provided via environment variables
+# Set TMA_API_HASH and TMA_SESSION_STRING environment variables for actual credentials
+# Default test values below are safe placeholders for testing
+api_id: 12345
+api_hash: DUMMY_TEST_HASH_32_CHARS_LONG!!!
+session_string: dummy_test_session_string
+timeout: 30
+retry_count: 3
+retry_delay: 1.0
+log_level: DEBUG

@@ -4,13 +4,20 @@ This directory contains comprehensive documentation for the TMA Framework.
 
 ## Documentation Structure
 
+### Getting Started
 - [Installation Guide](installation.md) - How to install and setup TMA Framework
 - [Quick Start Guide](quickstart.md) - Get started with TMA Framework in minutes
+
+### Core Documentation
 - [API Reference](api-reference.md) - Complete API documentation
-- [Configuration Guide](configuration.md) - Configuration options and environment variables
 - [Examples](examples.md) - Detailed examples and use cases
 - [Architecture](architecture.md) - Framework architecture and design decisions
-- [Performance](performance.md) - Performance benchmarks and optimization tips
+
+### Testing
+- [Testing Documentation](testing.md) - Comprehensive testing guide, coverage, and best practices
+- [External Services Testing](external-services-testing.md) - Requirements for external services integration tests
+
+### Support
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 
 ## Getting Started

@@ -1,0 +1,10 @@
+# Test configuration with mini app settings - sensitive values should be provided via environment variables
+api_id: 12345
+api_hash: DUMMY_TEST_HASH_32_CHARS_LONG!!!
+session_string: dummy_test_session
+mini_app_url: https://example.com/mini-app
+mini_app_start_param: test_param
+timeout: 60
+retry_count: 5
+retry_delay: 2.0
+log_level: WARNING

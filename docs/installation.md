@@ -14,7 +14,7 @@ This guide will help you install and set up TMA Framework for testing Telegram M
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/tma-test-framework.git
+git clone https://github.com/DaymaNKinG990/tma-test-framework.git
 cd tma-test-framework
 
 # Install dependencies using uv
@@ -28,7 +28,7 @@ uv run playwright install
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/tma-test-framework.git
+git clone https://github.com/DaymaNKinG990/tma-test-framework.git
 cd tma-test-framework
 
 # Create virtual environment
@@ -63,16 +63,21 @@ TMA Framework requires the following packages:
 
 ## Environment Setup
 
-### 1. Bot Token Configuration
+### 1. API Credentials Configuration
 
 Create a `.env` file in your project root:
 
 ```bash
 # Required
-TMA_BOT_TOKEN="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+TMA_API_ID="12345"
+TMA_API_HASH="your_api_hash"
+
+# Session (choose one)
+TMA_SESSION_STRING="your_session_string"
+# OR
+TMA_SESSION_FILE="session.session"
 
 # Optional
-TMA_BOT_USERNAME="your_bot_username"
 TMA_MINI_APP_URL="https://your-mini-app.com"
 TMA_MINI_APP_START_PARAM="start_param_value"
 TMA_TIMEOUT="30"
@@ -81,14 +86,23 @@ TMA_RETRY_DELAY="1.0"
 TMA_LOG_LEVEL="INFO"
 ```
 
-### 2. Bot Setup
+### 2. API Credentials Setup
 
-1. Create a new bot using [@BotFather](https://t.me/BotFather)
-2. Get your bot token
-3. Set up your Mini App URL in BotFather using `/setdomain`
-4. Add the bot token to your environment variables
+1. Go to [my.telegram.org](https://my.telegram.org)
+2. Log in with your phone number
+3. Go to "API development tools"
+4. Create a new application
+5. Copy `api_id` and `api_hash`
+6. Add them to your environment variables
 
-### 3. Mini App Setup
+### 3. Session Setup
+
+1. Run `python examples/get_session.py` to generate a session string
+2. Enter your API credentials and phone number
+3. Complete authentication (SMS code + 2FA if needed)
+4. Copy the generated session string to your environment variables
+
+### 4. Mini App Setup
 
 Your Mini App should:
 - Be accessible via HTTPS
@@ -100,14 +114,17 @@ Your Mini App should:
 Test your installation:
 
 ```bash
-# Run basic tests
-uv run python examples/basic_usage.py
+# Generate session string (first time only)
+uv run python examples/get_session.py
 
-# Run API-only tests
-uv run python examples/api_only_usage.py
+# Run MTProto user simulation tests
+uv run python examples/mtproto_usage.py
 
-# Run UI-only tests
-uv run python examples/ui_only_usage.py
+# Run simple authentication example
+uv run python examples/simple_auth.py
+
+# Run error handling examples
+uv run python examples/error_handling.py
 ```
 
 ## Troubleshooting
@@ -120,9 +137,9 @@ uv run python examples/ui_only_usage.py
    uv run playwright install chromium
    ```
 
-2. **Bot token not found**
-   - Ensure `TMA_BOT_TOKEN` is set in your environment
-   - Check that the token format is correct: `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`
+2. **API credentials not found**
+   - Ensure `TMA_API_ID` and `TMA_API_HASH` are set in your environment
+   - Check that the API ID is a number and API hash is a string
 
 3. **Mini App not accessible**
    - Verify the Mini App URL is correct and accessible

@@ -6,6 +6,11 @@ dist/
 wheels/
 *.egg-info
 .pytest_cache
+htmlcov/
+coverage.xml
+.coverage
+.mypy_cache
+.ruff_cache
 
 # Virtual environments
 .venv
@@ -14,3 +19,12 @@ wheels/
 .cursor
 .specify
 /specs
+
+# Secrets and sensitive configuration files
+tests/fixtures/secrets.yaml
+tests/data/*_secrets.yaml
+*.secrets.yaml
+/.env*
+
+# uv lockfile
+uv.lock

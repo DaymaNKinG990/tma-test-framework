@@ -1,0 +1,9 @@
+# DUMMY TEST CREDENTIALS — NOT FOR PRODUCTION
+# Sensitive values should be provided via environment variables
+api_id: 999999999
+api_hash: DUMMY_TEST_HASH_32_CHARS_LONG!!!
+session_file: test_session.session
+timeout: 30
+retry_count: 3
+retry_delay: 1.0
+log_level: DEBUG

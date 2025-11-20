@@ -1,11 +1,12 @@
 # TMA Framework
 
-Simple Python framework for working with Telegram API and Mini Apps.
+Advanced Python framework for Telegram user simulation and Mini App testing with full MTProto capabilities.
 
 ## Features
 
-- 🤖 **Telegram Bot API Integration** - Easy interaction with Telegram Bot API
-- 📱 **Mini App Testing** - Separate API and UI testing classes
+- 👤 **Full User Simulation** - Act as a real Telegram user with MTProto
+- 🤖 **Bot Interaction** - Send messages to bots and receive responses
+- 📱 **Automatic Mini App Discovery** - Find and interact with Mini Apps from bots
 - 🎭 **Playwright Integration** - Automated UI testing with Playwright
 - 🔌 **HTTP Client** - API testing with httpx
 - ⚙️ **Simple Configuration** - Environment variables and config objects
@@ -17,7 +18,7 @@ Simple Python framework for working with Telegram API and Mini Apps.
 
 ```bash
 # Install dependencies
-uv add httpx python-telegram-bot playwright msgspec loguru pyyaml aiofiles cryptography
+uv add httpx telethon playwright msgspec loguru pyyaml aiofiles cryptography
 
 # Install Playwright browsers
 playwright install
@@ -25,72 +26,118 @@ playwright install
 
 ## Quick Start
 
-### 1. Basic Bot Usage
+### Setup Requirements
+
+Before using TMA Framework, you need:
+
+1. **Telegram API Credentials** (from [my.telegram.org](https://my.telegram.org)):
+   - Go to "API development tools"
+   - Create new application
+   - Copy `api_id` and `api_hash`
+
+2. **Get Session String** (one-time setup):
+   - Run: `python examples/get_session.py`
+   - Enter your API credentials and phone number
+   - Complete authentication (SMS code + 2FA if needed)
+   - Copy the generated session string
+
+3. **Environment Variables**:
+   ```bash
+   export TMA_API_ID="your_api_id"
+   export TMA_API_HASH="your_api_hash"
+   export TMA_SESSION_STRING="your_session_string"
+   ```
+
+### Basic Usage
 
 ```python
 import asyncio
-from tma_framework import TelegramBot, Config
+from tma_framework import UserTelegramClient, Config
 
 async def main():
-    # Load config from environment
-    config = Config.from_env()
-    
-    # Initialize bot
-    async with TelegramBot(token=config.bot_token, config=config) as bot:
-        # Get bot info
-        bot_info = await bot.get_me()
-        print(f"Bot: @{bot_info.username}")
-        
-        # Send message
-        await bot.send_message(chat_id=123456789, text="Hello from TMA Framework!")
+    # Configuration with session string
+    config = Config(
+        api_id=12345,
+        api_hash="your_api_hash",
+        session_string="your_session_string"  # From get_session.py
+    )
+
+    # Initialize client (no authentication needed)
+    async with UserTelegramClient(config) as client:
+        user_info = await client.get_me()
+        print(f"User: {user_info.first_name} (@{user_info.username})")
+
+        # Interact with any bot
+        response = await client.interact_with_bot(
+            bot_username="example_bot",
+            command="/start",
+            wait_for_response=True
+        )
+
+        if response:
+            print(f"Bot response: {response.text}")
 
 asyncio.run(main())
 ```
 
-### 2. Mini App API Testing
+### Mini App API Testing
 
 ```python
 import asyncio
-from tma_framework import TelegramBot, MiniAppApi, Config
+from tma_framework import UserTelegramClient, MiniAppApi, Config
 
 async def main():
-    config = Config.from_env()
-    
-    async with TelegramBot(token=config.bot_token, config=config) as bot:
+    config = Config(
+        api_id=12345,
+        api_hash="your_api_hash",
+        session_string="your_session_string"
+    )
+
+    async with UserTelegramClient(config) as client:
         # Get Mini App from bot
-        mini_app_ui = await bot.get_mini_app(user_id=123456789)
-        
-        # Test API endpoints
-        async with MiniAppApi(mini_app_ui.url, config) as api:
-            result = await api.make_request("/api/status", "GET")
-            print(f"API Test: {'✅ PASSED' if result.success else '❌ FAILED'}")
-            
-            # Validate initData
-            is_valid = await api.validate_init_data(init_data, config.bot_token)
-            print(f"InitData validation: {'✅ VALID' if is_valid else '❌ INVALID'}")
+        mini_app = await client.get_mini_app_from_bot("example_bot")
+
+        if mini_app:
+            # Test API endpoints
+            async with MiniAppApi(mini_app.url, config) as api:
+                result = await api.make_request("/api/status", "GET")
+                print(f"API Test: {'✅ PASSED' if result.success else '❌ FAILED'}")
+
+                # Validate initData
+                is_valid = await api.validate_init_data(init_data, "bot_token")
+                print(f"InitData validation: {'✅ VALID' if is_valid else '❌ INVALID'}")
 
 asyncio.run(main())
 ```
 
-### 3. Mini App UI Testing
+### Mini App UI Testing
 
 ```python
 import asyncio
-from tma_framework import MiniAppUI, Config
+from tma_framework import UserTelegramClient, MiniAppUI, Config
 
 async def main():
-    config = Config()
-    
-    # Test Mini App UI directly
-    async with MiniAppUI("https://your-mini-app.com", config) as ui:
-        # Setup browser and navigate
-        await ui.setup_browser()
-        await ui.page.goto("https://your-mini-app.com", wait_until="networkidle")
-        
-        # UI interactions
-        await ui.fill_input("#username", "test_user")
-        await ui.click_element("#submit-button")
-        await ui.take_screenshot("test_screenshot.png")
+    config = Config(
+        api_id=12345,
+        api_hash="your_api_hash",
+        session_string="your_session_string"
+    )
+
+    async with UserTelegramClient(config) as client:
+        # Get Mini App from bot
+        mini_app = await client.get_mini_app_from_bot("example_bot")
+
+        if mini_app:
+            # Test Mini App UI
+            async with MiniAppUI(mini_app.url, config) as ui:
+                # Setup browser and navigate
+                await ui.setup_browser()
+                await ui.page.goto(mini_app.url, wait_until="networkidle")
+
+                # UI interactions
+                await ui.fill_input("#username", "test_user")
+                await ui.click_element("#submit-button")
+                await ui.take_screenshot("test_screenshot.png")
 
 asyncio.run(main())
 ```
@@ -101,10 +148,14 @@ asyncio.run(main())
 
 ```bash
 # Required
-export TMA_BOT_TOKEN="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+export TMA_API_ID="12345"
+export TMA_API_HASH="your_api_hash"
+
+# Session (choose one)
+export TMA_SESSION_STRING="session_string"   # For saved sessions
+export TMA_SESSION_FILE="session.session"    # For file sessions
 
 # Optional
-export TMA_BOT_USERNAME="your_bot_username"
 export TMA_MINI_APP_URL="https://your-mini-app.com"
 export TMA_MINI_APP_START_PARAM="start_param_value"
 export TMA_TIMEOUT="30"
@@ -118,25 +169,34 @@ export TMA_LOG_LEVEL="INFO"
 ```python
 from tma_framework import Config
 
+# Using session string
 config = Config(
-    bot_token="your_bot_token",
-    mini_app_url="https://your-mini-app.com",
-    timeout=60,
-    retry_count=5,
-    retry_delay=2.0,
-    log_level="DEBUG"
+    api_id=12345,
+    api_hash="your_api_hash",
+    session_string="your_session_string"
+)
+
+# Using session file
+config = Config(
+    api_id=12345,
+    api_hash="your_api_hash",
+    session_file="my_session.session"
 )
 ```
 
 ## API Reference
 
-### TelegramBot
+### UserTelegramClient
 
-- `get_me()` - Get bot information
-- `request_simple_webview()` - Request Mini App from bot
-- `get_mini_app()` - Get Mini App object
-- `send_message()` - Send message to chat
-- `get_updates()` - Get bot updates
+#### Core Methods
+- `get_me()` - Get current user information
+- `get_entity()` - Get entity (user/chat) information
+- `send_message()` - Send message to user/chat
+- `get_messages()` - Get messages from chat
+- `interact_with_bot()` - Interact with any bot
+- `get_mini_app_from_bot()` - Get Mini App from bot
+- `add_event_handler()` - Add event handler
+- `start_listening()` - Start listening for messages
 
 ### MiniAppApi
 
@@ -158,16 +218,24 @@ config = Config(
 
 See the `examples/` directory for more detailed examples:
 
-- `basic_usage.py` - Basic framework usage with separate API and UI classes
-- `advanced_usage.py` - Advanced features, error handling, and performance testing
-- `api_only_usage.py` - API-only testing examples
-- `ui_only_usage.py` - UI-only testing examples
+- `mtproto_usage.py` - Complete MTProto user simulation examples
+- `get_session.py` - Script to generate session string for authentication
+- `simple_auth.py` - Simple authentication example
+- `error_handling.py` - Error handling and validation examples
+- `advanced_auth.py` - Advanced authentication with step-by-step process
+
+## Documentation
+
+For detailed information about TMA Framework, see:
+- [MTProto Migration Guide](docs/mtproto-migration.md) - Complete migration documentation
+- [API Reference](docs/api-reference.md) - Detailed API documentation
+- [Examples](examples/) - Comprehensive usage examples
 
 ## Requirements
 
 - Python 3.12+
 - httpx
-- python-telegram-bot
+- telethon
 - playwright
 - msgspec
 - loguru

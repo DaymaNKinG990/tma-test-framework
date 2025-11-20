@@ -1,0 +1,3 @@
+# Test configuration missing session - sensitive values should be provided via environment variables
+api_id: 12345
+api_hash: DUMMY_TEST_HASH_32_CHARS_LONG!!!

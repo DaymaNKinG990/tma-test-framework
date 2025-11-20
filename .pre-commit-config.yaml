@@ -1,0 +1,74 @@
+# Pre-commit hooks configuration for TMA Test Framework
+# See https://pre-commit.com for more information
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow custom YAML tags
+        exclude: ^tests/data/(invalid_format|invalid_format_config)\.yaml$  # Exclude intentionally invalid YAML test files
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=1000]  # Warn if files > 1MB are added
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: mixed-line-ending
+        args: [--fix=lf]  # Use LF line endings
+      - id: requirements-txt-fixer
+      - id: fix-byte-order-marker
+
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      # Run Ruff linter
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+      # Run Ruff formatter
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # Mypy for type checking
+  # Note: Only check source code (src/) to avoid false positives from test files
+  # Test files are already excluded in pyproject.toml, but pre-commit mypy hook
+  # doesn't respect those exclusions, so we use files filter instead
+  # Some libraries (playwright, httpx, loguru) don't have complete type stubs,
+  # so we ignore import-not-found errors for them
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-PyYAML>=6.0.12
+        args:
+          - --config-file=pyproject.toml
+          - --ignore-missing-imports  # Ignore missing stubs for playwright, httpx, loguru
+        types: [python]
+        files: ^src/  # Only check source code, not tests or examples
+
+  # YAML formatting (optional, can be disabled if not needed)
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.15.0
+    hooks:
+      - id: pretty-format-yaml
+        args: [--autofix, --indent, "2"]
+        exclude: ^(\.github/|\.pre-commit-config\.yaml|tests/data/(invalid_format|invalid_format_config)\.yaml$)
+
+# Default configuration
+default_language_version:
+  python: python3.12
+
+# Fail fast - stop on first error
+fail_fast: false
+
+# Minimum pre-commit version
+minimum_pre_commit_version: "3.0.0"

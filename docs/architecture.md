@@ -12,7 +12,7 @@ TMA Framework is designed as a simple, focused library for testing Telegram Mini
 
 The framework separates different testing responsibilities:
 
-- **TelegramBot**: Handles Telegram Bot API interactions
+- **UserTelegramClient**: Handles MTProto user simulation and bot interactions
 - **MiniAppApi**: Focuses on HTTP API testing
 - **MiniAppUI**: Handles browser-based UI testing
 
@@ -41,11 +41,11 @@ Configuration is handled through:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   TelegramBot   │    │   MiniAppApi    │    │   MiniAppUI     │
+│UserTelegramClient│   │   MiniAppApi    │    │   MiniAppUI     │
 │                 │    │                 │    │                 │
-│ • Bot API       │    │ • HTTP Client   │    │ • Playwright    │
-│ • WebView       │    │ • initData      │    │ • Browser       │
-│ • Messages      │    │ • Validation    │    │ • UI Testing    │
+│ • MTProto API   │    │ • HTTP Client   │    │ • Playwright    │
+│ • User Sim      │    │ • initData      │    │ • Browser       │
+│ • Bot Interact  │    │ • Validation    │    │ • UI Testing    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          └───────────────────────┼───────────────────────┘
@@ -53,7 +53,8 @@ Configuration is handled through:
                     ┌─────────────────┐
                     │     Config      │
                     │                 │
-                    │ • Bot Token     │
+                    │ • API ID/Hash   │
+                    │ • Session       │
                     │ • Timeouts      │
                     │ • Logging       │
                     └─────────────────┘
@@ -61,26 +62,26 @@ Configuration is handled through:
 
 ## Class Responsibilities
 
-### TelegramBot
+### UserTelegramClient
 
-**Purpose**: Interface with Telegram Bot API
+**Purpose**: Full user simulation with MTProto API
 
 **Responsibilities**:
-- Bot information retrieval
-- Mini App URL generation
-- Message sending
-- Update handling
+- User authentication and session management
+- Bot interaction and message handling
+- Mini App discovery from bot interactions
+- Full user simulation capabilities
 
 **Dependencies**:
-- `python-telegram-bot` for Bot API
-- `httpx` for HTTP requests
+- `telethon` for MTProto API
 - `Config` for configuration
 
 **Key Methods**:
-- `get_me()` - Get bot information
-- `get_mini_app()` - Generate Mini App URL
-- `send_message()` - Send messages
-- `get_updates()` - Get bot updates
+- `get_me()` - Get user information
+- `send_message()` - Send messages as user
+- `get_messages()` - Get messages from chats
+- `interact_with_bot()` - Interact with bots
+- `get_mini_app_from_bot()` - Discover Mini Apps from bots
 
 ### MiniAppApi
 

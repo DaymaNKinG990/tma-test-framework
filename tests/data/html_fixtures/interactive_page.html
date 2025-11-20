@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Test Page</h1>
+
+    <div class="form-group">
+        <label for="test-input">Test Input Field:</label>
+        <input type="text" id="test-input" name="test-input" placeholder="Enter text here">
+    </div>
+
+    <div class="form-group">
+        <button id="test-button" type="button">Click Me</button>
+        <button id="submit-button" type="button">Submit</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+        // Configuration mapping button IDs to their message prefixes
+        const buttonConfig = {
+            'test-button': 'Button clicked! Input value: ',
+            'submit-button': 'Form submitted with: '
+        };
+
+        // Helper function to create a generic click handler
+        function createButtonHandler(messagePrefix) {
+            return function() {
+                const input = document.getElementById('test-input').value;
+                document.getElementById('output').textContent = messagePrefix + input;
+            };
+        }
+
+        // Register handlers for all configured buttons
+        Object.entries(buttonConfig).forEach(([buttonId, messagePrefix]) => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.addEventListener('click', createButtonHandler(messagePrefix));
+            }
+        });
+    </script>
+</body>
+</html>

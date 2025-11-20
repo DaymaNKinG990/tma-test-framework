@@ -1,0 +1,7 @@
+# Minimal test configuration - sensitive values should be provided via environment variables
+api_id: 1
+api_hash: DUMMY_TEST_HASH_32_CHARS_LONG!!!
+session_string: dummy_test_session
+timeout: 1
+retry_count: 0
+retry_delay: 0.1

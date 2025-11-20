@@ -10,6 +10,7 @@ This guide helps you resolve common issues when using TMA Framework.
 - [Mini App Testing Issues](#mini-app-testing-issues)
 - [Performance Issues](#performance-issues)
 - [Browser Issues](#browser-issues)
+- [Testing Issues](#testing-issues)
 - [Common Error Messages](#common-error-messages)
 - [Debugging Tips](#debugging-tips)
 
@@ -41,7 +42,7 @@ python --version
    ```bash
    # Update uv
    uv self update
-   
+
    # Update pip
    pip install --upgrade pip
    ```
@@ -50,7 +51,7 @@ python --version
    ```bash
    # Clear uv cache
    uv cache clean
-   
+
    # Clear pip cache
    pip cache purge
    ```
@@ -87,37 +88,38 @@ python --version
 
 ## Configuration Problems
 
-### Bot Token Issues
+### API Credentials Issues
 
-**Problem**: `ValueError: Bot token is required`
+**Problem**: `ValueError: api_id and api_hash are required`
 
 **Solutions**:
 
-1. **Check environment variable**:
+1. **Check environment variables**:
    ```bash
-   # Check if token is set
-   echo $TMA_BOT_TOKEN
-   
-   # Set token
-   export TMA_BOT_TOKEN="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+   # Check if credentials are set
+   echo $TMA_API_ID
+   echo $TMA_API_HASH
+
+   # Set credentials
+   export TMA_API_ID="12345"
+   export TMA_API_HASH="your_api_hash"
    ```
 
-2. **Verify token format**:
+2. **Verify credentials format**:
    ```python
-   # Token should be in format: BOT_ID:BOT_TOKEN
-   token = "123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
-   assert ":" in token, "Token must contain colon"
-   assert len(token.split(":")[0]) > 0, "Bot ID cannot be empty"
-   assert len(token.split(":")[1]) > 0, "Bot token cannot be empty"
+   # API ID should be a number, API hash should be a string
+   api_id = 12345  # Must be integer
+   api_hash = "your_api_hash"  # Must be string
    ```
 
 3. **Use Config object directly**:
    ```python
    from tma_framework import Config
-   
+
    config = Config(
-       bot_token="your_token_here",
-       log_level="INFO"
+       api_id=12345,
+       api_hash="your_api_hash",
+       session_string="your_session_string"
    )
    ```
 
@@ -130,7 +132,9 @@ python --version
 ```python
 # Valid log levels
 config = Config(
-    bot_token="your_token",
+    api_id=12345,
+    api_hash="your_api_hash",
+    session_string="your_session_string",
     log_level="DEBUG"    # DEBUG, INFO, WARNING, ERROR
 )
 ```
@@ -144,7 +148,9 @@ config = Config(
 1. **Use .env file**:
    ```bash
    # Create .env file
-   echo "TMA_BOT_TOKEN=your_token_here" > .env
+   echo "TMA_API_ID=12345" > .env
+   echo "TMA_API_HASH=your_api_hash" >> .env
+   echo "TMA_SESSION_STRING=your_session_string" >> .env
    echo "TMA_LOG_LEVEL=INFO" >> .env
    ```
 
@@ -152,7 +158,7 @@ config = Config(
    ```python
    import os
    from dotenv import load_dotenv
-   
+
    load_dotenv()
    config = Config.from_env()
    ```
@@ -173,7 +179,7 @@ config = Config(
 2. **Test token manually**:
    ```python
    import httpx
-   
+
    async def test_token(token):
        async with httpx.AsyncClient() as client:
            response = await client.get(
@@ -181,7 +187,7 @@ config = Config(
            )
            print(f"Status: {response.status_code}")
            print(f"Response: {response.json()}")
-   
+
    # Test your token
    await test_token("your_token_here")
    ```
@@ -327,13 +333,13 @@ config = Config(
 3. **Parallel requests**:
    ```python
    import asyncio
-   
+
    async def parallel_requests():
        tasks = []
        for i in range(5):
            task = api.make_request(f"/api/test-{i}", "GET")
            tasks.append(task)
-       
+
        results = await asyncio.gather(*tasks)
        return results
    ```
@@ -374,10 +380,10 @@ config = Config(
    ```bash
    # Linux
    sudo apt-get install libnss3-dev libatk-bridge2.0-dev libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libasound2
-   
+
    # macOS
    xcode-select --install
-   
+
    # Windows
    # Install Visual Studio Build Tools
    ```
@@ -493,13 +499,13 @@ config = Config(
 ```python
 async def debug_test():
     print("Starting test...")
-    
+
     async with MiniAppApi(url, config) as api:
         print("API client created")
-        
+
         result = await api.make_request("/api/test", "GET")
         print(f"Request completed: {result.status_code}")
-        
+
         if result.error_message:
             print(f"Error: {result.error_message}")
 ```
@@ -510,14 +516,14 @@ async def debug_test():
 async def debug_ui():
     async with MiniAppUI(url, config) as ui:
         await ui.setup_browser()
-        
+
         # Enable console logging
         ui.page.on("console", lambda msg: print(f"Console: {msg.text}"))
-        
+
         # Enable network logging
         ui.page.on("request", lambda req: print(f"Request: {req.url}"))
         ui.page.on("response", lambda resp: print(f"Response: {resp.status} {resp.url}"))
-        
+
         await ui.page.goto(url)
 ```
 
@@ -528,13 +534,13 @@ async def debug_with_screenshots():
     async with MiniAppUI(url, config) as ui:
         await ui.setup_browser()
         await ui.page.goto(url)
-        
+
         # Take screenshot at each step
         await ui.take_screenshot("step1_initial.png")
-        
+
         await ui.fill_input("#username", "test")
         await ui.take_screenshot("step2_filled.png")
-        
+
         await ui.click_element("#submit")
         await ui.take_screenshot("step3_clicked.png")
 ```
@@ -545,22 +551,22 @@ async def debug_with_screenshots():
 async def debug_network():
     async with MiniAppUI(url, config) as ui:
         await ui.setup_browser()
-        
+
         # Log all network requests
         requests = []
         responses = []
-        
+
         ui.page.on("request", lambda req: requests.append(req))
         ui.page.on("response", lambda resp: responses.append(resp))
-        
+
         await ui.page.goto(url)
-        
+
         print(f"Total requests: {len(requests)}")
         print(f"Total responses: {len(responses)}")
-        
+
         for req in requests:
             print(f"Request: {req.method} {req.url}")
-        
+
         for resp in responses:
             print(f"Response: {resp.status} {resp.url}")
 ```
@@ -598,7 +604,7 @@ async with MiniAppApi(url, config) as api:
 # Reuse browser instance
 async with MiniAppUI(url, config) as ui:
     await ui.setup_browser()
-    
+
     # Multiple operations on the same browser
     for i in range(10):
         await ui.page.goto(f"{url}/page-{i}")
@@ -619,4 +625,88 @@ try:
     result = await api.make_request("/api/test", "GET")
 finally:
     await api.close()
+```
+
+## Testing Issues
+
+### Tests Fail with Import Errors
+
+**Problem**: Tests fail with `ModuleNotFoundError` or import errors
+
+**Solution**: Ensure all test dependencies are installed
+
+```bash
+# Install test dependencies
+uv sync --group dev
+
+# Or install manually
+pip install pytest pytest-asyncio pytest-mock pytest-cov
+```
+
+### Async Tests Not Running
+
+**Problem**: Async tests are skipped or fail
+
+**Solution**: Ensure `@pytest.mark.asyncio` decorator is used
+
+```python
+@pytest.mark.asyncio
+async def test_example():
+    # Test code here
+    pass
+```
+
+### Mock Issues in Tests
+
+**Problem**: Mocks not working as expected
+
+**Solution**: Ensure mocks are set up before use and use correct async mocks
+
+```python
+@pytest.mark.asyncio
+async def test_with_mock(mocker):
+    # Use AsyncMock for async functions
+    mock_func = mocker.AsyncMock(return_value="result")
+    result = await mock_func()
+    assert result == "result"
+```
+
+### Coverage Not Showing
+
+**Problem**: Coverage report shows 0% or missing files
+
+**Solution**: Run coverage with correct source path
+
+```bash
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Check coverage report
+# Open htmlcov/index.html in browser
+```
+
+### Integration Tests Requiring External Services
+
+**Problem**: Integration tests fail due to missing external services
+
+**Solution**:
+- Use mocks for external services in CI/CD
+- Set up test accounts for local testing
+- See [External Services Testing](external-services-testing.md) for requirements
+
+### Test Fixtures Not Found
+
+**Problem**: `fixture 'xyz' not found` error
+
+**Solution**: Ensure fixtures are defined in `conftest.py` or imported correctly
+
+```python
+# In conftest.py
+@pytest.fixture
+def my_fixture():
+    return "value"
+
+# In test file
+def test_example(my_fixture):
+    assert my_fixture == "value"
 ```

@@ -4,79 +4,111 @@ Complete API documentation for TMA Framework.
 
 ## Core Classes
 
-### TelegramBot
+### UserTelegramClient
 
-Main class for interacting with Telegram Bot API.
+Main class for full user simulation with MTProto API.
 
 #### Constructor
 
 ```python
-TelegramBot(token: str, config: Optional[Config] = None)
+UserTelegramClient(config: Config)
 ```
 
 **Parameters:**
-- `token` (str): Telegram bot token
-- `config` (Optional[Config]): Configuration object
+- `config` (Config): Configuration object with MTProto credentials
 
 #### Methods
 
-##### `get_me() -> BotInfo`
+##### `get_me() -> UserInfo`
 
-Get bot information.
+Get current user information.
 
-**Returns:** `BotInfo` object with bot details
-
-**Example:**
-```python
-bot_info = await bot.get_me()
-print(f"Bot: {bot_info.first_name} (@{bot_info.username})")
-```
-
-##### `get_mini_app(user_id: int, url: Optional[str] = None, start_param: Optional[str] = None) -> MiniAppUI`
-
-Get Mini App from bot.
-
-**Parameters:**
-- `user_id` (int): Telegram user ID
-- `url` (Optional[str]): Custom Mini App URL
-- `start_param` (Optional[str]): Start parameter
-
-**Returns:** `MiniAppUI` object
+**Returns:** `UserInfo` object with user details
 
 **Example:**
 ```python
-mini_app = await bot.get_mini_app(user_id=123456789)
+user_info = await client.get_me()
+print(f"User: {user_info.first_name} (@{user_info.username})")
 ```
 
-##### `send_message(chat_id: int, text: str, **kwargs) -> Message`
+##### `get_entity(entity: Union[str, int]) -> ChatInfo`
 
-Send message to chat.
+Get entity (user, chat, channel) information.
 
 **Parameters:**
-- `chat_id` (int): Chat ID
+- `entity` (Union[str, int]): Username, phone number, or ID
+
+**Returns:** `ChatInfo` object
+
+**Example:**
+```python
+entity_info = await client.get_entity("username")
+print(f"Entity: {entity_info.title} ({entity_info.type})")
+```
+
+##### `send_message(entity: Union[str, int], text: str, reply_to: Optional[int] = None, parse_mode: Optional[str] = None) -> MessageInfo`
+
+Send message to entity.
+
+**Parameters:**
+- `entity` (Union[str, int]): Username, phone number, or ID
 - `text` (str): Message text
-- `**kwargs`: Additional message parameters
+- `reply_to` (Optional[int]): Message ID to reply to
+- `parse_mode` (Optional[str]): Parse mode (HTML, Markdown)
 
-**Returns:** `Message` object
+**Returns:** `MessageInfo` object
 
 **Example:**
 ```python
-message = await bot.send_message(chat_id=123456789, text="Hello!")
+message = await client.send_message("username", "Hello!")
 ```
 
-##### `get_updates(offset: Optional[int] = None, limit: Optional[int] = None) -> List[Update]`
+##### `get_messages(entity: Union[str, int], limit: int = 10, offset_id: int = 0) -> List[MessageInfo]`
 
-Get bot updates.
+Get messages from entity.
 
 **Parameters:**
-- `offset` (Optional[int]): Offset for pagination
-- `limit` (Optional[int]): Maximum number of updates
+- `entity` (Union[str, int]): Username, phone number, or ID
+- `limit` (int): Maximum number of messages
+- `offset_id` (int): Offset message ID
 
-**Returns:** List of `Update` objects
+**Returns:** List of `MessageInfo` objects
 
 **Example:**
 ```python
-updates = await bot.get_updates(limit=10)
+messages = await client.get_messages("username", limit=10)
+```
+
+##### `interact_with_bot(bot_username: str, command: str, wait_for_response: bool = True, timeout: int = 30) -> Optional[MessageInfo]`
+
+Interact with a bot by sending a command.
+
+**Parameters:**
+- `bot_username` (str): Bot username (without @)
+- `command` (str): Command to send (e.g., "/start")
+- `wait_for_response` (bool): Whether to wait for bot response
+- `timeout` (int): Timeout for waiting response
+
+**Returns:** Bot response message or None
+
+**Example:**
+```python
+response = await client.interact_with_bot("example_bot", "/start")
+```
+
+##### `get_mini_app_from_bot(bot_username: str, start_param: Optional[str] = None) -> Optional[MiniAppUI]`
+
+Get Mini App from bot by interacting with it.
+
+**Parameters:**
+- `bot_username` (str): Bot username (without @)
+- `start_param` (Optional[str]): Start parameter for Mini App
+
+**Returns:** `MiniAppUI` object if Mini App is found
+
+**Example:**
+```python
+mini_app = await client.get_mini_app_from_bot("example_bot")
 ```
 
 ### MiniAppApi
@@ -436,11 +468,13 @@ Configuration class for TMA Framework.
 
 ```python
 Config(
-    bot_token: str,
-    bot_username: Optional[str] = None,
+    api_id: int,
+    api_hash: str,
+    session_string: Optional[str] = None,
+    session_file: Optional[str] = None,
     mini_app_url: Optional[str] = None,
     mini_app_start_param: Optional[str] = None,
-    timeout: float = 30.0,
+    timeout: int = 30,
     retry_count: int = 3,
     retry_delay: float = 1.0,
     log_level: str = "INFO"
@@ -448,11 +482,13 @@ Config(
 ```
 
 **Parameters:**
-- `bot_token` (str): Telegram bot token
-- `bot_username` (Optional[str]): Bot username
+- `api_id` (int): Telegram API ID (from my.telegram.org)
+- `api_hash` (str): Telegram API Hash (from my.telegram.org)
+- `session_string` (Optional[str]): Saved session string
+- `session_file` (Optional[str]): Path to session file
 - `mini_app_url` (Optional[str]): Default Mini App URL
 - `mini_app_start_param` (Optional[str]): Default start parameter
-- `timeout` (float): Request timeout in seconds
+- `timeout` (int): Request timeout in seconds
 - `retry_count` (int): Number of retry attempts
 - `retry_delay` (float): Delay between retries in seconds
 - `log_level` (str): Logging level (DEBUG, INFO, WARNING, ERROR)
@@ -472,29 +508,49 @@ config = Config.from_env()
 
 ## Data Models
 
-### BotInfo
+### UserInfo
 
-Bot information model.
+User information model.
 
 ```python
-class BotInfo(msgspec.Struct):
+class UserInfo(msgspec.Struct):
     id: int
-    is_bot: bool
-    first_name: str
     username: Optional[str] = None
-    can_join_groups: bool = True
-    can_read_all_group_messages: bool = False
-    supports_inline_queries: bool = False
+    first_name: str
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    is_bot: bool = False
+    is_verified: bool = False
+    is_premium: bool = False
 ```
 
-### WebViewResult
+### ChatInfo
 
-WebView result model.
+Chat information model.
 
 ```python
-class WebViewResult(msgspec.Struct):
-    url: str
-    start_param: Optional[str] = None
+class ChatInfo(msgspec.Struct):
+    id: int
+    title: str
+    username: Optional[str] = None
+    type: str  # 'private', 'group', 'supergroup', 'channel'
+    is_bot: bool = False
+    is_verified: bool = False
+```
+
+### MessageInfo
+
+Message information model.
+
+```python
+class MessageInfo(msgspec.Struct):
+    id: int
+    text: Optional[str] = None
+    from_user: Optional[UserInfo] = None
+    chat: ChatInfo
+    date: str
+    reply_to: Optional[int] = None
+    media: Optional[Dict[str, Any]] = None
 ```
 
 ### MiniAppInfo
@@ -533,9 +589,9 @@ class ApiResult(msgspec.Struct):
 All classes support context managers for automatic resource cleanup:
 
 ```python
-# TelegramBot
-async with TelegramBot(token, config) as bot:
-    bot_info = await bot.get_me()
+# UserTelegramClient
+async with UserTelegramClient(config) as client:
+    user_info = await client.get_me()
 
 # MiniAppApi
 async with MiniAppApi(url, config) as api:

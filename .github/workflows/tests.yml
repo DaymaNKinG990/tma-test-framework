@@ -43,28 +43,6 @@ jobs:
     - name: Run tests with Allure
       run: |
         uv run pytest --alluredir=allure-results --cov=tma_test_framework --cov-report=html:htmlcov --cov-report=term-missing --cov-fail-under=80 -v
-      continue-on-error: true  # Continue even if tests fail to generate report
-    
-    - name: Install Allure Commandline
-      if: always()
-      run: |
-        # Download and install Allure commandline tool
-        wget -q https://github.com/allure-framework/allure2/releases/download/2.30.0/allure-2.30.0.tgz
-        tar -xzf allure-2.30.0.tgz
-        sudo mv allure-2.30.0 /opt/allure
-        sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
-    
-    - name: Generate Allure Report
-      if: always()
-      run: |
-        if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
-          allure generate allure-results --clean -o allure-report
-        else
-          echo "No allure results found, creating empty report"
-          mkdir -p allure-report
-          echo "<!DOCTYPE html><html><head><title>Allure Report</title></head><body><h1>No test results available</h1><p>Tests may have failed before generating results.</p></body></html>" > allure-report/index.html
-        fi
-      continue-on-error: true
     
     - name: Upload Allure Results
       if: always()
@@ -81,19 +59,53 @@ jobs:
         name: coverage-report
         path: htmlcov/
         retention-days: 30
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: test
+    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download Allure Results
+      uses: actions/download-artifact@v4
+      with:
+        name: allure-results
+        path: allure-results
+    
+    - name: Install Allure Commandline
+      run: |
+        # Download and install Allure commandline tool
+        wget -q https://github.com/allure-framework/allure2/releases/download/2.30.0/allure-2.30.0.tgz
+        tar -xzf allure-2.30.0.tgz
+        sudo mv allure-2.30.0 /opt/allure
+        sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
+    
+    - name: Generate Allure Report
+      run: |
+        if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
+          allure generate allure-results --clean -o allure-report
+        else
+          echo "No allure results found, creating empty report"
+          mkdir -p allure-report
+          echo "<!DOCTYPE html><html><head><title>Allure Report</title></head><body><h1>No test results available</h1><p>Tests may have failed before generating results.</p></body></html>" > allure-report/index.html
+        fi
     
     - name: Setup Pages
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       uses: actions/configure-pages@v4
     
     - name: Upload Pages artifact
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       uses: actions/upload-pages-artifact@v3
       with:
         path: allure-report
     
     - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       id: deployment
       uses: actions/deploy-pages@v4
 

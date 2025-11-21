@@ -3,6 +3,7 @@ End-to-end integration tests.
 Tests verify complete workflows from start to finish.
 """
 
+import allure
 import pytest
 from datetime import timedelta
 
@@ -22,6 +23,13 @@ class TestEndToEndWorkflows:
     """End-to-end integration tests."""
 
     @pytest.mark.asyncio
+    @allure.title(
+        "TC-INTEGRATION-E2E-001: Full workflow: Get Mini App → Test API → Test UI"
+    )
+    @allure.description(
+        "TC-INTEGRATION-E2E-001: Full workflow: Get Mini App → Test API → Test UI. "
+        "Verify complete testing workflow combining all components."
+    )
     async def test_full_workflow_get_mini_app_test_api_test_ui(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -101,6 +109,11 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-002: Full workflow with start parameter")
+    @allure.description(
+        "TC-INTEGRATION-E2E-002: Full workflow with start parameter. "
+        "Verify complete workflow with start parameter."
+    )
     async def test_full_workflow_with_start_parameter(
         self, mocker, user_telegram_client_connected, mock_mini_app_url_with_start_param
     ):
@@ -170,6 +183,11 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-010: Context manager full workflow")
+    @allure.description(
+        "TC-INTEGRATION-E2E-010: Context manager full workflow. "
+        "Verify complete workflow using context managers."
+    )
     async def test_context_manager_full_workflow(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -233,6 +251,11 @@ class TestEndToEndWorkflows:
         # (config is shared across all components)
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-008: Recover from connection error")
+    @allure.description(
+        "TC-INTEGRATION-E2E-008: Recover from connection error. "
+        "Verify error recovery in full workflow."
+    )
     async def test_recover_from_connection_error(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -297,6 +320,12 @@ class TestEndToEndWorkflows:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-009: Sequential calls after failure")
+    @allure.description(
+        "TC-INTEGRATION-E2E-009: Sequential calls after failure. "
+        "Verify that sequential make_request calls work correctly after a failure. "
+        "This test verifies sequential calls after failure, not automatic retry."
+    )
     async def test_sequential_calls_after_failure(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -356,6 +385,11 @@ class TestEndToEndWorkflows:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-004: Authenticate and test Mini App")
+    @allure.description(
+        "TC-INTEGRATION-E2E-004: Authenticate and test Mini App. "
+        "Verify authentication flow with Mini App."
+    )
     async def test_authenticate_and_test_mini_app(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -441,6 +475,11 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-006: Get data from bot and use in Mini App")
+    @allure.description(
+        "TC-INTEGRATION-E2E-006: Get data from bot and use in Mini App. "
+        "Verify data flow from bot to Mini App."
+    )
     async def test_get_data_from_bot_and_use_in_mini_app(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -529,6 +568,11 @@ class TestEndToEndWorkflows:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-005: Session management workflow")
+    @allure.description(
+        "TC-INTEGRATION-E2E-005: Session management workflow. "
+        "Verify session management across components."
+    )
     async def test_session_management_workflow(
         self, mocker, valid_config, mock_mini_app_url
     ):
@@ -608,6 +652,11 @@ class TestEndToEndWorkflows:
         await client.disconnect()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-007: Send data from Mini App back to bot")
+    @allure.description(
+        "TC-INTEGRATION-E2E-007: Send data from Mini App back to bot. "
+        "Verify data flow from Mini App to bot."
+    )
     async def test_send_data_from_mini_app_back_to_bot(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -697,6 +746,11 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-011: Load config from YAML and test")
+    @allure.description(
+        "TC-INTEGRATION-E2E-011: Load config from YAML and test. "
+        "Verify config loading from YAML file."
+    )
     async def test_load_config_from_yaml_and_test(
         self, mocker, temp_dir, mock_mini_app_url
     ):
@@ -786,6 +840,11 @@ class TestEndToEndWorkflows:
         await client.disconnect()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-003: Multiple Mini Apps testing workflow")
+    @allure.description(
+        "TC-INTEGRATION-E2E-003: Multiple Mini Apps testing workflow. "
+        "Verify testing multiple Mini Apps in sequence."
+    )
     async def test_multiple_mini_apps_testing_workflow(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -853,6 +912,11 @@ class TestEndToEndWorkflows:
         await mini_app_api_2.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-012: Performance test: Full workflow timing")
+    @allure.description(
+        "TC-INTEGRATION-E2E-012: Performance test: Full workflow timing. "
+        "Verify full workflow completes in acceptable time."
+    )
     async def test_performance_full_workflow_timing(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -934,6 +998,11 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-014: Resource cleanup after workflow")
+    @allure.description(
+        "TC-INTEGRATION-E2E-014: Resource cleanup after workflow. "
+        "Verify resources are cleaned up properly."
+    )
     async def test_resource_cleanup_after_workflow(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -995,6 +1064,11 @@ class TestEndToEndWorkflows:
         mock_browser.close.assert_called_once()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-013: Load test: Multiple concurrent workflows")
+    @allure.description(
+        "TC-INTEGRATION-E2E-013: Load test: Multiple concurrent workflows. "
+        "Verify system handles concurrent workflows."
+    )
     async def test_load_test_multiple_concurrent_workflows(
         self, mocker, valid_config, mock_mini_app_url
     ):
@@ -1081,6 +1155,13 @@ class TestEndToEndWorkflows:
         assert total_time < 5.0, "Concurrent workflows should complete quickly"
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-015: Handle resource exhaustion")
+    @allure.description(
+        "TC-INTEGRATION-E2E-015: Handle resource exhaustion. "
+        "Verify handling when resources are exhausted by simulating connection limit. "
+        "Tests that creating more than the allowed limit raises appropriate exception, "
+        "and that resources can be properly cleaned up."
+    )
     async def test_handle_resource_exhaustion(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -1162,6 +1243,11 @@ class TestEndToEndWorkflows:
         await new_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-017: Test Mini App with complex UI")
+    @allure.description(
+        "TC-INTEGRATION-E2E-017: Test Mini App with complex UI. "
+        "Verify framework handles complex UI."
+    )
     async def test_mini_app_with_complex_ui(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -1232,6 +1318,11 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-018: Test Mini App with real-time updates")
+    @allure.description(
+        "TC-INTEGRATION-E2E-018: Test Mini App with real-time updates. "
+        "Verify framework handles real-time updates."
+    )
     async def test_mini_app_with_realtime_updates(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -1312,6 +1403,13 @@ class TestEndToEndWorkflows:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-016: Test real Mini App from Telegram")
+    @allure.description(
+        "TC-INTEGRATION-E2E-016: Test real Mini App from Telegram. "
+        "Verify framework works with real Telegram Mini App. "
+        "Note: This test uses mocks, but demonstrates the workflow. "
+        "For real testing, actual Telegram bot and account are required."
+    )
     async def test_real_mini_app_from_telegram(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):

@@ -1630,7 +1630,7 @@ class TestUserTelegramClientStartListening:
             )
 
     @pytest.mark.asyncio
-    @allure.title("start_listening() without event handler")
+    @allure.title("TC-CLIENT-045: start_listening() without event handler")
     @allure.description("Test start_listening() without event handler. TC-CLIENT-045")
     async def test_start_listening_without_handler(
         self, mocker, user_telegram_client_connected
@@ -1780,3 +1780,459 @@ class TestUserTelegramClientErrorHandling:
                 await user_telegram_client_connected.get_mini_app_from_bot(
                     "invalid_bot"
                 )
+
+
+# ============================================================================
+# XII. Session Management Tests
+# ============================================================================
+
+
+class TestSessionString:
+    """Test session_string property."""
+
+    @pytest.mark.asyncio
+    @allure.title("Get session_string from connected client")
+    @allure.description(
+        "Test session_string property returns session string. TC-CLIENT-053"
+    )
+    async def test_session_string_returns_string(
+        self, mocker, user_telegram_client_connected, config_with_session_string
+    ):
+        """Test session_string property returns session string. TC-CLIENT-053"""
+        with allure.step("Mock StringSession.save() to return session string"):
+            expected_session = "test_session_string_12345"
+            user_telegram_client_connected.client.session.save = mocker.Mock(
+                return_value=expected_session
+            )
+
+        with allure.step("Verify session is StringSession"):
+            from telethon.sessions import StringSession
+
+            # Create a proper mock that passes isinstance check
+            # Use spec_set to ensure isinstance works correctly
+            mock_session = mocker.Mock(spec_set=StringSession)
+            mock_session.save.return_value = expected_session
+            # Set __class__.__name__ to "StringSession" for type name check
+            type(mock_session).__name__ = "StringSession"
+            user_telegram_client_connected.client.session = mock_session
+
+        with allure.step("Access session_string property"):
+            result = user_telegram_client_connected.session_string
+
+        with allure.step("Verify session string is returned"):
+            assert result == expected_session
+            user_telegram_client_connected.client.session.save.assert_called_once()
+
+    @allure.title("Get session_string raises when not connected")
+    @allure.description(
+        "Test session_string raises ValueError when not connected. TC-CLIENT-054"
+    )
+    def test_session_string_not_connected(self, user_telegram_client):
+        """Test session_string raises ValueError when not connected. TC-CLIENT-054"""
+        with allure.step("Access session_string property without connecting"):
+            with pytest.raises(ValueError, match="Client is not connected"):
+                _ = user_telegram_client.session_string
+
+    @pytest.mark.asyncio
+    @allure.title("Get session_string raises with SQLiteSession")
+    @allure.description(
+        "Test session_string raises ValueError with SQLiteSession. TC-CLIENT-055"
+    )
+    async def test_session_string_with_sqlite_session(
+        self, mocker, user_telegram_client_connected, config_with_session_file
+    ):
+        """Test session_string raises ValueError with SQLiteSession. TC-CLIENT-055"""
+        with allure.step("Create client with SQLiteSession"):
+            from telethon.sessions import SQLiteSession
+
+            # Create a proper mock that passes isinstance check
+            mock_session = mocker.Mock(spec_set=SQLiteSession)
+            # Set __class__.__name__ to "SQLiteSession" for type name check
+            type(mock_session).__name__ = "SQLiteSession"
+            user_telegram_client_connected.client.session = mock_session
+
+        with allure.step("Access session_string property and expect ValueError"):
+            with pytest.raises(ValueError, match="Session is not a StringSession"):
+                _ = user_telegram_client_connected.session_string
+
+
+class TestCreateSession:
+    """Test create_session classmethod."""
+
+    @pytest.mark.asyncio
+    @allure.title("TC-CLIENT-056: Create session with api_id and api_hash")
+    @allure.description("Test create_session() creates new session. TC-CLIENT-056")
+    async def test_create_session_with_params(self, mocker):
+        """Test create_session() creates new session. TC-CLIENT-056"""
+        with allure.step("Mock TelegramClient and authentication flow"):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = True
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step("Call create_session()"):
+            result = await UserTelegramClient.create_session(
+                api_id=12345,
+                api_hash="test_api_hash_32_characters_long!!",
+                phone_number="+1234567890",
+                interactive=False,
+            )
+
+        with allure.step("Verify session string is returned"):
+            assert result == "test_session_string"
+            mock_client.connect.assert_called_once()
+            mock_client.disconnect.assert_called_once()
+
+    @pytest.mark.asyncio
+    @allure.title("TC-CLIENT-057: Create session with Config object")
+    @allure.description("Test create_session() accepts Config object. TC-CLIENT-057")
+    async def test_create_session_with_config(self, mocker, valid_config):
+        """Test create_session() accepts Config object. TC-CLIENT-057"""
+        with allure.step("Mock TelegramClient and authentication flow"):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = True
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step("Call create_session() with Config"):
+            result = await UserTelegramClient.create_session(
+                config=valid_config,
+                phone_number="+1234567890",
+                interactive=False,
+            )
+
+        with allure.step("Verify session string is returned"):
+            assert result == "test_session_string"
+
+    @pytest.mark.asyncio
+    @allure.title("Create session interactive mode")
+    @allure.description(
+        "Test create_session() prompts for phone and code in interactive mode. TC-CLIENT-058"
+    )
+    async def test_create_session_interactive(self, mocker):
+        """Test create_session() prompts for phone and code in interactive mode. TC-CLIENT-058"""
+        with allure.step("Mock input() and getpass.getpass()"):
+            mock_input = mocker.patch("builtins.input", return_value="+1234567890")
+            mock_getpass = mocker.patch(
+                "tma_test_framework.mtproto_client.getpass.getpass",
+                return_value="12345",
+            )
+
+        with allure.step("Mock TelegramClient and authentication flow"):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = False
+            mock_client.send_code_request = mocker.AsyncMock()
+            mock_client.sign_in = mocker.AsyncMock()
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step("Call create_session() in interactive mode"):
+            result = await UserTelegramClient.create_session(
+                api_id=12345,
+                api_hash="test_api_hash_32_characters_long!!",
+                interactive=True,
+            )
+
+        with allure.step("Verify prompts were shown and session string returned"):
+            assert result == "test_session_string"
+            mock_input.assert_called_once()
+            mock_getpass.assert_called_once()
+            mock_client.send_code_request.assert_called_once_with("+1234567890")
+            mock_client.sign_in.assert_called_once_with("+1234567890", "12345")
+
+    @pytest.mark.asyncio
+    @allure.title("Create session non-interactive mode")
+    @allure.description(
+        "Test create_session() uses provided phone_number when interactive=False. TC-CLIENT-059"
+    )
+    async def test_create_session_non_interactive(self, mocker):
+        """Test create_session() uses provided phone_number when interactive=False. TC-CLIENT-059"""
+        with allure.step("Mock input() to verify it's not called"):
+            mock_input = mocker.patch("builtins.input")
+
+        with allure.step(
+            "Mock getpass for code (still needed even in non-interactive)"
+        ):
+            mocker.patch(
+                "tma_test_framework.mtproto_client.getpass.getpass",
+                return_value="12345",
+            )
+
+        with allure.step(
+            "Mock TelegramClient with already authorized user (non-interactive requires auth)"
+        ):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = (
+                True  # Already authorized for non-interactive
+            )
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step("Call create_session() in non-interactive mode"):
+            result = await UserTelegramClient.create_session(
+                api_id=12345,
+                api_hash="test_api_hash_32_characters_long!!",
+                phone_number="+1234567890",
+                interactive=False,
+            )
+
+        with allure.step("Verify input() was not called and session string returned"):
+            # input should not be called for phone since it's provided
+            # But we still need code, so getpass is called
+            mock_input.assert_not_called()
+            assert result == "test_session_string"
+
+    @pytest.mark.asyncio
+    @allure.title("TC-CLIENT-060: Create session with 2FA password")
+    @allure.description("Test create_session() handles 2FA password. TC-CLIENT-060")
+    async def test_create_session_with_2fa(self, mocker):
+        """Test create_session() handles 2FA password. TC-CLIENT-060"""
+        with allure.step("Mock getpass for code and password"):
+            mock_getpass = mocker.patch(
+                "tma_test_framework.mtproto_client.getpass.getpass",
+                side_effect=["12345", "2fa_password"],
+            )
+
+        with allure.step("Mock TelegramClient with 2FA flow"):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = False
+            mock_client.send_code_request = mocker.AsyncMock()
+
+            # First sign_in raises password error, second succeeds
+            async def sign_in_side_effect(*args, **kwargs):
+                if "password" not in kwargs:
+                    raise Exception("password required")
+                return mocker.Mock()
+
+            mock_client.sign_in = mocker.AsyncMock(side_effect=sign_in_side_effect)
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step(
+            "Call create_session() in interactive mode (2FA requires interactive)"
+        ):
+            result = await UserTelegramClient.create_session(
+                api_id=12345,
+                api_hash="test_api_hash_32_characters_long!!",
+                phone_number="+1234567890",
+                interactive=True,  # 2FA requires interactive mode
+            )
+
+        with allure.step("Verify password was prompted and session string returned"):
+            assert result == "test_session_string"
+            assert mock_getpass.call_count == 2  # Code and password
+
+    @pytest.mark.asyncio
+    @allure.title("TC-CLIENT-061: Create session validates api_id")
+    @allure.description("Test create_session() validates api_id. TC-CLIENT-061")
+    async def test_create_session_invalid_api_id(self):
+        """Test create_session() validates api_id. TC-CLIENT-061"""
+        with allure.step("Call create_session() with invalid api_id (0)"):
+            with pytest.raises(ValueError, match="api_id must be a positive number"):
+                await UserTelegramClient.create_session(
+                    api_id=0,  # 0 is falsy, but we check <= 0 after checking for None
+                    api_hash="test_api_hash_32_characters_long!!",
+                    phone_number="+1234567890",
+                    interactive=False,
+                )
+
+    @pytest.mark.asyncio
+    @allure.title("Create session validates phone number format")
+    @allure.description(
+        "Test create_session() validates phone number format. TC-CLIENT-062"
+    )
+    async def test_create_session_invalid_phone(self):
+        """Test create_session() validates phone number format. TC-CLIENT-062"""
+        with allure.step("Call create_session() with invalid phone number"):
+            with pytest.raises(ValueError, match="Invalid phone number format"):
+                await UserTelegramClient.create_session(
+                    api_id=12345,
+                    api_hash="test_api_hash_32_characters_long!!",
+                    phone_number="invalid",
+                    interactive=False,
+                )
+
+    @pytest.mark.asyncio
+    @allure.title("Create session requires phone_number when non-interactive")
+    @allure.description(
+        "Test create_session() requires phone_number when interactive=False. TC-CLIENT-063"
+    )
+    async def test_create_session_missing_phone_non_interactive(self):
+        """Test create_session() requires phone_number when interactive=False. TC-CLIENT-063"""
+        with allure.step(
+            "Call create_session() without phone_number in non-interactive mode"
+        ):
+            with pytest.raises(
+                ValueError, match="phone_number is required when interactive=False"
+            ):
+                await UserTelegramClient.create_session(
+                    api_id=12345,
+                    api_hash="test_api_hash_32_characters_long!!",
+                    interactive=False,
+                )
+
+    @pytest.mark.asyncio
+    @allure.title("Create session requires api_id and api_hash")
+    @allure.description(
+        "Test create_session() requires api_id and api_hash. TC-CLIENT-064"
+    )
+    async def test_create_session_missing_params(self):
+        """Test create_session() requires api_id and api_hash. TC-CLIENT-064"""
+        with allure.step("Call create_session() without api_id"):
+            with pytest.raises(ValueError, match="api_id and api_hash are required"):
+                await UserTelegramClient.create_session(
+                    api_id=None,
+                    api_hash="test_api_hash_32_characters_long!!",
+                    phone_number="+1234567890",
+                    interactive=False,
+                )
+
+        with allure.step("Call create_session() without api_hash"):
+            with pytest.raises(ValueError, match="api_id and api_hash are required"):
+                await UserTelegramClient.create_session(
+                    api_id=12345,
+                    api_hash=None,
+                    phone_number="+1234567890",
+                    interactive=False,
+                )
+
+    @pytest.mark.asyncio
+    @allure.title("Create session handles already authorized user")
+    @allure.description(
+        "Test create_session() handles already authorized user. TC-CLIENT-065"
+    )
+    async def test_create_session_already_authorized(self, mocker):
+        """Test create_session() handles already authorized user. TC-CLIENT-065"""
+        with allure.step("Mock TelegramClient with already authorized user"):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = True
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step("Call create_session()"):
+            result = await UserTelegramClient.create_session(
+                api_id=12345,
+                api_hash="test_api_hash_32_characters_long!!",
+                phone_number="+1234567890",
+                interactive=False,
+            )
+
+        with allure.step("Verify no authentication flow was triggered"):
+            assert result == "test_session_string"
+            mock_client.send_code_request.assert_not_called()
+            mock_client.sign_in.assert_not_called()
+
+    @pytest.mark.asyncio
+    @allure.title("Create session disconnects client after use")
+    @allure.description(
+        "Test create_session() disconnects temporary client. TC-CLIENT-066"
+    )
+    async def test_create_session_disconnects(self, mocker):
+        """Test create_session() disconnects temporary client. TC-CLIENT-066"""
+        with allure.step("Mock TelegramClient"):
+            mock_session = mocker.Mock()
+            mock_session.save.return_value = "test_session_string"
+
+            mock_client = mocker.AsyncMock()
+            mock_client.is_user_authorized.return_value = True
+            mock_client.session = mock_session
+            mock_client.connect = mocker.AsyncMock()
+            mock_client.disconnect = mocker.AsyncMock()
+
+            mocker.patch(
+                "tma_test_framework.mtproto_client.TelegramClient",
+                return_value=mock_client,
+            )
+            mocker.patch(
+                "tma_test_framework.mtproto_client.StringSession",
+                return_value=mock_session,
+            )
+
+        with allure.step("Call create_session()"):
+            await UserTelegramClient.create_session(
+                api_id=12345,
+                api_hash="test_api_hash_32_characters_long!!",
+                phone_number="+1234567890",
+                interactive=False,
+            )
+
+        with allure.step("Verify client.disconnect() was called"):
+            mock_client.disconnect.assert_called_once()

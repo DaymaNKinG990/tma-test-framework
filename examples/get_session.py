@@ -6,8 +6,8 @@ This script helps you get a session string that can be used in your application.
 import asyncio
 import getpass
 import re
-from telethon import TelegramClient  # type: ignore[import-untyped]
-from telethon.sessions import StringSession  # type: ignore[import-untyped]
+from telethon import TelegramClient
+from telethon.sessions import StringSession
 
 
 async def get_session_string():

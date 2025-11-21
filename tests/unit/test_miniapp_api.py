@@ -43,7 +43,7 @@ class TestMiniAppApiInit:
         with allure.step("Verify api.client is initialized"):
             assert api.client is not None
 
-    @allure.title("Initialize MiniAppApi with config=None raises error")
+    @allure.title("TC-API-002: Initialize MiniAppApi with config=None raises error")
     @allure.description("Test initialization with config=None raises error. TC-API-002")
     def test_init_with_config_none_raises_error(self, mocker, mock_httpx_client):
         """Test initialization with config=None raises error. TC-API-002"""
@@ -57,7 +57,7 @@ class TestMiniAppApiInit:
             with pytest.raises(ValueError, match="config is required"):
                 MiniAppApi("https://example.com/app", None)
 
-    @allure.title("Verify AsyncClient is initialized with correct timeout")
+    @allure.title("TC-API-003: Verify AsyncClient is initialized with correct timeout")
     @allure.description("Test AsyncClient is created with correct timeout. TC-API-003")
     def test_init_creates_async_client_with_timeout(
         self, mocker, valid_config, mock_httpx_client
@@ -77,7 +77,7 @@ class TestMiniAppApiInit:
             call_kwargs = mock_client_class.call_args[1]
             assert call_kwargs["timeout"] == valid_config.timeout
 
-    @allure.title("Verify AsyncClient is initialized with correct Limits")
+    @allure.title("TC-API-004: Verify AsyncClient is initialized with correct Limits")
     @allure.description("Test AsyncClient is created with correct Limits. TC-API-004")
     def test_init_creates_async_client_with_limits(
         self, mocker, valid_config, mock_httpx_client
@@ -108,7 +108,7 @@ class TestMiniAppApiClose:
     """Test MiniAppApi close method."""
 
     @pytest.mark.asyncio
-    @allure.title("Close MiniAppApi client")
+    @allure.title("TC-API-005: Close MiniAppApi client")
     @allure.description("Test close() calls await self.client.aclose(). TC-API-005")
     async def test_close_calls_client_aclose(self, miniapp_api_with_config):
         """Test close() calls await self.client.aclose(). TC-API-005"""
@@ -128,7 +128,7 @@ class TestMiniAppApiClose:
             await miniapp_api_with_config.close()
 
     @pytest.mark.asyncio
-    @allure.title("Close MiniAppApi multiple times")
+    @allure.title("TC-API-006: Close MiniAppApi multiple times")
     @allure.description("Test close() can be called multiple times safely. TC-API-006")
     async def test_close_multiple_times(self, miniapp_api_with_config):
         """Test close() can be called multiple times safely. TC-API-006"""
@@ -265,7 +265,7 @@ class TestMiniAppApiValidateInitData:
             assert result is False
 
     @pytest.mark.asyncio
-    @allure.title("Validate init_data with hash at beginning")
+    @allure.title("TC-API-013: Validate init_data with hash at beginning")
     @allure.description("Test validate_init_data with hash at beginning. TC-API-013")
     async def test_validate_init_data_hash_at_beginning(self, miniapp_api_with_config):
         """Test validate_init_data with hash at beginning. TC-API-013"""
@@ -293,7 +293,7 @@ class TestMiniAppApiValidateInitData:
             assert result is True
 
     @pytest.mark.asyncio
-    @allure.title("Validate init_data with hash in middle")
+    @allure.title("TC-API-014: Validate init_data with hash in middle")
     @allure.description("Test validate_init_data with hash in middle. TC-API-014")
     async def test_validate_init_data_hash_in_middle(self, miniapp_api_with_config):
         """Test validate_init_data with hash in middle. TC-API-014"""
@@ -315,7 +315,7 @@ class TestMiniAppApiValidateInitData:
             assert result is True
 
     @pytest.mark.asyncio
-    @allure.title("Validate init_data with hash at end")
+    @allure.title("TC-API-015: Validate init_data with hash at end")
     @allure.description("Test validate_init_data with hash at end. TC-API-015")
     async def test_validate_init_data_hash_at_end(self, miniapp_api_with_config):
         """Test validate_init_data with hash at end. TC-API-015"""
@@ -394,7 +394,7 @@ class TestMiniAppApiValidateInitData:
             assert "InitData validation: invalid" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("Validate init_data logs error on exception")
+    @allure.title("TC-API-017: Validate init_data logs error on exception")
     @allure.description("Test validate_init_data logs error on exception. TC-API-017")
     async def test_validate_init_data_logs_error_on_exception(
         self, mocker, miniapp_api_with_config, caplog
@@ -451,7 +451,7 @@ class TestMiniAppApiMakeRequest:
     """Test MiniAppApi make_request method."""
 
     @pytest.mark.asyncio
-    @allure.title("Make request with absolute URL")
+    @allure.title("TC-API-021: Make request with absolute URL")
     @allure.description("Test make_request with absolute URL uses it as is. TC-API-021")
     async def test_make_request_absolute_url(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -499,7 +499,7 @@ class TestMiniAppApiMakeRequest:
             assert call_kwargs["url"] == "https://example.com/app/api/data"
 
     @pytest.mark.asyncio
-    @allure.title("Make request with relative URL without slash")
+    @allure.title("TC-API-023: Make request with relative URL without slash")
     @allure.description("Test make_request with relative URL without /. TC-API-023")
     async def test_make_request_relative_url_without_slash(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -544,7 +544,7 @@ class TestMiniAppApiMakeRequest:
             assert "start=123" not in call_kwargs["url"]
 
     @pytest.mark.asyncio
-    @allure.title("Make request with GET method")
+    @allure.title("TC-API-024: Make request with GET method")
     @allure.description("Test make_request with GET method. TC-API-024")
     async def test_make_request_get_method(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -567,7 +567,7 @@ class TestMiniAppApiMakeRequest:
             assert call_kwargs["method"] == "GET"
 
     @pytest.mark.asyncio
-    @allure.title("Make request with POST method and data")
+    @allure.title("TC-API-025: Make request with POST method and data")
     @allure.description("Test make_request with POST method and data. TC-API-025")
     async def test_make_request_post_with_data(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -593,7 +593,7 @@ class TestMiniAppApiMakeRequest:
             assert call_kwargs["json"] == data
 
     @pytest.mark.asyncio
-    @allure.title("Make request with headers")
+    @allure.title("TC-API-026: Make request with headers")
     @allure.description("Test make_request with headers. TC-API-026")
     async def test_make_request_with_headers(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -614,7 +614,7 @@ class TestMiniAppApiMakeRequest:
             assert call_kwargs["headers"] == headers
 
     @pytest.mark.asyncio
-    @allure.title("Make request with status 200")
+    @allure.title("TC-API-024: Make request with status 200")
     @allure.description("Test make_request with status 200. TC-API-024, TC-API-034")
     async def test_make_request_status_200(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -638,7 +638,7 @@ class TestMiniAppApiMakeRequest:
             assert result.informational is False
 
     @pytest.mark.asyncio
-    @allure.title("Make request with status 301")
+    @allure.title("TC-API-034: Make request with status 301")
     @allure.description("Test make_request with status 301. TC-API-034")
     async def test_make_request_status_301(
         self, mocker, miniapp_api_with_config, mock_httpx_response_301
@@ -659,7 +659,7 @@ class TestMiniAppApiMakeRequest:
             assert result.success is False
 
     @pytest.mark.asyncio
-    @allure.title("Make request with status 404")
+    @allure.title("TC-API-034: Make request with status 404")
     @allure.description("Test make_request with status 404. TC-API-034")
     async def test_make_request_status_404(
         self, mocker, miniapp_api_with_config, mock_httpx_response_404
@@ -680,7 +680,7 @@ class TestMiniAppApiMakeRequest:
             assert result.success is False
 
     @pytest.mark.asyncio
-    @allure.title("Make request with status 500")
+    @allure.title("TC-API-034: Make request with status 500")
     @allure.description("Test make_request with status 500. TC-API-034")
     async def test_make_request_status_500(
         self, mocker, miniapp_api_with_config, mock_httpx_response_500
@@ -701,7 +701,7 @@ class TestMiniAppApiMakeRequest:
             assert result.success is False
 
     @pytest.mark.asyncio
-    @allure.title("Make request with status 101")
+    @allure.title("TC-API-034: Make request with status 101")
     @allure.description("Test make_request with status 101. TC-API-034")
     async def test_make_request_status_101(
         self, mocker, miniapp_api_with_config, mock_httpx_response_101
@@ -722,7 +722,7 @@ class TestMiniAppApiMakeRequest:
             assert result.success is False
 
     @pytest.mark.asyncio
-    @allure.title("Make request captures response_time")
+    @allure.title("TC-API-027: Make request captures response_time")
     @allure.description("Test make_request captures response_time. TC-API-027")
     async def test_make_request_response_time(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -863,7 +863,7 @@ class TestMiniAppApiMakeRequest:
             )
 
     @pytest.mark.asyncio
-    @allure.title("Make request handles network errors")
+    @allure.title("TC-API-029: Make request handles network errors")
     @allure.description("Test make_request handles network errors. TC-API-029")
     async def test_make_request_network_error(self, mocker, miniapp_api_with_config):
         """Test make_request handles network errors. TC-API-029"""
@@ -885,7 +885,7 @@ class TestMiniAppApiMakeRequest:
             assert result.reason is None
 
     @pytest.mark.asyncio
-    @allure.title("Make request handles timeout errors")
+    @allure.title("TC-API-029: Make request handles timeout errors")
     @allure.description("Test make_request handles timeout errors. TC-API-029")
     async def test_make_request_timeout_error(self, mocker, miniapp_api_with_config):
         """Test make_request handles timeout errors. TC-API-029"""
@@ -903,7 +903,7 @@ class TestMiniAppApiMakeRequest:
             assert "timeout" in result.error_message.lower()
 
     @pytest.mark.asyncio
-    @allure.title("Make request logs request")
+    @allure.title("TC-API-030: Make request logs request")
     @allure.description("Test make_request logs request. TC-API-030")
     async def test_make_request_logs_request(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200, caplog
@@ -922,7 +922,7 @@ class TestMiniAppApiMakeRequest:
             assert "Making request: POST" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("Make request logs response")
+    @allure.title("TC-API-031: Make request logs response")
     @allure.description("Test make_request logs response. TC-API-031")
     async def test_make_request_logs_response(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200, caplog
@@ -942,7 +942,7 @@ class TestMiniAppApiMakeRequest:
             assert "status_code=200" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("Make request logs error on failure")
+    @allure.title("TC-API-032: Make request logs error on failure")
     @allure.description("Test make_request logs error on failure. TC-API-032")
     async def test_make_request_logs_error(
         self, mocker, miniapp_api_with_config, caplog
@@ -961,7 +961,7 @@ class TestMiniAppApiMakeRequest:
             assert "Request failed: POST /api/data" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("Make request with PUT method")
+    @allure.title("TC-API-033: Make request with PUT method")
     @allure.description("Test make_request with PUT method. TC-API-033")
     async def test_make_request_put_method(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -987,7 +987,7 @@ class TestMiniAppApiMakeRequest:
             assert call_kwargs["json"] == data
 
     @pytest.mark.asyncio
-    @allure.title("Make request with DELETE method")
+    @allure.title("TC-API-033: Make request with DELETE method")
     @allure.description("Test make_request with DELETE method. TC-API-033")
     async def test_make_request_delete_method(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -1042,7 +1042,7 @@ class TestMiniAppApiEdgeCases:
             assert isinstance(result, bool)
 
     @pytest.mark.asyncio
-    @allure.title("Validate init_data with unicode characters")
+    @allure.title("TC-API-018: Validate init_data with unicode characters")
     @allure.description("Test validate_init_data with unicode characters. TC-API-018")
     async def test_validate_init_data_unicode(self, miniapp_api_with_config):
         """Test validate_init_data with unicode characters. TC-API-018"""
@@ -1060,7 +1060,7 @@ class TestMiniAppApiEdgeCases:
             assert result is True
 
     @pytest.mark.asyncio
-    @allure.title("Validate init_data with ampersand in values")
+    @allure.title("TC-API-019: Validate init_data with ampersand in values")
     @allure.description("Test validate_init_data with & in values. TC-API-019")
     async def test_validate_init_data_with_ampersand_in_values(
         self, miniapp_api_with_config
@@ -1112,7 +1112,7 @@ class TestMiniAppApiSecurity:
     """Test MiniAppApi security and reliability."""
 
     @pytest.mark.asyncio
-    @allure.title("Make request with very long endpoint")
+    @allure.title("TC-API-036: Make request with very long endpoint")
     @allure.description("Test make_request with very long endpoint. TC-API-036")
     async def test_make_request_very_long_endpoint(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -1254,8 +1254,8 @@ class TestMiniAppApiInheritance:
 class TestMiniAppApiAuthToken:
     """Test authentication token management in MiniAppApi."""
 
-    @allure.title("__init__ sets default auth token values")
-    @allure.description("Test that __init__ sets default auth token values.")
+    @allure.title("TC-API-039: __init__ sets default auth token values")
+    @allure.description("Test that __init__ sets default auth token values. TC-API-039")
     def test_init_sets_default_auth_token_values(
         self, mocker, valid_config, mock_httpx_client
     ):
@@ -1272,8 +1272,8 @@ class TestMiniAppApiAuthToken:
             assert api._auth_token is None
             assert api._auth_token_type == "Bearer"
 
-    @allure.title("set_auth_token sets token and type")
-    @allure.description("Test set_auth_token sets token and type.")
+    @allure.title("TC-API-040: set_auth_token sets token and type")
+    @allure.description("Test set_auth_token sets token and type. TC-API-040")
     def test_set_auth_token(self, mocker, valid_config, mock_httpx_client):
         """Test set_auth_token sets token and type."""
         with allure.step("Mock AsyncClient"):
@@ -1290,8 +1290,8 @@ class TestMiniAppApiAuthToken:
             assert api._auth_token == "test_token_123"
             assert api._auth_token_type == "Bearer"
 
-    @allure.title("set_auth_token with custom token type")
-    @allure.description("Test set_auth_token with custom token type.")
+    @allure.title("TC-API-041: set_auth_token with custom token type")
+    @allure.description("Test set_auth_token with custom token type. TC-API-041")
     def test_set_auth_token_with_custom_type(
         self, mocker, valid_config, mock_httpx_client
     ):
@@ -1310,8 +1310,8 @@ class TestMiniAppApiAuthToken:
             assert api._auth_token == "api_key_456"
             assert api._auth_token_type == "ApiKey"
 
-    @allure.title("clear_auth_token resets token to None")
-    @allure.description("Test clear_auth_token resets token to None.")
+    @allure.title("TC-API-042: clear_auth_token resets token to None")
+    @allure.description("Test clear_auth_token resets token to None. TC-API-042")
     def test_clear_auth_token(self, mocker, valid_config, mock_httpx_client):
         """Test clear_auth_token resets token to None."""
         with allure.step("Mock AsyncClient"):
@@ -1333,8 +1333,10 @@ class TestMiniAppApiAuthToken:
             assert api._auth_token_type == "Bearer"
 
     @pytest.mark.asyncio
-    @allure.title("Make request automatically adds auth token to headers")
-    @allure.description("Test make_request automatically adds auth token to headers.")
+    @allure.title("TC-API-043: Make request automatically adds auth token to headers")
+    @allure.description(
+        "Test make_request automatically adds auth token to headers. TC-API-043"
+    )
     async def test_make_request_adds_auth_token_automatically(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1355,9 +1357,11 @@ class TestMiniAppApiAuthToken:
             assert call_kwargs["headers"]["Authorization"] == "Bearer test_token_123"
 
     @pytest.mark.asyncio
-    @allure.title("Make request without token does not add Authorization header")
+    @allure.title(
+        "TC-API-044: Make request without token does not add Authorization header"
+    )
     @allure.description(
-        "Test make_request without token does not add Authorization header."
+        "Test make_request without token does not add Authorization header. TC-API-044"
     )
     async def test_make_request_without_token_no_auth_header(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -1377,8 +1381,8 @@ class TestMiniAppApiAuthToken:
             assert "Authorization" not in headers
 
     @pytest.mark.asyncio
-    @allure.title("Make request uses custom token type")
-    @allure.description("Test make_request uses custom token type.")
+    @allure.title("TC-API-045: Make request uses custom token type")
+    @allure.description("Test make_request uses custom token type. TC-API-045")
     async def test_make_request_custom_token_type(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1398,8 +1402,10 @@ class TestMiniAppApiAuthToken:
             assert call_kwargs["headers"]["Authorization"] == "ApiKey api_key_456"
 
     @pytest.mark.asyncio
-    @allure.title("Make request allows overriding Authorization header")
-    @allure.description("Test make_request allows overriding Authorization header.")
+    @allure.title("TC-API-046: Make request allows overriding Authorization header")
+    @allure.description(
+        "Test make_request allows overriding Authorization header. TC-API-046"
+    )
     async def test_make_request_headers_override_auth_token(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1423,8 +1429,10 @@ class TestMiniAppApiAuthToken:
             assert call_kwargs["headers"]["Authorization"] == "Bearer custom_token"
 
     @pytest.mark.asyncio
-    @allure.title("Make request merges custom headers with auth token")
-    @allure.description("Test make_request merges custom headers with auth token.")
+    @allure.title("TC-API-047: Make request merges custom headers with auth token")
+    @allure.description(
+        "Test make_request merges custom headers with auth token. TC-API-047"
+    )
     async def test_make_request_merges_headers_with_token(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1449,8 +1457,10 @@ class TestMiniAppApiAuthToken:
             assert call_kwargs["headers"]["X-Custom-Header"] == "custom_value"
 
     @pytest.mark.asyncio
-    @allure.title("Make request sets Content-Type when data is provided")
-    @allure.description("Test make_request sets Content-Type when data is provided.")
+    @allure.title("TC-API-048: Make request sets Content-Type when data is provided")
+    @allure.description(
+        "Test make_request sets Content-Type when data is provided. TC-API-048"
+    )
     async def test_make_request_sets_content_type_for_data(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1472,8 +1482,10 @@ class TestMiniAppApiAuthToken:
             assert call_kwargs["headers"]["Content-Type"] == "application/json"
 
     @pytest.mark.asyncio
-    @allure.title("Make request preserves custom Content-Type header")
-    @allure.description("Test make_request preserves custom Content-Type header.")
+    @allure.title("TC-API-049: Make request preserves custom Content-Type header")
+    @allure.description(
+        "Test make_request preserves custom Content-Type header. TC-API-049"
+    )
     async def test_make_request_preserves_custom_content_type(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1496,8 +1508,8 @@ class TestMiniAppApiAuthToken:
             assert call_kwargs["headers"]["Content-Type"] == "application/xml"
 
     @pytest.mark.asyncio
-    @allure.title("Make request adds query params to URL")
-    @allure.description("Test make_request adds query params to URL.")
+    @allure.title("TC-API-050: Make request adds query params to URL")
+    @allure.description("Test make_request adds query params to URL. TC-API-050")
     async def test_make_request_with_query_params(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):
@@ -1520,9 +1532,11 @@ class TestMiniAppApiAuthToken:
             )
 
     @pytest.mark.asyncio
-    @allure.title("Make request appends query params to URL with existing query string")
+    @allure.title(
+        "TC-API-051: Make request appends query params to URL with existing query string"
+    )
     @allure.description(
-        "Test make_request appends query params to URL with existing query string."
+        "Test make_request appends query params to URL with existing query string. TC-API-051"
     )
     async def test_make_request_with_query_params_and_existing_query(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
@@ -1547,8 +1561,8 @@ class TestMiniAppApiAuthToken:
             assert "&" in call_kwargs["url"]  # Should use & separator
 
     @pytest.mark.asyncio
-    @allure.title("Make request handles empty params dict")
-    @allure.description("Test make_request handles empty params dict.")
+    @allure.title("TC-API-052: Make request handles empty params dict")
+    @allure.description("Test make_request handles empty params dict. TC-API-052")
     async def test_make_request_with_empty_params(
         self, mocker, miniapp_api_with_config, mock_httpx_response_200
     ):

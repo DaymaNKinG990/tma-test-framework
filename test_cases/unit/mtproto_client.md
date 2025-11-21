@@ -606,3 +606,141 @@ Tests for `tma_test_framework.mtproto_client` module:
   1. Call _extract_mini_app_url() with no URL
 - **Expected Result**: Returns None
 - **Coverage**: `_extract_mini_app_url()` not found
+
+### 12. Session Management Tests
+
+#### TC-CLIENT-053: Get session_string from connected client
+- **Purpose**: Verify session_string property returns session string
+- **Preconditions**: Connected client with StringSession
+- **Test Steps**:
+  1. Create client with StringSession
+  2. Connect client
+  3. Mock client.session.save() to return session string
+  4. Access client.session_string property
+- **Expected Result**: Session string returned
+- **Coverage**: `session_string` property
+
+#### TC-CLIENT-054: Get session_string raises when not connected
+- **Purpose**: Verify session_string raises ValueError when not connected
+- **Preconditions**: Client not connected
+- **Test Steps**:
+  1. Create client but don't connect
+  2. Access session_string property
+- **Expected Result**: ValueError raised: "Client is not connected"
+- **Coverage**: `session_string` property validation
+
+#### TC-CLIENT-055: Get session_string raises with SQLiteSession
+- **Purpose**: Verify session_string raises ValueError with SQLiteSession
+- **Preconditions**: Connected client with SQLiteSession
+- **Test Steps**:
+  1. Create client with SQLiteSession
+  2. Connect client
+  3. Access session_string property
+- **Expected Result**: ValueError raised: "Session is not a StringSession"
+- **Coverage**: `session_string` property type check
+
+#### TC-CLIENT-056: Create session with api_id and api_hash
+- **Purpose**: Verify create_session() creates new session
+- **Preconditions**: Valid api_id, api_hash, phone_number
+- **Test Steps**:
+  1. Mock TelegramClient and authentication flow
+  2. Call await UserTelegramClient.create_session(api_id, api_hash, phone_number)
+  3. Verify session string is returned
+- **Expected Result**: Session string returned
+- **Coverage**: `create_session()` classmethod
+
+#### TC-CLIENT-057: Create session with Config object
+- **Purpose**: Verify create_session() accepts Config object
+- **Preconditions**: Config with api_id and api_hash
+- **Test Steps**:
+  1. Create Config with api_id and api_hash
+  2. Mock TelegramClient and authentication flow
+  3. Call await UserTelegramClient.create_session(config=config)
+  4. Verify session string is returned
+- **Expected Result**: Session string returned
+- **Coverage**: `create_session()` with Config
+
+#### TC-CLIENT-058: Create session interactive mode
+- **Purpose**: Verify create_session() prompts for phone and code in interactive mode
+- **Preconditions**: interactive=True (default)
+- **Test Steps**:
+  1. Mock input() and getpass.getpass() for phone and code
+  2. Mock TelegramClient authentication flow
+  3. Call await UserTelegramClient.create_session(api_id, api_hash)
+  4. Verify input() and getpass.getpass() are called
+- **Expected Result**: Prompts shown, session string returned
+- **Coverage**: `create_session()` interactive mode
+
+#### TC-CLIENT-059: Create session non-interactive mode
+- **Purpose**: Verify create_session() uses provided phone_number when interactive=False
+- **Preconditions**: interactive=False, phone_number provided
+- **Test Steps**:
+  1. Mock TelegramClient authentication flow
+  2. Call await UserTelegramClient.create_session(api_id, api_hash, phone_number, interactive=False)
+  3. Verify input() is not called
+- **Expected Result**: No prompts, session string returned
+- **Coverage**: `create_session()` non-interactive mode
+
+#### TC-CLIENT-060: Create session with 2FA password
+- **Purpose**: Verify create_session() handles 2FA password
+- **Preconditions**: Account with 2FA enabled
+- **Test Steps**:
+  1. Mock sign_in() to raise password error
+  2. Mock getpass.getpass() for password
+  3. Mock successful sign_in() with password
+  4. Call create_session()
+- **Expected Result**: Password prompted, session string returned
+- **Coverage**: `create_session()` 2FA handling
+
+#### TC-CLIENT-061: Create session validates api_id
+- **Purpose**: Verify create_session() validates api_id
+- **Preconditions**: Invalid api_id (<= 0)
+- **Test Steps**:
+  1. Call create_session(api_id=0, api_hash="hash")
+- **Expected Result**: ValueError raised: "api_id must be a positive number"
+- **Coverage**: `create_session()` validation
+
+#### TC-CLIENT-062: Create session validates phone number format
+- **Purpose**: Verify create_session() validates phone number format
+- **Preconditions**: Invalid phone number format
+- **Test Steps**:
+  1. Call create_session(api_id=123, api_hash="hash", phone_number="invalid")
+- **Expected Result**: ValueError raised: "Invalid phone number format"
+- **Coverage**: `create_session()` phone validation
+
+#### TC-CLIENT-063: Create session requires phone_number when non-interactive
+- **Purpose**: Verify create_session() requires phone_number when interactive=False
+- **Preconditions**: interactive=False, phone_number=None
+- **Test Steps**:
+  1. Call create_session(api_id=123, api_hash="hash", interactive=False)
+- **Expected Result**: ValueError raised: "phone_number is required when interactive=False"
+- **Coverage**: `create_session()` parameter validation
+
+#### TC-CLIENT-064: Create session requires api_id and api_hash
+- **Purpose**: Verify create_session() requires api_id and api_hash
+- **Preconditions**: Missing api_id or api_hash
+- **Test Steps**:
+  1. Call create_session(api_id=None, api_hash="hash")
+  2. Call create_session(api_id=123, api_hash=None)
+- **Expected Result**: ValueError raised: "api_id and api_hash are required"
+- **Coverage**: `create_session()` required parameters
+
+#### TC-CLIENT-065: Create session handles already authorized user
+- **Purpose**: Verify create_session() handles already authorized user
+- **Preconditions**: User already authorized
+- **Test Steps**:
+  1. Mock client.is_user_authorized() to return True
+  2. Call create_session()
+  3. Verify no authentication flow is triggered
+- **Expected Result**: Session string returned without authentication
+- **Coverage**: `create_session()` already authorized
+
+#### TC-CLIENT-066: Create session disconnects client after use
+- **Purpose**: Verify create_session() disconnects temporary client
+- **Preconditions**: Successful session creation
+- **Test Steps**:
+  1. Mock TelegramClient
+  2. Call create_session()
+  3. Verify client.disconnect() is called in finally block
+- **Expected Result**: Client disconnected
+- **Coverage**: `create_session()` cleanup

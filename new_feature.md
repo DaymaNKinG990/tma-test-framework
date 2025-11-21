@@ -378,34 +378,270 @@ def generate_telegram_init_data(
 5. **Удобные методы** - `result.json()`, `result.assert_status_code()` вместо внешних функций
 6. **Встроенные утилиты** - все необходимые функции в одном месте
 
+## Улучшение 6: Расширить Config для поддержки bot_token и language_code
+
+### Файл: `tma_test_framework/config.py`
+
+```python
+class Config(msgspec.Struct, frozen=True):
+    """Configuration for TMA test framework."""
+    
+    # ... существующие поля ...
+    
+    # Добавить новые поля:
+    bot_token: Optional[str] = None
+    language_code: str = "ru"
+    
+    @classmethod
+    def from_env(cls) -> "Config":
+        """
+        Create config from environment variables.
+        
+        Returns:
+            Config instance with values from environment
+        """
+        return cls(
+            # ... существующие поля ...
+            bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+            language_code=os.getenv("TMA_LANGUAGE_CODE", "ru"),
+        )
+```
+
+**Преимущества:**
+- Централизованное хранение конфигурации
+- Упрощение использования в тестах
+- Не нужно передавать `bot_token` и `language_code` отдельно
+
+## Улучшение 7: Добавить методы в UserTelegramClient для работы с TMA пользователями
+
+### Файл: `tma_test_framework/mtproto_client.py`
+
+```python
+class UserTelegramClient:
+    # ... существующие методы ...
+    
+    def to_tma_user_data(self) -> Dict[str, Any]:
+        """
+        Convert UserInfo to TMA user data format for API.
+        
+        Returns:
+            Dictionary with user data in format expected by /v1/create/tma/ endpoint
+            
+        Raises:
+            ValueError: If user is not authorized (get_me() not called)
+        """
+        if not self._me:
+            raise ValueError("User not authorized. Call get_me() first.")
+        
+        return {
+            "telegram_id": str(self._me.id),
+            "telegram_username": self._me.username or "",
+            "first_name": self._me.first_name or "",
+            "last_name": self._me.last_name or "",
+        }
+    
+    async def generate_init_data(
+        self,
+        config: Config,
+        is_premium: bool = False,
+    ) -> str:
+        """
+        Generate Telegram init_data from current user info.
+        
+        Args:
+            config: Config object with bot_token and language_code
+            is_premium: Whether user has premium
+            
+        Returns:
+            Valid Telegram init data string
+            
+        Raises:
+            ValueError: If user is not authorized or bot_token is missing
+        """
+        if not self._me:
+            raise ValueError("User not authorized. Call get_me() first.")
+        
+        if not config.bot_token:
+            raise ValueError("bot_token is required in config")
+        
+        return generate_telegram_init_data(
+            user_id=self._me.id,
+            username=self._me.username or "",
+            first_name=self._me.first_name or "",
+            last_name=self._me.last_name or "",
+            bot_token=config.bot_token,
+            language_code=config.language_code,
+            is_premium=is_premium or self._me.is_premium,
+        )
+```
+
+**Преимущества:**
+- Упрощает получение данных пользователя в нужном формате
+- Автоматическая генерация init_data из реальных данных пользователя
+- Меньше ручной работы в тестах
+
+## Улучшение 8: Добавить утилиту для преобразования UserInfo в user_data
+
+### Файл: `tma_test_framework/utils.py`
+
+```python
+def user_info_to_tma_data(user_info: UserInfo) -> Dict[str, Any]:
+    """
+    Convert UserInfo to TMA user data format for API.
+    
+    Args:
+        user_info: UserInfo object from UserTelegramClient
+        
+    Returns:
+        Dictionary with user data in format expected by /v1/create/tma/ endpoint
+    """
+    return {
+        "telegram_id": str(user_info.id),
+        "telegram_username": user_info.username or "",
+        "first_name": user_info.first_name or "",
+        "last_name": user_info.last_name or "",
+    }
+```
+
+## Улучшение 9: Добавить метод в MiniAppApi для автоматической настройки TMA аутентификации
+
+### Файл: `tma_test_framework/mini_app/api.py`
+
+```python
+async def setup_tma_auth(
+    self,
+    user_info: Optional[UserInfo] = None,
+    config: Optional[Config] = None,
+    create_user: bool = True,
+    create_user_endpoint: str = "v1/create/tma/",
+) -> None:
+    """
+    Setup TMA authentication: create user and set init_data token.
+    
+    Args:
+        user_info: UserInfo object (if None, will try to get from UserTelegramClient)
+        config: Config object (required if user_info is None)
+        create_user: Whether to create user via API (default: True)
+        create_user_endpoint: Endpoint for creating user (default: "v1/create/tma/")
+        
+    Raises:
+        ValueError: If user_info and config are both None
+        Exception: If user creation fails (unless user already exists)
+    """
+    if user_info is None:
+        if config is None:
+            raise ValueError("Either user_info or config must be provided")
+        
+        # Try to get user info from UserTelegramClient
+        try:
+            async with UserTelegramClient(config) as tg_client:
+                user_info = await tg_client.get_me()
+        except Exception as e:
+            raise ValueError(f"Failed to get user info from Telegram: {e}") from e
+    
+    # Prepare user data
+    user_data = user_info_to_tma_data(user_info)
+    
+    # Create user if needed
+    if create_user:
+        result = await self.make_request(
+            create_user_endpoint,
+            method="POST",
+            data=user_data,
+        )
+        # 400 means user already exists, which is fine
+        if result.status_code not in [HTTPStatus.CREATED, HTTPStatus.BAD_REQUEST]:
+            result.raise_for_status()
+    
+    # Generate init_data
+    if config is None:
+        raise ValueError("config is required for generating init_data")
+    
+    init_data = generate_telegram_init_data(
+        user_id=user_info.id,
+        username=user_info.username or "",
+        first_name=user_info.first_name or "",
+        last_name=user_info.last_name or "",
+        bot_token=config.bot_token or "",
+        language_code=config.language_code,
+        is_premium=user_info.is_premium,
+    )
+    
+    # Set auth token
+    self.set_auth_token(init_data, token_type="tma")
+```
+
+**Преимущества:**
+- Один метод для полной настройки TMA аутентификации
+- Автоматическая обработка создания пользователя
+- Упрощает код в фикстурах
+
 ## Пример использования после улучшения
 
 ```python
-# До улучшения (текущий код):
-from tests.framework.helpers import assert_status_code, _parse_json
-
-client = MiniAppApi(base_url, config)
-result = await client.make_request("v1/login/", method="POST", data=credentials)
-token = _parse_json(result.body)["access"]
-result = await client.make_request(
-    "v1/users/", 
-    method="GET",
-    headers={"Authorization": f"Bearer {token}"}
-)
-assert_status_code(result, 200)
-data = _parse_json(result.body)
+# До улучшения (текущий код в conftest.py):
+async def authenticated_tma_client(api_client: MiniAppApi, api_config: Config) -> MiniAppApi:
+    async with UserTelegramClient(api_config) as tg_client:
+        me = await tg_client.get_me()
+    user_data = {
+        "telegram_id": str(me.id),
+        "telegram_username": me.username or "",
+        "first_name": me.first_name or "",
+        "last_name": me.last_name or "",
+    }
+    
+    result = await api_client.make_request("v1/create/tma/", method="POST", data=user_data)
+    if result.status_code not in [HTTPStatus.CREATED, HTTPStatus.BAD_REQUEST]:
+        result.raise_for_status()
+    
+    bot_token = api_config.bot_token  # Может не существовать
+    init_data = generate_telegram_init_data(
+        user_id=telegram_id,  # Переменная не определена!
+        username=telegram_username,  # Переменная не определена!
+        first_name=first_name,  # Переменная не определена!
+        last_name=last_name,  # Переменная не определена!
+        bot_token=bot_token,
+        language_code=api_config.language_code,  # Может не существовать
+        is_premium=False,
+    )
+    api_client.set_auth_token(init_data, token_type="tma")
+    return api_client
 
 # После улучшения:
-from tma_test_framework import MiniAppApi, Config, generate_telegram_init_data
+async def authenticated_tma_client(api_client: MiniAppApi, api_config: Config) -> MiniAppApi:
+    """Create authenticated TMA client with init_data in Authorization header"""
+    # Один метод делает всё: получает данные пользователя, создаёт пользователя, генерирует init_data
+    await api_client.setup_tma_auth(config=api_config)
+    return api_client
 
-client = MiniAppApi(base_url, config)
-result = await client.make_request("v1/login/", method="POST", data=credentials)
-token = result.json()["access"]
-client.set_auth_token(token)  # Установить один раз
-
-# Токен автоматически добавляется, удобные методы для проверок
-result = await client.make_request("v1/users/", method="GET", params={"page": 1})
-result.assert_status_code(200)
-result.assert_has_fields("results", "count")
-data = result.json()
+# Или более явный вариант:
+async def authenticated_tma_client(api_client: MiniAppApi, api_config: Config) -> MiniAppApi:
+    """Create authenticated TMA client with init_data in Authorization header"""
+    async with UserTelegramClient(api_config) as tg_client:
+        me = await tg_client.get_me()
+        # Удобные методы для преобразования данных
+        user_data = tg_client.to_tma_user_data()
+        
+        # Создать пользователя
+        result = await api_client.make_request("v1/create/tma/", method="POST", data=user_data)
+        if result.status_code not in [HTTPStatus.CREATED, HTTPStatus.BAD_REQUEST]:
+            result.raise_for_status()
+        
+        # Генерация init_data из данных пользователя
+        init_data = await tg_client.generate_init_data(api_config)
+        api_client.set_auth_token(init_data, token_type="tma")
+    
+    return api_client
 ```
+
+## Резюме всех улучшений
+
+1. **Управление токенами** - автоматическое добавление токенов в запросы
+2. **Query параметры** - поддержка params в make_request
+3. **Методы ApiResult** - удобные методы для работы с ответами
+4. **Утилиты** - встроенные функции для валидации и парсинга
+5. **Генерация init_data** - функция для создания валидных Telegram init data
+6. **Расширенный Config** - поддержка bot_token и language_code
+7. **Методы UserTelegramClient** - преобразование UserInfo в нужные форматы
+8. **Утилита преобразования** - user_info_to_tma_data
+9. **Автоматическая настройка TMA** - setup_tma_auth для полной настройки аутентификации

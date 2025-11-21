@@ -3,6 +3,7 @@ Integration tests for UserTelegramClient + MiniAppUI.
 Tests verify interaction between MTProto client and Mini App UI client.
 """
 
+import allure
 import pytest
 
 from tma_test_framework.mtproto_client import MessageInfo, UserInfo, ChatInfo
@@ -14,6 +15,11 @@ class TestMTProtoMiniAppUIIntegration:
     """Integration tests for UserTelegramClient and MiniAppUI."""
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-001: Get Mini App from bot and test UI")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-001: Get Mini App from bot and test UI. "
+        "Verify complete flow: get Mini App from bot, then test its UI."
+    )
     async def test_get_mini_app_and_test_ui(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -82,6 +88,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-002: Get Mini App with start_param and test UI")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-002: Get Mini App with start_param and test UI. "
+        "Verify Mini App retrieval with start parameter and UI testing."
+    )
     async def test_get_mini_app_with_start_param_and_test_ui(
         self, mocker, user_telegram_client_connected, mock_mini_app_url_with_start_param
     ):
@@ -135,6 +146,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-004: Complete form submission flow")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-004: Complete form submission flow. "
+        "Verify complete form submission in Mini App."
+    )
     async def test_complete_form_submission_flow(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -199,6 +215,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-005: Test button interactions")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-005: Test button interactions. "
+        "Verify various button interactions."
+    )
     async def test_button_interactions(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -254,6 +275,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-006: Test dropdown and selection")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-006: Test dropdown and selection. "
+        "Verify dropdown and option selection."
+    )
     async def test_dropdown_and_selection(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -305,6 +331,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-007: Test checkbox interactions")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-007: Test checkbox interactions. "
+        "Verify checkbox check/uncheck."
+    )
     async def test_checkbox_interactions(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -359,6 +390,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-008: Test page navigation")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-008: Test page navigation. "
+        "Verify navigation between pages."
+    )
     async def test_page_navigation(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -420,6 +456,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-010: Take screenshot of Mini App")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-010: Take screenshot of Mini App. "
+        "Verify screenshot capture."
+    )
     async def test_take_screenshot(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -471,6 +512,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-012: Execute JavaScript in Mini App")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-012: Execute JavaScript in Mini App. "
+        "Verify JavaScript execution."
+    )
     async def test_execute_javascript(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -523,6 +569,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-017: Use context manager for full flow")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-017: Use context manager for full flow. "
+        "Verify context manager usage in integration."
+    )
     async def test_context_manager_integration(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -567,6 +618,11 @@ class TestMTProtoMiniAppUIIntegration:
         # Verify both closed (mocked close methods should be called)
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-018: Test UI loading performance")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-018: Test UI loading performance. "
+        "Verify Mini App UI loads in reasonable time."
+    )
     async def test_ui_loading_performance(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -627,6 +683,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-019: Test multiple UI interactions performance")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-019: Test multiple UI interactions performance. "
+        "Verify performance with multiple interactions."
+    )
     async def test_multiple_ui_interactions_performance(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -705,6 +766,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-003: Get Mini App from media and test UI")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-003: Get Mini App from media and test UI. "
+        "Verify Mini App retrieval from message media and UI testing."
+    )
     async def test_get_mini_app_from_media_and_test_ui(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -782,6 +848,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-009: Test scrolling and element visibility")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-009: Test scrolling and element visibility. "
+        "Verify scrolling to elements."
+    )
     async def test_scrolling_and_element_visibility(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -840,6 +911,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-011: Take screenshot of specific element")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-011: Take screenshot of specific element. "
+        "Verify element-specific screenshot."
+    )
     async def test_take_screenshot_of_specific_element(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -894,6 +970,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-013: Get data via JavaScript")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-013: Get data via JavaScript. "
+        "Verify data extraction via JavaScript."
+    )
     async def test_get_data_via_javascript(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -948,6 +1029,11 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-014: Handle Mini App not found")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-014: Handle Mini App not found. "
+        "Verify error handling when Mini App not found."
+    )
     async def test_handle_mini_app_not_found(
         self, mocker, user_telegram_client_connected
     ):
@@ -970,6 +1056,11 @@ class TestMTProtoMiniAppUIIntegration:
         assert result is None
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-015: Handle UI element not found")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-015: Handle UI element not found. "
+        "Verify error handling for missing UI elements."
+    )
     async def test_handle_ui_element_not_found(
         self, mocker, user_telegram_client_connected, mock_mini_app_url, caplog
     ):
@@ -1029,6 +1120,10 @@ class TestMTProtoMiniAppUIIntegration:
         await ui.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTUI-016: Handle browser errors")
+    @allure.description(
+        "TC-INTEGRATION-MTUI-016: Handle browser errors. Verify browser error handling."
+    )
     async def test_handle_browser_errors(
         self, mocker, user_telegram_client_connected, mock_mini_app_url, caplog
     ):

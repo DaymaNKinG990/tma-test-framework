@@ -4,18 +4,21 @@ Provides full user simulation capabilities for interacting with bots and Mini Ap
 """
 
 # Python imports
+import getpass
+import re
 from asyncio import sleep
 from re import search
 from typing import Optional, Dict, Any, List, Union
 from msgspec import Struct
-from telethon import TelegramClient, events
-from telethon.sessions import StringSession, SQLiteSession
-from telethon.tl.types import Message, User, Channel, Chat
+from telethon import TelegramClient, events  # type: ignore[import-untyped]
+from telethon.sessions import StringSession, SQLiteSession  # type: ignore[import-untyped]
+from telethon.tl.types import Message, User, Channel, Chat  # type: ignore[import-untyped]
 from loguru import logger
 
 # Local imports
 from .config import Config
 from .mini_app import MiniAppUI
+from .utils import generate_telegram_init_data, user_info_to_tma_data
 
 
 class UserInfo(Struct, frozen=True):
@@ -511,3 +514,210 @@ class UserTelegramClient:
             True if client is connected, False otherwise
         """
         return self._is_connected and self.client.is_connected()
+
+    def to_tma_user_data(self) -> Dict[str, Any]:
+        """
+        Convert UserInfo to TMA user data format for API.
+
+        Returns:
+            Dictionary with user data in format expected by /v1/create/tma/ endpoint
+
+        Raises:
+            ValueError: If user is not authorized (get_me() not called)
+        """
+        if not self._me:
+            raise ValueError("User not authorized. Call get_me() first.")
+        return user_info_to_tma_data(self._me)
+
+    async def generate_init_data(
+        self,
+        config: Config,
+        is_premium: bool = False,
+    ) -> str:
+        """
+        Generate Telegram init_data from current user info.
+
+        Args:
+            config: Config object with bot_token and language_code
+            is_premium: Whether user has premium
+
+        Returns:
+            Valid Telegram init data string
+
+        Raises:
+            ValueError: If user is not authorized or bot_token is missing
+        """
+        if not self._me:
+            raise ValueError("User not authorized. Call get_me() first.")
+        if not config.bot_token:
+            raise ValueError("bot_token is required in config")
+        return generate_telegram_init_data(
+            user_id=self._me.id,
+            username=self._me.username or "",
+            first_name=self._me.first_name or "",
+            last_name=self._me.last_name or "",
+            bot_token=config.bot_token,
+            language_code=config.language_code,
+            is_premium=is_premium or self._me.is_premium,
+        )
+
+    @property
+    def session_string(self) -> str:
+        """
+        Get current session string from connected client.
+
+        Returns:
+            Session string that can be used to restore the session
+
+        Raises:
+            ValueError: If client is not connected or not using StringSession
+        """
+        if not self._is_connected:
+            raise ValueError("Client is not connected. Call connect() first.")
+        # Check if session is StringSession
+        # Use isinstance for real sessions, type name for mocks
+        session_type_name = type(self.client.session).__name__
+        try:
+            is_string_session = isinstance(self.client.session, StringSession)
+        except (TypeError, AttributeError):
+            # For mocks that don't support isinstance, check by name
+            is_string_session = False
+
+        if not is_string_session and session_type_name != "StringSession":
+            raise ValueError(
+                "Session is not a StringSession. "
+                "Only StringSession can be converted to session string."
+            )
+        return self.client.session.save()
+
+    @classmethod
+    async def create_session(
+        cls,
+        api_id: Optional[int] = None,
+        api_hash: Optional[str] = None,
+        phone_number: Optional[str] = None,
+        config: Optional[Config] = None,
+        interactive: bool = True,
+    ) -> str:
+        """
+        Create a new Telegram session and return session string.
+
+        This method creates a temporary TelegramClient, authenticates the user,
+        and returns the session string that can be used in Config.
+
+        Args:
+            api_id: Telegram API ID (required if config is None)
+            api_hash: Telegram API Hash (required if config is None)
+            phone_number: Phone number with country code (e.g., +1234567890)
+                         (required if config is None and interactive=False)
+            config: Config object with api_id and api_hash (alternative to individual params)
+            interactive: If True, prompts for phone number and code via input()
+                        If False, phone_number must be provided
+
+        Returns:
+            Session string that can be used in Config.session_string
+
+        Raises:
+            ValueError: If required parameters are missing or invalid
+            Exception: If authentication fails
+
+        Example:
+            >>> # Interactive mode (prompts for input)
+            >>> session = await UserTelegramClient.create_session(
+            ...     api_id=12345,
+            ...     api_hash="your_api_hash"
+            ... )
+            >>> config = Config(
+            ...     api_id=12345,
+            ...     api_hash="your_api_hash",
+            ...     session_string=session
+            ... )
+
+            >>> # Non-interactive mode
+            >>> session = await UserTelegramClient.create_session(
+            ...     api_id=12345,
+            ...     api_hash="your_api_hash",
+            ...     phone_number="+1234567890",
+            ...     interactive=False
+            ... )
+        """
+        # Get parameters from config or individual args
+        if config:
+            if not config.api_id or not config.api_hash:
+                raise ValueError("Config must have api_id and api_hash")
+            api_id = config.api_id
+            api_hash = config.api_hash
+        else:
+            if api_id is None or api_hash is None:
+                raise ValueError("api_id and api_hash are required")
+
+        # Validate API ID (check after ensuring it's not None)
+        if api_id <= 0:
+            raise ValueError("api_id must be a positive number")
+
+        # Get phone number
+        if interactive and not phone_number:
+            phone_number = input(
+                "Enter your phone number (with country code, e.g., +1234567890): "
+            ).strip()
+        elif not phone_number:
+            raise ValueError("phone_number is required when interactive=False")
+
+        # Validate phone number
+        phone_pattern = r"^\+\d{7,15}$"
+        if not re.match(phone_pattern, phone_number):
+            raise ValueError(
+                "Invalid phone number format. "
+                "Must start with + and contain 7-15 digits (e.g., +1234567890)"
+            )
+
+        # Create temporary client with StringSession
+        session = StringSession()
+        client = TelegramClient(session, api_id, api_hash)
+
+        try:
+            # Connect
+            await client.connect()
+            logger.info("Connected to Telegram")
+
+            # Authenticate if needed
+            if not await client.is_user_authorized():
+                logger.info("Authenticating...")
+                await client.send_code_request(phone_number)
+
+                if interactive:
+                    code = getpass.getpass("Enter the verification code: ").strip()
+                else:
+                    raise ValueError(
+                        "User not authorized and interactive=False. "
+                        "Cannot request code non-interactively."
+                    )
+
+                try:
+                    await client.sign_in(phone_number, code)
+                    logger.info("Successfully authenticated!")
+                except Exception as e:
+                    if "password" in str(e).lower():
+                        if interactive:
+                            password = getpass.getpass(
+                                "Enter your 2FA password: "
+                            ).strip()
+                            await client.sign_in(password=password)
+                            logger.info("Successfully authenticated with 2FA!")
+                        else:
+                            raise ValueError(
+                                "2FA password required but interactive=False. "
+                                "Cannot request password non-interactively."
+                            ) from e
+                    else:
+                        raise
+            else:
+                logger.info("Already authenticated!")
+
+            # Get and return session string
+            session_string = client.session.save()
+            logger.info("Session string generated successfully")
+            return session_string
+
+        finally:
+            await client.disconnect()

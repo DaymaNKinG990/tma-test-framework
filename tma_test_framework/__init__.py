@@ -13,6 +13,7 @@ from .utils import (
     extract_pagination_info,
     get_error_detail,
     generate_telegram_init_data,
+    user_info_to_tma_data,
 )
 
 
@@ -33,4 +34,5 @@ __all__ = [
     "extract_pagination_info",
     "get_error_detail",
     "generate_telegram_init_data",
+    "user_info_to_tma_data",
 ]

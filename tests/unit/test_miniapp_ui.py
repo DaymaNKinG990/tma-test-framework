@@ -29,7 +29,7 @@ class TestMiniAppUIInit:
             with pytest.raises(ValueError, match="config is required"):
                 MiniAppUI("https://example.com/app", None)
 
-    @allure.title("Initialize MiniAppUI with URL and config")
+    @allure.title("TC-UI-001: Initialize MiniAppUI with URL and config")
     @allure.description("Test successful initialization with url and config. TC-UI-001")
     def test_init_with_url_and_config(self, valid_config):
         """Test successful initialization with url and config. TC-UI-001"""
@@ -57,7 +57,7 @@ class TestMiniAppUIInit:
             assert ui.page is None
 
     @pytest.mark.asyncio
-    @allure.title("Methods handle missing browser gracefully")
+    @allure.title("TC-UI-039: Methods handle missing browser gracefully")
     @allure.description("Test methods handle missing browser gracefully. TC-UI-039")
     async def test_methods_before_browser_setup(self, miniapp_ui_with_config, caplog):
         """Test methods handle missing browser gracefully. TC-UI-039"""
@@ -151,7 +151,7 @@ class TestMiniAppUIClose:
     """Test MiniAppUI close method."""
 
     @pytest.mark.asyncio
-    @allure.title("close() closes browser if it's set")
+    @allure.title("TC-UI-006: close() closes browser if it's set")
     @allure.description("Test close() closes browser if it's set. TC-UI-006")
     async def test_close_closes_browser_if_set(self, miniapp_ui_with_browser):
         """Test close() closes browser if it's set. TC-UI-006"""
@@ -165,7 +165,7 @@ class TestMiniAppUIClose:
             browser.close.assert_called_once()
 
     @pytest.mark.asyncio
-    @allure.title("close() does nothing if browser is None")
+    @allure.title("TC-UI-007: close() does nothing if browser is None")
     @allure.description("Test close() does nothing if browser is None. TC-UI-007")
     async def test_close_does_nothing_if_browser_none(self, miniapp_ui_with_config):
         """Test close() does nothing if browser is None. TC-UI-007"""
@@ -186,7 +186,7 @@ class TestMiniAppUISetupBrowser:
     """Test MiniAppUI setup_browser method."""
 
     @pytest.mark.asyncio
-    @allure.title("First call to setup_browser launches Chromium")
+    @allure.title("TC-UI-003: First call to setup_browser launches Chromium")
     @allure.description("Test first call to setup_browser launches Chromium. TC-UI-003")
     async def test_setup_browser_first_call_launches_chromium(
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
@@ -348,7 +348,7 @@ class TestMiniAppUISetupBrowser:
             assert result is miniapp_ui_with_config
 
     @pytest.mark.asyncio
-    @allure.title("setup_browser rejects empty or invalid URL")
+    @allure.title("TC-UI-042: setup_browser rejects empty or invalid URL")
     @allure.description("Test setup_browser rejects empty or invalid URL. TC-UI-042")
     async def test_setup_browser_rejects_empty_url(self, valid_config):
         """Test setup_browser rejects empty or invalid URL. TC-UI-042"""
@@ -458,7 +458,7 @@ class TestMiniAppUIElementInteraction:
     @pytest.mark.parametrize(
         "selector", ["#submit", ".btn-primary", '[data-testid="input"]']
     )
-    @allure.title("click_element logs DEBUG on success")
+    @allure.title("TC-UI-008: click_element logs DEBUG on success")
     @allure.description("Test click_element logs DEBUG on success. TC-UI-008")
     async def test_click_element_success(
         self, miniapp_ui_with_browser, selector, caplog
@@ -513,7 +513,7 @@ class TestMiniAppUIElementInteraction:
             miniapp_ui_with_browser.page.click.assert_called_once_with(unicode_selector)
 
     @pytest.mark.asyncio
-    @allure.title("click_element with very long selector")
+    @allure.title("TC-UI-041: click_element with very long selector")
     @allure.description("Test click_element with very long selector. TC-UI-041")
     async def test_click_element_very_long_selector(
         self, miniapp_ui_with_browser, caplog
@@ -531,7 +531,7 @@ class TestMiniAppUIElementInteraction:
             miniapp_ui_with_browser.page.click.assert_called_once_with(long_selector)
 
     @pytest.mark.asyncio
-    @allure.title("fill_input with unicode selector")
+    @allure.title("TC-UI-040: fill_input with unicode selector")
     @allure.description("Test fill_input with unicode selector. TC-UI-040")
     async def test_fill_input_unicode_selector(self, miniapp_ui_with_browser, caplog):
         """Test fill_input with unicode selector. TC-UI-040"""
@@ -547,7 +547,7 @@ class TestMiniAppUIElementInteraction:
             )
 
     @pytest.mark.asyncio
-    @allure.title("fill_input with very long selector")
+    @allure.title("TC-UI-041: fill_input with very long selector")
     @allure.description("Test fill_input with very long selector. TC-UI-041")
     async def test_fill_input_very_long_selector(self, miniapp_ui_with_browser, caplog):
         """Test fill_input with very long selector. TC-UI-041"""
@@ -564,7 +564,7 @@ class TestMiniAppUIElementInteraction:
             )
 
     @pytest.mark.asyncio
-    @allure.title("fill_input logs DEBUG on success")
+    @allure.title("TC-UI-010: fill_input logs DEBUG on success")
     @allure.description("Test fill_input logs DEBUG on success. TC-UI-010")
     async def test_fill_input_success(self, miniapp_ui_with_browser, caplog):
         """Test fill_input logs DEBUG on success. TC-UI-010"""
@@ -579,7 +579,7 @@ class TestMiniAppUIElementInteraction:
             )
 
     @pytest.mark.asyncio
-    @allure.title("fill_input handles exceptions")
+    @allure.title("TC-UI-011: fill_input handles exceptions")
     @allure.description("Test fill_input handles exceptions. TC-UI-011")
     async def test_fill_input_exception_handled(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -597,7 +597,7 @@ class TestMiniAppUIElementInteraction:
             assert "Failed to fill input" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("hover_element logs DEBUG on success")
+    @allure.title("TC-UI-020: hover_element logs DEBUG on success")
     @allure.description("Test hover_element logs DEBUG on success. TC-UI-020")
     async def test_hover_element_success(self, miniapp_ui_with_browser, caplog):
         """Test hover_element logs DEBUG on success. TC-UI-020"""
@@ -628,7 +628,7 @@ class TestMiniAppUIElementInteraction:
             assert "Failed to hover over element" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("double_click_element logs DEBUG on success")
+    @allure.title("TC-UI-021: double_click_element logs DEBUG on success")
     @allure.description("Test double_click_element logs DEBUG on success. TC-UI-021")
     async def test_double_click_element_success(self, miniapp_ui_with_browser, caplog):
         """Test double_click_element logs DEBUG on success. TC-UI-021"""
@@ -659,7 +659,7 @@ class TestMiniAppUIElementInteraction:
             assert "Failed to double click element" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("right_click_element logs DEBUG on success")
+    @allure.title("TC-UI-022: right_click_element logs DEBUG on success")
     @allure.description("Test right_click_element logs DEBUG on success. TC-UI-022")
     async def test_right_click_element_success(self, miniapp_ui_with_browser, caplog):
         """Test right_click_element logs DEBUG on success. TC-UI-022"""
@@ -692,7 +692,7 @@ class TestMiniAppUIElementInteraction:
             assert "Failed to right click element" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("check_checkbox logs DEBUG on success")
+    @allure.title("TC-UI-024: check_checkbox logs DEBUG on success")
     @allure.description("Test check_checkbox logs DEBUG on success. TC-UI-024")
     async def test_check_checkbox_success(self, miniapp_ui_with_browser, caplog):
         """Test check_checkbox logs DEBUG on success. TC-UI-024"""
@@ -723,7 +723,7 @@ class TestMiniAppUIElementInteraction:
             assert "Failed to check checkbox" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("uncheck_checkbox logs DEBUG on success")
+    @allure.title("TC-UI-025: uncheck_checkbox logs DEBUG on success")
     @allure.description("Test uncheck_checkbox logs DEBUG on success. TC-UI-025")
     async def test_uncheck_checkbox_success(self, miniapp_ui_with_browser, caplog):
         """Test uncheck_checkbox logs DEBUG on success. TC-UI-025"""
@@ -754,7 +754,7 @@ class TestMiniAppUIElementInteraction:
             assert "Failed to uncheck checkbox" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("select_option logs DEBUG on success")
+    @allure.title("TC-UI-023: select_option logs DEBUG on success")
     @allure.description("Test select_option logs DEBUG on success. TC-UI-023")
     async def test_select_option_success(self, miniapp_ui_with_browser, caplog):
         """Test select_option logs DEBUG on success. TC-UI-023"""
@@ -798,7 +798,7 @@ class TestMiniAppUIWaitAndNavigation:
     """Test MiniAppUI wait and navigation methods."""
 
     @pytest.mark.asyncio
-    @allure.title("wait_for_element waits for element to appear")
+    @allure.title("TC-UI-012: wait_for_element waits for element to appear")
     @allure.description("Test wait_for_element waits for element to appear. TC-UI-012")
     async def test_wait_for_element_success(self, miniapp_ui_with_browser, caplog):
         """Test wait_for_element waits for element to appear. TC-UI-012"""
@@ -813,7 +813,7 @@ class TestMiniAppUIWaitAndNavigation:
             )
 
     @pytest.mark.asyncio
-    @allure.title("wait_for_element handles timeout")
+    @allure.title("TC-UI-013: wait_for_element handles timeout")
     @allure.description("Test wait_for_element handles timeout. TC-UI-013")
     async def test_wait_for_element_timeout(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -835,7 +835,7 @@ class TestMiniAppUIWaitAndNavigation:
             assert "Element" in caplog.text and "did not appear" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("wait_for_navigation waits for networkidle")
+    @allure.title("TC-UI-029: wait_for_navigation waits for networkidle")
     @allure.description("Test wait_for_navigation waits for networkidle. TC-UI-029")
     async def test_wait_for_navigation_success(self, miniapp_ui_with_browser, caplog):
         """Test wait_for_navigation waits for networkidle. TC-UI-029"""
@@ -850,7 +850,7 @@ class TestMiniAppUIWaitAndNavigation:
             )
 
     @pytest.mark.asyncio
-    @allure.title("wait_for_navigation handles timeout")
+    @allure.title("TC-UI-030: wait_for_navigation handles timeout")
     @allure.description("Test wait_for_navigation handles timeout. TC-UI-030")
     async def test_wait_for_navigation_timeout(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1002,7 +1002,7 @@ class TestMiniAppUIGetData:
             assert "Failed to get element attribute" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("get_page_title returns page title")
+    @allure.title("TC-UI-031: get_page_title returns page title")
     @allure.description("Test get_page_title returns page title. TC-UI-031")
     async def test_get_page_title_success(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1022,7 +1022,7 @@ class TestMiniAppUIGetData:
             assert "Page title" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("get_page_title returns empty string on error")
+    @allure.title("TC-UI-032: get_page_title returns empty string on error")
     @allure.description("Test get_page_title returns empty string on error. TC-UI-032")
     async def test_get_page_title_exception_handled(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1041,7 +1041,7 @@ class TestMiniAppUIGetData:
             assert "Failed to get page title" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("get_page_url returns page URL")
+    @allure.title("TC-UI-033: get_page_url returns page URL")
     @allure.description("Test get_page_url returns page URL. TC-UI-033")
     async def test_get_page_url_success(self, miniapp_ui_with_browser, caplog):
         """Test get_page_url returns page URL. TC-UI-033"""
@@ -1057,7 +1057,7 @@ class TestMiniAppUIGetData:
             assert "Page URL" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("get_page_url returns empty string on error")
+    @allure.title("TC-UI-034: get_page_url returns empty string on error")
     @allure.description("Test get_page_url returns empty string on error. TC-UI-034")
     async def test_get_page_url_exception_handled(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1088,7 +1088,7 @@ class TestMiniAppUIScreenshotsAndFiles:
     """Test MiniAppUI screenshot and file methods."""
 
     @pytest.mark.asyncio
-    @allure.title("take_screenshot creates file")
+    @allure.title("TC-UI-035: take_screenshot creates file")
     @allure.description("Test take_screenshot creates file. TC-UI-035")
     async def test_take_screenshot_success(self, miniapp_ui_with_browser, caplog):
         """Test take_screenshot creates file. TC-UI-035"""
@@ -1107,7 +1107,7 @@ class TestMiniAppUIScreenshotsAndFiles:
                     )
 
     @pytest.mark.asyncio
-    @allure.title("take_screenshot handles error")
+    @allure.title("TC-UI-036: take_screenshot handles error")
     @allure.description("Test take_screenshot handles error. TC-UI-036")
     async def test_take_screenshot_error_handled(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1127,7 +1127,7 @@ class TestMiniAppUIScreenshotsAndFiles:
             assert "Screenshot failed" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("upload_file calls set_input_files")
+    @allure.title("TC-UI-026: upload_file calls set_input_files")
     @allure.description("Test upload_file calls set_input_files. TC-UI-026")
     async def test_upload_file_success(self, miniapp_ui_with_browser, caplog):
         """Test upload_file calls set_input_files. TC-UI-026"""
@@ -1174,7 +1174,7 @@ class TestMiniAppUIKeyboardAndScripts:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("key", ["Enter", "Tab", "Escape", "ArrowDown"])
-    @allure.title("press_key calls keyboard.press")
+    @allure.title("TC-UI-027: press_key calls keyboard.press")
     @allure.description("Test press_key calls keyboard.press. TC-UI-027")
     async def test_press_key_success(self, miniapp_ui_with_browser, key, caplog):
         """Test press_key calls keyboard.press. TC-UI-027"""
@@ -1207,7 +1207,7 @@ class TestMiniAppUIKeyboardAndScripts:
             assert "Failed to press key" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("type_text calls keyboard.type")
+    @allure.title("TC-UI-028: type_text calls keyboard.type")
     @allure.description("Test type_text calls keyboard.type. TC-UI-028")
     async def test_type_text_success(self, miniapp_ui_with_browser, caplog):
         """Test type_text calls keyboard.type. TC-UI-028"""
@@ -1240,7 +1240,7 @@ class TestMiniAppUIKeyboardAndScripts:
             assert "Failed to type text" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("execute_script returns result")
+    @allure.title("TC-UI-037: execute_script returns result")
     @allure.description("Test execute_script returns result. TC-UI-037")
     async def test_execute_script_success(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1258,7 +1258,7 @@ class TestMiniAppUIKeyboardAndScripts:
             assert "Script executed" in caplog.text
 
     @pytest.mark.asyncio
-    @allure.title("execute_script handles error and returns None")
+    @allure.title("TC-UI-038: execute_script handles error and returns None")
     @allure.description("Test execute_script handles error and returns None. TC-UI-038")
     async def test_execute_script_error_handled(
         self, mocker, miniapp_ui_with_browser, caplog
@@ -1303,7 +1303,7 @@ class TestMiniAppUIScroll:
             miniapp_ui_with_browser.page.locator.assert_called_once_with("#element")
 
     @pytest.mark.asyncio
-    @allure.title("scroll_to_element handles error")
+    @allure.title("TC-UI-019: scroll_to_element handles error")
     @allure.description("Test scroll_to_element handles error. TC-UI-019")
     async def test_scroll_to_element_error_handled(
         self, mocker, miniapp_ui_with_browser, caplog

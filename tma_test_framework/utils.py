@@ -6,8 +6,11 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TYPE_CHECKING
 from urllib.parse import urlencode
+
+if TYPE_CHECKING:
+    from .mtproto_client import UserInfo
 
 
 def parse_json(body: bytes) -> Dict[str, Any]:
@@ -21,7 +24,8 @@ def parse_json(body: bytes) -> Dict[str, Any]:
         Parsed JSON data
     """
     try:
-        return json.loads(body.decode("utf-8"))
+        result: Dict[str, Any] = json.loads(body.decode("utf-8"))
+        return result
     except (json.JSONDecodeError, ValueError, UnicodeDecodeError):
         return {}
 
@@ -70,7 +74,31 @@ def get_error_detail(data: Dict[str, Any]) -> str:
     Returns:
         Error detail string
     """
-    return data.get("detail", data.get("error", str(data)))
+    detail = data.get("detail")
+    if detail:
+        return str(detail)
+    error = data.get("error")
+    if error:
+        return str(error)
+    return str(data)
+
+
+def user_info_to_tma_data(user_info: "UserInfo") -> Dict[str, Any]:
+    """
+    Convert UserInfo to TMA user data format for API.
+
+    Args:
+        user_info: UserInfo object from UserTelegramClient
+
+    Returns:
+        Dictionary with user data in format expected by /v1/create/tma/ endpoint
+    """
+    return {
+        "telegram_id": str(user_info.id),
+        "telegram_username": user_info.username or "",
+        "first_name": user_info.first_name or "",
+        "last_name": user_info.last_name or "",
+    }
 
 
 def generate_telegram_init_data(

@@ -3,6 +3,7 @@ Integration tests for UserTelegramClient + MiniAppApi.
 Tests verify interaction between MTProto client and Mini App API client.
 """
 
+import allure
 import pytest
 from httpx import Response
 from datetime import timedelta
@@ -16,6 +17,13 @@ class TestMTProtoMiniAppApiIntegration:
     """Integration tests for UserTelegramClient and MiniAppApi."""
 
     @pytest.mark.asyncio
+    @allure.title(
+        "TC-INTEGRATION-MTAPI-001: Get Mini App from bot and test API endpoint"
+    )
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-001: Get Mini App from bot and test API endpoint. "
+        "Verify complete flow: get Mini App from bot, then test its API."
+    )
     async def test_get_mini_app_and_test_api_endpoint(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -73,6 +81,13 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title(
+        "TC-INTEGRATION-MTAPI-002: Get Mini App with start_param and test API"
+    )
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-002: Get Mini App with start_param and test API. "
+        "Verify Mini App retrieval with start parameter."
+    )
     async def test_get_mini_app_with_start_param_and_test_api(
         self, mocker, user_telegram_client_connected, mock_mini_app_url_with_start_param
     ):
@@ -123,6 +138,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-003: Get Mini App from media and test API")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-003: Get Mini App from media and test API. "
+        "Verify Mini App retrieval from message media."
+    )
     async def test_get_mini_app_from_media_and_test_api(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -199,6 +219,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-004: Get initData from bot and validate")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-004: Get initData from bot and validate. "
+        "Verify initData validation in integration context."
+    )
     async def test_validate_init_data_integration(
         self, mocker, user_telegram_client_connected, mock_bot_token
     ):
@@ -236,6 +261,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-006: Test GET endpoint after getting Mini App")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-006: Test GET endpoint after getting Mini App. "
+        "Verify GET request to Mini App API."
+    )
     async def test_get_endpoint_after_getting_mini_app(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -287,6 +317,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-007: Test POST endpoint with data")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-007: Test POST endpoint with data. "
+        "Verify POST request with JSON data."
+    )
     async def test_post_endpoint_with_data(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -343,6 +378,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-008: Test multiple API endpoints")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-008: Test multiple API endpoints. "
+        "Verify testing multiple endpoints in sequence."
+    )
     async def test_multiple_api_endpoints(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -410,6 +450,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-009: Test API with authentication")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-009: Test API with authentication. "
+        "Verify API requests with authentication headers."
+    )
     async def test_api_with_authentication(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -465,6 +510,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-010: Handle bot not responding")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-010: Handle bot not responding. "
+        "Verify error handling when bot doesn't respond."
+    )
     async def test_handle_bot_not_responding(
         self, mocker, user_telegram_client_connected
     ):
@@ -487,6 +537,11 @@ class TestMTProtoMiniAppApiIntegration:
         assert result is None
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-011: Handle Mini App API errors")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-011: Handle Mini App API errors. "
+        "Verify error handling for API failures."
+    )
     async def test_handle_mini_app_api_errors(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -528,6 +583,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-013: Use context manager for full flow")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-013: Use context manager for full flow. "
+        "Verify context manager usage in integration."
+    )
     async def test_context_manager_integration(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -569,6 +629,11 @@ class TestMTProtoMiniAppApiIntegration:
         # Note: Actual cleanup verification depends on implementation
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-014: Test multiple API calls performance")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-014: Test multiple API calls performance. "
+        "Verify performance with multiple requests."
+    )
     async def test_multiple_api_calls_performance(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -635,6 +700,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-015: Test concurrent API calls")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-015: Test concurrent API calls. "
+        "Verify concurrent request handling."
+    )
     async def test_concurrent_api_calls(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -701,6 +771,11 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-MTAPI-012: Handle network timeout")
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-012: Handle network timeout. "
+        "Verify timeout handling in integration."
+    )
     async def test_handle_network_timeout(
         self, mocker, user_telegram_client_connected, mock_mini_app_url
     ):
@@ -760,6 +835,13 @@ class TestMTProtoMiniAppApiIntegration:
         await mini_app_api.close()
 
     @pytest.mark.asyncio
+    @allure.title(
+        "TC-INTEGRATION-MTAPI-005: Validate initData with different bot tokens"
+    )
+    @allure.description(
+        "TC-INTEGRATION-MTAPI-005: Validate initData with different bot tokens. "
+        "Verify initData validation with multiple bots."
+    )
     async def test_validate_init_data_with_different_bot_tokens(
         self, mocker, user_telegram_client_connected
     ):

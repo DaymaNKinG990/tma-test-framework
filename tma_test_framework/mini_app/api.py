@@ -6,13 +6,18 @@ Telegram Mini App API client for interacting with Telegram WebApp API.
 from hashlib import sha256
 from hmac import compare_digest, new
 from urllib.parse import parse_qs
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
+from http import HTTPStatus
 from httpx import AsyncClient, Limits
 
 # Local imports
 from .base import BaseMiniApp
 from .models import ApiResult
 from ..config import Config
+from ..utils import generate_telegram_init_data, user_info_to_tma_data
+
+if TYPE_CHECKING:
+    from ..mtproto_client import UserInfo
 
 
 class MiniAppApi(BaseMiniApp):
@@ -245,3 +250,67 @@ class MiniAppApi(BaseMiniApp):
                 reason=None,
                 error_message=error_msg,
             )
+
+    async def setup_tma_auth(
+        self,
+        user_info: Optional["UserInfo"] = None,
+        config: Optional[Config] = None,
+        create_user: bool = True,
+        create_user_endpoint: str = "v1/create/tma/",
+    ) -> None:
+        """
+        Setup TMA authentication: create user and set init_data token.
+
+        Args:
+            user_info: UserInfo object (if None, will try to get from UserTelegramClient)
+            config: Config object (required for generating init_data and for getting user_info if user_info is None)
+            create_user: Whether to create user via API (default: True)
+            create_user_endpoint: Endpoint for creating user (default: "v1/create/tma/")
+
+        Raises:
+            ValueError: If config is None, or if both user_info and config are None
+            Exception: If user creation fails (unless user already exists)
+        """
+        # Validate config early - it's always required for generating init_data
+        if config is None:
+            raise ValueError("config is required for generating init_data")
+
+        if user_info is None:
+            # Import here to avoid circular dependency
+            from ..mtproto_client import UserTelegramClient
+
+            # Try to get user info from UserTelegramClient
+            try:
+                async with UserTelegramClient(config) as tg_client:
+                    user_info = await tg_client.get_me()
+            except Exception as e:
+                raise ValueError(f"Failed to get user info from Telegram: {e}") from e
+
+        # Prepare user data
+        user_data = user_info_to_tma_data(user_info)
+
+        # Create user if needed
+        if create_user:
+            result = await self.make_request(
+                create_user_endpoint,
+                method="POST",
+                data=user_data,
+            )
+            # 400 means user already exists, which is fine
+            if result.status_code not in [HTTPStatus.CREATED, HTTPStatus.BAD_REQUEST]:
+                result.raise_for_status()
+
+        # Generate init_data
+
+        init_data = generate_telegram_init_data(
+            user_id=user_info.id,
+            username=user_info.username or "",
+            first_name=user_info.first_name or "",
+            last_name=user_info.last_name or "",
+            bot_token=config.bot_token or "",
+            language_code=config.language_code,
+            is_premium=user_info.is_premium,
+        )
+
+        # Set auth token
+        self.set_auth_token(init_data, token_type="tma")

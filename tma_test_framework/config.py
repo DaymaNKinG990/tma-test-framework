@@ -59,6 +59,8 @@ class Config(Struct, frozen=True):
     retry_count: int = 3
     retry_delay: float = 1.0
     log_level: str = "INFO"
+    bot_token: Optional[str] = None
+    language_code: str = "ru"
 
     def __post_init__(self) -> None:
         """Validate configuration after initialization."""
@@ -131,6 +133,8 @@ class Config(Struct, frozen=True):
             retry_count=retry_count,
             retry_delay=retry_delay,
             log_level=getenv("TMA_LOG_LEVEL", "INFO"),
+            bot_token=getenv("TELEGRAM_BOT_TOKEN"),
+            language_code=getenv("TMA_LANGUAGE_CODE", "ru"),
         )
 
     @classmethod

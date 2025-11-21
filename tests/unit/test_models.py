@@ -1406,8 +1406,8 @@ class TestApiResult:
         assert result.reason == "OK"
         assert result.status_code == 200
 
-    @allure.title("ApiResult.json() method")
-    @allure.description("Test ApiResult.json() method.")
+    @allure.title("TC-MODEL-API-022: ApiResult.json() method")
+    @allure.description("Test ApiResult.json() method. TC-MODEL-API-022")
     def test_api_result_json_method(self):
         """Test ApiResult.json() method."""
         json_data = {"key": "value", "number": 123}
@@ -1429,8 +1429,12 @@ class TestApiResult:
         assert parsed["key"] == "value"
         assert parsed["number"] == 123
 
-    @allure.title("ApiResult.json() raises ValueError for invalid JSON")
-    @allure.description("Test ApiResult.json() raises ValueError for invalid JSON.")
+    @allure.title(
+        "TC-MODEL-API-023: ApiResult.json() raises ValueError for invalid JSON"
+    )
+    @allure.description(
+        "Test ApiResult.json() raises ValueError for invalid JSON. TC-MODEL-API-023"
+    )
     def test_api_result_json_method_invalid_json(self):
         """Test ApiResult.json() raises ValueError for invalid JSON."""
         result = ApiResult(
@@ -1449,8 +1453,8 @@ class TestApiResult:
         with pytest.raises(ValueError, match="Failed to parse JSON"):
             result.json()
 
-    @allure.title("ApiResult.text() method")
-    @allure.description("Test ApiResult.text() method.")
+    @allure.title("TC-MODEL-API-024: ApiResult.text() method")
+    @allure.description("Test ApiResult.text() method. TC-MODEL-API-024")
     def test_api_result_text_method(self):
         """Test ApiResult.text() method."""
         text_content = "Hello, World!"
@@ -1469,8 +1473,10 @@ class TestApiResult:
 
         assert result.text() == text_content
 
-    @allure.title("ApiResult.text() handles decode errors gracefully")
-    @allure.description("Test ApiResult.text() handles decode errors gracefully.")
+    @allure.title("TC-MODEL-API-025: ApiResult.text() handles decode errors gracefully")
+    @allure.description(
+        "Test ApiResult.text() handles decode errors gracefully. TC-MODEL-API-025"
+    )
     def test_api_result_text_method_with_errors(self):
         """Test ApiResult.text() handles decode errors gracefully."""
         # Invalid UTF-8 sequence
@@ -1491,8 +1497,12 @@ class TestApiResult:
         text = result.text()
         assert isinstance(text, str)
 
-    @allure.title("ApiResult.raise_for_status() does not raise for success")
-    @allure.description("Test ApiResult.raise_for_status() does not raise for success.")
+    @allure.title(
+        "TC-MODEL-API-026: ApiResult.raise_for_status() does not raise for success"
+    )
+    @allure.description(
+        "Test ApiResult.raise_for_status() does not raise for success. TC-MODEL-API-026"
+    )
     def test_api_result_raise_for_status_success(self):
         """Test ApiResult.raise_for_status() does not raise for success."""
         result = ApiResult(
@@ -1510,8 +1520,12 @@ class TestApiResult:
         # Should not raise
         result.raise_for_status()
 
-    @allure.title("ApiResult.raise_for_status() raises for 4xx status")
-    @allure.description("Test ApiResult.raise_for_status() raises for 4xx status.")
+    @allure.title(
+        "TC-MODEL-API-027: ApiResult.raise_for_status() raises for 4xx status"
+    )
+    @allure.description(
+        "Test ApiResult.raise_for_status() raises for 4xx status. TC-MODEL-API-027"
+    )
     def test_api_result_raise_for_status_client_error(self):
         """Test ApiResult.raise_for_status() raises for 4xx status."""
         result = ApiResult(
@@ -1530,8 +1544,12 @@ class TestApiResult:
         with pytest.raises(Exception, match="HTTP 404"):
             result.raise_for_status()
 
-    @allure.title("ApiResult.raise_for_status() raises for 5xx status")
-    @allure.description("Test ApiResult.raise_for_status() raises for 5xx status.")
+    @allure.title(
+        "TC-MODEL-API-028: ApiResult.raise_for_status() raises for 5xx status"
+    )
+    @allure.description(
+        "Test ApiResult.raise_for_status() raises for 5xx status. TC-MODEL-API-028"
+    )
     def test_api_result_raise_for_status_server_error(self):
         """Test ApiResult.raise_for_status() raises for 5xx status."""
         result = ApiResult(
@@ -1550,8 +1568,10 @@ class TestApiResult:
         with pytest.raises(Exception, match="HTTP 500"):
             result.raise_for_status()
 
-    @allure.title("ApiResult.assert_status_code() with matching code")
-    @allure.description("Test ApiResult.assert_status_code() with matching code.")
+    @allure.title("TC-MODEL-API-029: ApiResult.assert_status_code() with matching code")
+    @allure.description(
+        "Test ApiResult.assert_status_code() with matching code. TC-MODEL-API-029"
+    )
     def test_api_result_assert_status_code_success(self):
         """Test ApiResult.assert_status_code() with matching code."""
         result = ApiResult(
@@ -1569,9 +1589,11 @@ class TestApiResult:
         # Should not raise
         result.assert_status_code(200)
 
-    @allure.title("ApiResult.assert_status_code() raises AssertionError for mismatch")
+    @allure.title(
+        "TC-MODEL-API-030: ApiResult.assert_status_code() raises AssertionError for mismatch"
+    )
     @allure.description(
-        "Test ApiResult.assert_status_code() raises AssertionError for mismatch."
+        "Test ApiResult.assert_status_code() raises AssertionError for mismatch. TC-MODEL-API-030"
     )
     def test_api_result_assert_status_code_failure(self):
         """Test ApiResult.assert_status_code() raises AssertionError for mismatch."""
@@ -1591,8 +1613,10 @@ class TestApiResult:
         with pytest.raises(AssertionError, match="Expected status code 200, got 404"):
             result.assert_status_code(200)
 
-    @allure.title("ApiResult.assert_success() for successful request")
-    @allure.description("Test ApiResult.assert_success() for successful request.")
+    @allure.title("TC-MODEL-API-031: ApiResult.assert_success() for successful request")
+    @allure.description(
+        "Test ApiResult.assert_success() for successful request. TC-MODEL-API-031"
+    )
     def test_api_result_assert_success(self):
         """Test ApiResult.assert_success() for successful request."""
         result = ApiResult(
@@ -1610,9 +1634,11 @@ class TestApiResult:
         # Should not raise
         result.assert_success()
 
-    @allure.title("ApiResult.assert_success() raises AssertionError for failed request")
+    @allure.title(
+        "TC-MODEL-API-032: ApiResult.assert_success() raises AssertionError for failed request"
+    )
     @allure.description(
-        "Test ApiResult.assert_success() raises AssertionError for failed request."
+        "Test ApiResult.assert_success() raises AssertionError for failed request. TC-MODEL-API-032"
     )
     def test_api_result_assert_success_failure(self):
         """Test ApiResult.assert_success() raises AssertionError for failed request."""
@@ -1632,8 +1658,12 @@ class TestApiResult:
         with pytest.raises(AssertionError, match="Request failed with status 500"):
             result.assert_success()
 
-    @allure.title("ApiResult.assert_has_fields() with all fields present")
-    @allure.description("Test ApiResult.assert_has_fields() with all fields present.")
+    @allure.title(
+        "TC-MODEL-API-033: ApiResult.assert_has_fields() with all fields present"
+    )
+    @allure.description(
+        "Test ApiResult.assert_has_fields() with all fields present. TC-MODEL-API-033"
+    )
     def test_api_result_assert_has_fields_success(self):
         """Test ApiResult.assert_has_fields() with all fields present."""
         json_data = {"name": "test", "id": 123, "status": "active"}
@@ -1654,10 +1684,10 @@ class TestApiResult:
         result.assert_has_fields("name", "id", "status")
 
     @allure.title(
-        "ApiResult.assert_has_fields() raises AssertionError for missing fields"
+        "TC-MODEL-API-034: ApiResult.assert_has_fields() raises AssertionError for missing fields"
     )
     @allure.description(
-        "Test ApiResult.assert_has_fields() raises AssertionError for missing fields."
+        "Test ApiResult.assert_has_fields() raises AssertionError for missing fields. TC-MODEL-API-034"
     )
     def test_api_result_assert_has_fields_missing(self):
         """Test ApiResult.assert_has_fields() raises AssertionError for missing fields."""

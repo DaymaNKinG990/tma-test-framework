@@ -296,6 +296,27 @@
 | TC-UTILS-016 | Generate init data with valid hash format | `test_generate_telegram_init_data_hash_format` | ✅ |
 | TC-UTILS-017 | Generate init data can be validated | `test_generate_telegram_init_data_validates` | ✅ |
 
+## UserTelegramClient - Сопоставление
+
+### 12. Session Management Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-CLIENT-053 | Get session_string from connected client | `test_session_string_returns_string` | ✅ |
+| TC-CLIENT-054 | Get session_string raises when not connected | `test_session_string_not_connected` | ✅ |
+| TC-CLIENT-055 | Get session_string raises with SQLiteSession | `test_session_string_with_sqlite_session` | ✅ |
+| TC-CLIENT-056 | Create session with api_id and api_hash | `test_create_session_with_params` | ✅ |
+| TC-CLIENT-057 | Create session with Config object | `test_create_session_with_config` | ✅ |
+| TC-CLIENT-058 | Create session interactive mode | `test_create_session_interactive` | ✅ |
+| TC-CLIENT-059 | Create session non-interactive mode | `test_create_session_non_interactive` | ✅ |
+| TC-CLIENT-060 | Create session with 2FA password | `test_create_session_with_2fa` | ✅ |
+| TC-CLIENT-061 | Create session validates api_id | `test_create_session_invalid_api_id` | ✅ |
+| TC-CLIENT-062 | Create session validates phone number format | `test_create_session_invalid_phone` | ✅ |
+| TC-CLIENT-063 | Create session requires phone_number when non-interactive | `test_create_session_missing_phone_non_interactive` | ✅ |
+| TC-CLIENT-064 | Create session requires api_id and api_hash | `test_create_session_missing_params` | ✅ |
+| TC-CLIENT-065 | Create session handles already authorized user | `test_create_session_already_authorized` | ✅ |
+| TC-CLIENT-066 | Create session disconnects client after use | `test_create_session_disconnects` | ✅ |
+
 ## Выводы
 
 ### Покрытие тест-кейсов
@@ -317,6 +338,10 @@
 **Utility Functions**:
 - Всего тест-кейсов: 17 (TC-UTILS-001 до TC-UTILS-017)
 - Покрыто тестами: 17 (100%)
+
+**UserTelegramClient Session Management**:
+- Всего тест-кейсов: 14 (TC-CLIENT-053 до TC-CLIENT-066)
+- Покрыто тестами: 14 (100%)
 
 ### Рекомендации
 

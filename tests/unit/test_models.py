@@ -6,8 +6,8 @@ import json
 import pytest
 import msgspec
 
-from src.mtproto_client import UserInfo, ChatInfo, MessageInfo
-from src.mini_app import MiniAppInfo, ApiResult
+from tma_test_framework.mtproto_client import UserInfo, ChatInfo, MessageInfo
+from tma_test_framework.mini_app import MiniAppInfo, ApiResult
 from tests.data.constants import (
     VALID_USER_INFO_DATA,
     BOT_USER_INFO_DATA,
@@ -312,7 +312,7 @@ class TestMessageInfo:
 
     def test_valid_message_info_creation(self):
         """Test creating a valid MessageInfo."""
-        from src.mtproto_client import ChatInfo, UserInfo
+        from tma_test_framework.mtproto_client import ChatInfo, UserInfo
 
         # Create proper dict with ChatInfo and UserInfo objects
         message_dict = {
@@ -410,7 +410,7 @@ class TestMessageInfo:
     def test_message_info_deserialization(self):
         """Test MessageInfo deserialization."""
         # Create proper dict with ChatInfo and UserInfo objects
-        from src.mtproto_client import ChatInfo, UserInfo
+        from tma_test_framework.mtproto_client import ChatInfo, UserInfo
 
         message_dict = {
             "id": 111222333,
@@ -464,7 +464,7 @@ class TestMessageInfo:
 
     def test_message_info_unicode(self):
         """Test MessageInfo with unicode characters."""
-        from src.mtproto_client import ChatInfo, UserInfo
+        from tma_test_framework.mtproto_client import ChatInfo, UserInfo
 
         # Create proper dict with ChatInfo and UserInfo objects
         unicode_message_dict = {

@@ -1,7 +1,7 @@
 # MTProto Client - Unit Test Cases
 
 ## Overview
-Tests for `src.mtproto_client` module:
+Tests for `tma_test_framework.mtproto_client` module:
 - `UserTelegramClient` - MTProto client for user simulation
 - `UserInfo` - User information model
 - `ChatInfo` - Chat information model

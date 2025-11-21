@@ -1,7 +1,7 @@
 # Mini App Models - Unit Test Cases
 
 ## Overview
-Tests for data models in `src.mini_app.models`:
+Tests for data models in `tma_test_framework.mini_app.models`:
 - `MiniAppInfo` - Mini App information structure
 - `ApiResult` - API request result structure
 

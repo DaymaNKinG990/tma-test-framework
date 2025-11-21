@@ -6,9 +6,14 @@ Tests verify complete workflows from start to finish.
 import pytest
 from datetime import timedelta
 
-from src.mtproto_client import UserTelegramClient, UserInfo, ChatInfo, MessageInfo
-from src.mini_app.api import MiniAppApi
-from src.mini_app.ui import MiniAppUI
+from tma_test_framework.mtproto_client import (
+    UserTelegramClient,
+    UserInfo,
+    ChatInfo,
+    MessageInfo,
+)
+from tma_test_framework.mini_app.api import MiniAppApi
+from tma_test_framework.mini_app.ui import MiniAppUI
 
 
 @pytest.mark.integration
@@ -71,7 +76,9 @@ class TestEndToEndWorkflows:
         mock_page.click = mocker.AsyncMock()
         mock_page.fill = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -144,7 +151,9 @@ class TestEndToEndWorkflows:
         mock_page = mocker.AsyncMock()
         mock_page.url = mock_mini_app_url_with_start_param
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -194,7 +203,9 @@ class TestEndToEndWorkflows:
         mock_page = mocker.AsyncMock()
         mock_page.click = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -409,7 +420,9 @@ class TestEndToEndWorkflows:
         mock_page = mocker.AsyncMock()
         mock_page.click = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -532,7 +545,9 @@ class TestEndToEndWorkflows:
 
         # Mock StringSession to avoid validation error (must be before UserTelegramClient creation)
         mock_session = mocker.MagicMock()
-        mocker.patch("src.mtproto_client.StringSession", return_value=mock_session)
+        mocker.patch(
+            "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+        )
 
         # Create mock TelegramClient with async methods
         mock_telegram_client = mocker.AsyncMock()
@@ -542,7 +557,8 @@ class TestEndToEndWorkflows:
         mock_telegram_client.get_me = mocker.AsyncMock()
         mock_telegram_client.disconnect = mocker.AsyncMock()
         mocker.patch(
-            "src.mtproto_client.TelegramClient", return_value=mock_telegram_client
+            "tma_test_framework.mtproto_client.TelegramClient",
+            return_value=mock_telegram_client,
         )
 
         # Create UserTelegramClient with Config
@@ -625,7 +641,9 @@ class TestEndToEndWorkflows:
             return_value={"submitted": True, "data": "test123"}
         )
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -690,7 +708,7 @@ class TestEndToEndWorkflows:
         from datetime import timedelta
         import yaml
         from pathlib import Path
-        from src.config import Config
+        from tma_test_framework.config import Config
 
         # Create YAML config file
         yaml_config = {
@@ -714,7 +732,9 @@ class TestEndToEndWorkflows:
 
         # Mock StringSession to avoid validation error (must be before UserTelegramClient creation)
         mock_session = mocker.MagicMock()
-        mocker.patch("src.mtproto_client.StringSession", return_value=mock_session)
+        mocker.patch(
+            "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+        )
 
         # Create mock TelegramClient with async methods
         mock_telegram_client = mocker.AsyncMock()
@@ -724,7 +744,8 @@ class TestEndToEndWorkflows:
         mock_telegram_client.get_me = mocker.AsyncMock()
         mock_telegram_client.disconnect = mocker.AsyncMock()
         mocker.patch(
-            "src.mtproto_client.TelegramClient", return_value=mock_telegram_client
+            "tma_test_framework.mtproto_client.TelegramClient",
+            return_value=mock_telegram_client,
         )
 
         # Create UserTelegramClient with Config
@@ -885,7 +906,9 @@ class TestEndToEndWorkflows:
         mock_page = mocker.AsyncMock()
         mock_page.click = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -947,7 +970,9 @@ class TestEndToEndWorkflows:
 
         mock_browser = mocker.AsyncMock()
         mock_page = mocker.AsyncMock()
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -984,7 +1009,9 @@ class TestEndToEndWorkflows:
 
         # Mock StringSession to avoid validation error (must be before UserTelegramClient creation)
         mock_session = mocker.MagicMock()
-        mocker.patch("src.mtproto_client.StringSession", return_value=mock_session)
+        mocker.patch(
+            "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+        )
 
         # Create mock TelegramClient with async methods
         mock_telegram_client = mocker.AsyncMock()
@@ -994,7 +1021,8 @@ class TestEndToEndWorkflows:
         mock_telegram_client.get_me = mocker.AsyncMock()
         mock_telegram_client.disconnect = mocker.AsyncMock()
         mocker.patch(
-            "src.mtproto_client.TelegramClient", return_value=mock_telegram_client
+            "tma_test_framework.mtproto_client.TelegramClient",
+            return_value=mock_telegram_client,
         )
 
         # Start 3 concurrent workflows
@@ -1103,9 +1131,9 @@ class TestEndToEndWorkflows:
             mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
             apis.append(mini_app_api)
 
-        assert (
-            len(apis) == RESOURCE_LIMIT
-        ), "Should create exactly limit number of instances"
+        assert len(apis) == RESOURCE_LIMIT, (
+            "Should create exactly limit number of instances"
+        )
 
         # Attempt to create one more than the limit - should raise exception
         with pytest.raises(RuntimeError, match="Resource limit exceeded"):
@@ -1125,9 +1153,9 @@ class TestEndToEndWorkflows:
         new_api = MiniAppApi(f"{mock_mini_app_url}?new", config)
         new_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
         result = await new_api.make_request("/api/status")
-        assert (
-            result.status_code == 200
-        ), "Should be able to create new instance after cleanup"
+        assert result.status_code == 200, (
+            "Should be able to create new instance after cleanup"
+        )
 
         # Cleanup all remaining resources
         await apis[2].close()
@@ -1166,7 +1194,9 @@ class TestEndToEndWorkflows:
         mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
         mock_page.evaluate = mocker.AsyncMock(return_value={"modal": "opened"})
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -1247,7 +1277,9 @@ class TestEndToEndWorkflows:
         mock_page.wait_for_selector = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -1335,7 +1367,9 @@ class TestEndToEndWorkflows:
         mock_page.click = mocker.AsyncMock()
         mock_page.fill = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser

@@ -1,6 +1,6 @@
 [project]
 name = "tma-test-framework"
-version = "1.0.0"
+version = "1.1.0"
 description = "Simple Python framework for working with Telegram API and Mini Apps"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -25,7 +25,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+# Install tma_test_framework directory as package
+# After installation, users can import as: from tma_test_framework import ...
+packages = ["tma_test_framework"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -34,7 +36,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
-    "--cov=src",
+    "--cov=tma_test_framework",
     "--cov-report=html:htmlcov",
     "--cov-report=term-missing",
     # Coverage threshold: CI will fail if coverage drops below 80%
@@ -131,8 +133,8 @@ ignore_missing_imports = true
 # Ignore msgspec.Struct frozen argument - mypy doesn't understand it
 [[tool.mypy.overrides]]
 module = [
-    "src.mtproto_client",
-    "src.mini_app.models",
-    "src.config",
+    "tma_test_framework.mtproto_client",
+    "tma_test_framework.mini_app.models",
+    "tma_test_framework.config",
 ]
 ignore_errors = true

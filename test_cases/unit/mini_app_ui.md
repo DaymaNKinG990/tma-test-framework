@@ -1,7 +1,7 @@
 # MiniAppUI Class - Unit Test Cases
 
 ## Overview
-Tests for `src.mini_app.ui.MiniAppUI` class - UI testing client using Playwright.
+Tests for `tma_test_framework.mini_app.ui.MiniAppUI` class - UI testing client using Playwright.
 
 ## Test Categories
 

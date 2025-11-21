@@ -235,9 +235,9 @@ class UserTelegramClient:
                 and is_first_name_none_or_not_string
             ):
                 # title_value is guaranteed to be str here due to title_is_valid check
-                assert isinstance(
-                    title_value, str
-                ), "title_value must be str when title_is_valid is True"
+                assert isinstance(title_value, str), (
+                    "title_value must be str when title_is_valid is True"
+                )
                 return ChatInfo(
                     id=entity_obj.id,
                     title=title_value,

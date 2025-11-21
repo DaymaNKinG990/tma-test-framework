@@ -8,7 +8,7 @@ from msgspec import convert, to_builtins
 from pytest import mark, raises
 
 # Local imports
-from src.config import Config
+from tma_test_framework.config import Config
 
 
 @mark.unit
@@ -21,22 +21,22 @@ def test_valid_config_creation(valid_config_data: dict[str, int | str | float]) 
     """
     config = Config(**valid_config_data)  # type: ignore[arg-type]
     assert config.api_id == valid_config_data.get("api_id"), "API ID does not match"
-    assert config.api_hash == valid_config_data.get(
-        "api_hash"
-    ), "API hash does not match"
-    assert config.session_string == valid_config_data.get(
-        "session_string"
-    ), "Session string does not match"
+    assert config.api_hash == valid_config_data.get("api_hash"), (
+        "API hash does not match"
+    )
+    assert config.session_string == valid_config_data.get("session_string"), (
+        "Session string does not match"
+    )
     assert config.timeout == valid_config_data.get("timeout"), "Timeout does not match"
-    assert config.retry_count == valid_config_data.get(
-        "retry_count"
-    ), "Retry count does not match"
-    assert config.retry_delay == valid_config_data.get(
-        "retry_delay"
-    ), "Retry delay does not match"
-    assert config.log_level == valid_config_data.get(
-        "log_level"
-    ), "Log level does not match"
+    assert config.retry_count == valid_config_data.get("retry_count"), (
+        "Retry count does not match"
+    )
+    assert config.retry_delay == valid_config_data.get("retry_delay"), (
+        "Retry delay does not match"
+    )
+    assert config.log_level == valid_config_data.get("log_level"), (
+        "Log level does not match"
+    )
 
 
 @mark.unit
@@ -50,15 +50,15 @@ def test_valid_config_with_file(
         valid_config_with_file_data: Valid configuration data with session file.
     """
     config = Config(**valid_config_with_file_data)  # type: ignore[arg-type]
-    assert config.api_id == valid_config_with_file_data.get(
-        "api_id"
-    ), "API ID does not match"
-    assert config.api_hash == valid_config_with_file_data.get(
-        "api_hash"
-    ), "API hash does not match"
-    assert config.session_file == valid_config_with_file_data.get(
-        "session_file"
-    ), "Session file does not match"
+    assert config.api_id == valid_config_with_file_data.get("api_id"), (
+        "API ID does not match"
+    )
+    assert config.api_hash == valid_config_with_file_data.get("api_hash"), (
+        "API hash does not match"
+    )
+    assert config.session_file == valid_config_with_file_data.get("session_file"), (
+        "Session file does not match"
+    )
     assert config.session_string is None, "Session string should be None"
 
 
@@ -68,21 +68,21 @@ def test_config_default_values(
 ) -> None:
     """Test configuration default values."""
     config = Config(**config_data_for_default_values)  # type: ignore[arg-type]
-    assert config.timeout == config_data_for_default_values.get(
-        "timeout"
-    ), "Timeout should be default 30"
-    assert config.retry_count == config_data_for_default_values.get(
-        "retry_count"
-    ), "Retry count should be default 3"
-    assert config.retry_delay == config_data_for_default_values.get(
-        "retry_delay"
-    ), "Retry delay should be default 1.0"
-    assert config.log_level == config_data_for_default_values.get(
-        "log_level"
-    ), "Log level should be default INFO"
-    assert config.mini_app_url is config_data_for_default_values.get(
-        "mini_app_url"
-    ), "Mini app URL should be None"
+    assert config.timeout == config_data_for_default_values.get("timeout"), (
+        "Timeout should be default 30"
+    )
+    assert config.retry_count == config_data_for_default_values.get("retry_count"), (
+        "Retry count should be default 3"
+    )
+    assert config.retry_delay == config_data_for_default_values.get("retry_delay"), (
+        "Retry delay should be default 1.0"
+    )
+    assert config.log_level == config_data_for_default_values.get("log_level"), (
+        "Log level should be default INFO"
+    )
+    assert config.mini_app_url is config_data_for_default_values.get("mini_app_url"), (
+        "Mini app URL should be None"
+    )
     assert config.mini_app_start_param is config_data_for_default_values.get(
         "mini_app_start_param"
     ), "Mini app start param should be None"
@@ -101,9 +101,9 @@ def test_config_validation_success(
     config = Config(**valid_config_data)  # type: ignore[arg-type]
     assert config.api_id > 0, "API ID should be greater than 0"
     assert config.api_hash, "API hash should be not None"
-    assert (
-        config.session_string or config.session_file
-    ), "Session string or session file should be provided"
+    assert config.session_string or config.session_file, (
+        "Session string or session file should be provided"
+    )
 
 
 @mark.unit
@@ -201,24 +201,24 @@ def test_config_validation_minimal_values(
         valid_config_data_minimal: Valid configuration data minimal.
     """
     config = Config(**valid_config_data_minimal)  # type: ignore[arg-type]
-    assert config.api_id == valid_config_data_minimal.get(
-        "api_id"
-    ), "API ID does not match"
-    assert config.api_hash == valid_config_data_minimal.get(
-        "api_hash"
-    ), "API hash does not match"
-    assert config.session_string == valid_config_data_minimal.get(
-        "session_string"
-    ), "Session string does not match"
-    assert config.timeout == valid_config_data_minimal.get(
-        "timeout"
-    ), "Timeout does not match"
-    assert config.retry_count == valid_config_data_minimal.get(
-        "retry_count"
-    ), "Retry count does not match"
-    assert config.retry_delay == valid_config_data_minimal.get(
-        "retry_delay"
-    ), "Retry delay does not match"
+    assert config.api_id == valid_config_data_minimal.get("api_id"), (
+        "API ID does not match"
+    )
+    assert config.api_hash == valid_config_data_minimal.get("api_hash"), (
+        "API hash does not match"
+    )
+    assert config.session_string == valid_config_data_minimal.get("session_string"), (
+        "Session string does not match"
+    )
+    assert config.timeout == valid_config_data_minimal.get("timeout"), (
+        "Timeout does not match"
+    )
+    assert config.retry_count == valid_config_data_minimal.get("retry_count"), (
+        "Retry count does not match"
+    )
+    assert config.retry_delay == valid_config_data_minimal.get("retry_delay"), (
+        "Retry delay does not match"
+    )
 
 
 @mark.unit
@@ -232,24 +232,24 @@ def test_config_validation_maximal_values(
         valid_config_data_maximal: Valid configuration data maximal.
     """
     config = Config(**valid_config_data_maximal)  # type: ignore[arg-type]
-    assert config.api_id == valid_config_data_maximal.get(
-        "api_id"
-    ), "API ID does not match"
-    assert config.api_hash == valid_config_data_maximal.get(
-        "api_hash"
-    ), "API hash does not match"
-    assert config.session_string == valid_config_data_maximal.get(
-        "session_string"
-    ), "Session string does not match"
-    assert config.timeout == valid_config_data_maximal.get(
-        "timeout"
-    ), "Timeout does not match"
-    assert config.retry_count == valid_config_data_maximal.get(
-        "retry_count"
-    ), "Retry count does not match"
-    assert config.retry_delay == valid_config_data_maximal.get(
-        "retry_delay"
-    ), "Retry delay does not match"
+    assert config.api_id == valid_config_data_maximal.get("api_id"), (
+        "API ID does not match"
+    )
+    assert config.api_hash == valid_config_data_maximal.get("api_hash"), (
+        "API hash does not match"
+    )
+    assert config.session_string == valid_config_data_maximal.get("session_string"), (
+        "Session string does not match"
+    )
+    assert config.timeout == valid_config_data_maximal.get("timeout"), (
+        "Timeout does not match"
+    )
+    assert config.retry_count == valid_config_data_maximal.get("retry_count"), (
+        "Retry count does not match"
+    )
+    assert config.retry_delay == valid_config_data_maximal.get("retry_delay"), (
+        "Retry delay does not match"
+    )
 
 
 @mark.unit
@@ -453,33 +453,33 @@ def test_from_env_valid_variables(mock_environment: dict[str, str]) -> None:
     """
     # Environment is already patched by mock_environment fixture
     config = Config.from_env()
-    assert config.api_id == int(
-        mock_environment.get("TMA_API_ID") or "0"
-    ), "API ID does not match"
-    assert config.api_hash == mock_environment.get(
-        "TMA_API_HASH"
-    ), "API hash does not match"
-    assert config.session_string == mock_environment.get(
-        "TMA_SESSION_STRING"
-    ), "Session string does not match"
-    assert config.mini_app_url == mock_environment.get(
-        "TMA_MINI_APP_URL"
-    ), "Mini app URL does not match"
+    assert config.api_id == int(mock_environment.get("TMA_API_ID") or "0"), (
+        "API ID does not match"
+    )
+    assert config.api_hash == mock_environment.get("TMA_API_HASH"), (
+        "API hash does not match"
+    )
+    assert config.session_string == mock_environment.get("TMA_SESSION_STRING"), (
+        "Session string does not match"
+    )
+    assert config.mini_app_url == mock_environment.get("TMA_MINI_APP_URL"), (
+        "Mini app URL does not match"
+    )
     assert config.mini_app_start_param == mock_environment.get(
         "TMA_MINI_APP_START_PARAM"
     ), "Mini app start param does not match"
-    assert config.timeout == int(
-        mock_environment.get("TMA_TIMEOUT") or "30"
-    ), "Timeout does not match"
-    assert config.retry_count == int(
-        mock_environment.get("TMA_RETRY_COUNT") or "3"
-    ), "Retry count does not match"
+    assert config.timeout == int(mock_environment.get("TMA_TIMEOUT") or "30"), (
+        "Timeout does not match"
+    )
+    assert config.retry_count == int(mock_environment.get("TMA_RETRY_COUNT") or "3"), (
+        "Retry count does not match"
+    )
     assert config.retry_delay == float(
         mock_environment.get("TMA_RETRY_DELAY") or "1.0"
     ), "Retry delay does not match"
-    assert config.log_level == mock_environment.get(
-        "TMA_LOG_LEVEL"
-    ), "Log level does not match"
+    assert config.log_level == mock_environment.get("TMA_LOG_LEVEL"), (
+        "Log level does not match"
+    )
 
 
 @mark.unit
@@ -564,9 +564,9 @@ def test_from_env_default_values(
     assert config.retry_delay == float(
         mock_environment_default_values.get("TMA_RETRY_DELAY") or "1.0"
     ), "Retry delay should be default 1.0"
-    assert config.log_level == mock_environment_default_values.get(
-        "TMA_LOG_LEVEL"
-    ), "Log level should be default INFO"
+    assert config.log_level == mock_environment_default_values.get("TMA_LOG_LEVEL"), (
+        "Log level should be default INFO"
+    )
 
 
 @mark.unit
@@ -820,9 +820,9 @@ def test_config_mini_app_url_with_whitespace() -> None:
         session_string="test_session",
         mini_app_url=url_with_whitespace,
     )
-    assert (
-        config.mini_app_url == url_with_whitespace
-    ), "mini_app_url should preserve whitespace without strip"
+    assert config.mini_app_url == url_with_whitespace, (
+        "mini_app_url should preserve whitespace without strip"
+    )
 
 
 @mark.unit
@@ -836,9 +836,9 @@ def test_config_log_level_debug(
         config_data_for_log_level_debug: Configuration data with log level debug.
     """
     config = Config(**config_data_for_log_level_debug)  # type: ignore[arg-type]
-    assert config.log_level == config_data_for_log_level_debug.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.log_level == config_data_for_log_level_debug.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -852,9 +852,9 @@ def test_config_log_level_info(
         config_data_for_log_level_info: Configuration data with log level info.
     """
     config = Config(**config_data_for_log_level_info)  # type: ignore[arg-type]
-    assert config.log_level == config_data_for_log_level_info.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.log_level == config_data_for_log_level_info.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -868,9 +868,9 @@ def test_config_log_level_warning(
         config_data_for_log_level_warning: Configuration data with log level warning.
     """
     config = Config(**config_data_for_log_level_warning)  # type: ignore[arg-type]
-    assert config.log_level == config_data_for_log_level_warning.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.log_level == config_data_for_log_level_warning.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -884,9 +884,9 @@ def test_config_log_level_error(
         config_data_for_log_level_error: Configuration data with log level error.
     """
     config = Config(**config_data_for_log_level_error)  # type: ignore[arg-type]
-    assert config.log_level == config_data_for_log_level_error.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.log_level == config_data_for_log_level_error.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -900,9 +900,9 @@ def test_config_log_level_critical(
         config_data_for_log_level_critical: Configuration data with log level critical.
     """
     config = Config(**config_data_for_log_level_critical)  # type: ignore[arg-type]
-    assert config.log_level == config_data_for_log_level_critical.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.log_level == config_data_for_log_level_critical.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -930,9 +930,9 @@ def test_config_float_precision(
         config_data_for_float_precision: Configuration data with float precision.
     """
     config = Config(**config_data_for_float_precision)  # type: ignore[arg-type]
-    assert config.retry_delay == config_data_for_float_precision.get(
-        "retry_delay"
-    ), "Retry delay should match"
+    assert config.retry_delay == config_data_for_float_precision.get("retry_delay"), (
+        "Retry delay should match"
+    )
 
 
 @mark.unit
@@ -946,18 +946,18 @@ def test_config_large_numbers(
         config_data_for_large_numbers: Configuration data with large numbers.
     """
     config = Config(**config_data_for_large_numbers)  # type: ignore[arg-type]
-    assert config.api_id == config_data_for_large_numbers.get(
-        "api_id"
-    ), "API ID should match"
-    assert config.timeout == config_data_for_large_numbers.get(
-        "timeout"
-    ), "Timeout should match"
-    assert config.retry_count == config_data_for_large_numbers.get(
-        "retry_count"
-    ), "Retry count should match"
-    assert config.retry_delay == config_data_for_large_numbers.get(
-        "retry_delay"
-    ), "Retry delay should match"
+    assert config.api_id == config_data_for_large_numbers.get("api_id"), (
+        "API ID should match"
+    )
+    assert config.timeout == config_data_for_large_numbers.get("timeout"), (
+        "Timeout should match"
+    )
+    assert config.retry_count == config_data_for_large_numbers.get("retry_count"), (
+        "Retry count should match"
+    )
+    assert config.retry_delay == config_data_for_large_numbers.get("retry_delay"), (
+        "Retry delay should match"
+    )
 
 
 @mark.unit
@@ -973,24 +973,24 @@ def test_from_yaml_valid_file(
     """
     config = Config.from_yaml(yaml_config_file_valid)
     assert config.api_id == yaml_config_data_valid.get("api_id"), "API ID should match"
-    assert config.api_hash == yaml_config_data_valid.get(
-        "api_hash"
-    ), "API hash should match"
-    assert config.session_string == yaml_config_data_valid.get(
-        "session_string"
-    ), "Session string should match"
-    assert config.timeout == yaml_config_data_valid.get(
-        "timeout"
-    ), "Timeout should match"
-    assert config.retry_count == yaml_config_data_valid.get(
-        "retry_count"
-    ), "Retry count should match"
-    assert config.retry_delay == yaml_config_data_valid.get(
-        "retry_delay"
-    ), "Retry delay should match"
-    assert config.log_level == yaml_config_data_valid.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.api_hash == yaml_config_data_valid.get("api_hash"), (
+        "API hash should match"
+    )
+    assert config.session_string == yaml_config_data_valid.get("session_string"), (
+        "Session string should match"
+    )
+    assert config.timeout == yaml_config_data_valid.get("timeout"), (
+        "Timeout should match"
+    )
+    assert config.retry_count == yaml_config_data_valid.get("retry_count"), (
+        "Retry count should match"
+    )
+    assert config.retry_delay == yaml_config_data_valid.get("retry_delay"), (
+        "Retry delay should match"
+    )
+    assert config.log_level == yaml_config_data_valid.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -1005,27 +1005,27 @@ def test_from_yaml_minimal_file(
         yaml_config_data_minimal: Parsed YAML config data.
     """
     config = Config.from_yaml(yaml_config_file_minimal)
-    assert config.api_id == yaml_config_data_minimal.get(
-        "api_id"
-    ), "API ID should match"
-    assert config.api_hash == yaml_config_data_minimal.get(
-        "api_hash"
-    ), "API hash should match"
-    assert config.session_string == yaml_config_data_minimal.get(
-        "session_string"
-    ), "Session string should match"
-    assert config.timeout == yaml_config_data_minimal.get(
-        "timeout"
-    ), "Timeout should match"
-    assert config.retry_count == yaml_config_data_minimal.get(
-        "retry_count"
-    ), "Retry count should match"
-    assert config.retry_delay == yaml_config_data_minimal.get(
-        "retry_delay"
-    ), "Retry delay should match"
-    assert config.log_level == yaml_config_data_minimal.get(
-        "log_level", "INFO"
-    ), "Log level should be default INFO"
+    assert config.api_id == yaml_config_data_minimal.get("api_id"), (
+        "API ID should match"
+    )
+    assert config.api_hash == yaml_config_data_minimal.get("api_hash"), (
+        "API hash should match"
+    )
+    assert config.session_string == yaml_config_data_minimal.get("session_string"), (
+        "Session string should match"
+    )
+    assert config.timeout == yaml_config_data_minimal.get("timeout"), (
+        "Timeout should match"
+    )
+    assert config.retry_count == yaml_config_data_minimal.get("retry_count"), (
+        "Retry count should match"
+    )
+    assert config.retry_delay == yaml_config_data_minimal.get("retry_delay"), (
+        "Retry delay should match"
+    )
+    assert config.log_level == yaml_config_data_minimal.get("log_level", "INFO"), (
+        "Log level should be default INFO"
+    )
 
 
 @mark.unit
@@ -1040,30 +1040,30 @@ def test_from_yaml_with_file_session(
         yaml_config_data_with_file_session: Parsed YAML config data.
     """
     config = Config.from_yaml(yaml_config_file_with_file_session)
-    assert config.api_id == yaml_config_data_with_file_session.get(
-        "api_id"
-    ), "API ID should match"
-    assert config.api_hash == yaml_config_data_with_file_session.get(
-        "api_hash"
-    ), "API hash should match"
+    assert config.api_id == yaml_config_data_with_file_session.get("api_id"), (
+        "API ID should match"
+    )
+    assert config.api_hash == yaml_config_data_with_file_session.get("api_hash"), (
+        "API hash should match"
+    )
     assert config.session_file == yaml_config_data_with_file_session.get(
         "session_file"
     ), "Session file should match"
     assert config.session_string == yaml_config_data_with_file_session.get(
         "session_string"
     ), "Session string should be None"
-    assert config.timeout == yaml_config_data_with_file_session.get(
-        "timeout"
-    ), "Timeout should match"
+    assert config.timeout == yaml_config_data_with_file_session.get("timeout"), (
+        "Timeout should match"
+    )
     assert config.retry_count == yaml_config_data_with_file_session.get(
         "retry_count"
     ), "Retry count should match"
     assert config.retry_delay == yaml_config_data_with_file_session.get(
         "retry_delay"
     ), "Retry delay should match"
-    assert config.log_level == yaml_config_data_with_file_session.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.log_level == yaml_config_data_with_file_session.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit
@@ -1078,33 +1078,33 @@ def test_from_yaml_with_mini_app(
         yaml_config_data_with_mini_app: Parsed YAML config data.
     """
     config = Config.from_yaml(yaml_config_file_with_mini_app)
-    assert config.api_id == yaml_config_data_with_mini_app.get(
-        "api_id"
-    ), "API ID should match"
-    assert config.api_hash == yaml_config_data_with_mini_app.get(
-        "api_hash"
-    ), "API hash should match"
+    assert config.api_id == yaml_config_data_with_mini_app.get("api_id"), (
+        "API ID should match"
+    )
+    assert config.api_hash == yaml_config_data_with_mini_app.get("api_hash"), (
+        "API hash should match"
+    )
     assert config.session_string == yaml_config_data_with_mini_app.get(
         "session_string"
     ), "Session string should match"
-    assert config.mini_app_url == yaml_config_data_with_mini_app.get(
-        "mini_app_url"
-    ), "Mini app URL should match"
+    assert config.mini_app_url == yaml_config_data_with_mini_app.get("mini_app_url"), (
+        "Mini app URL should match"
+    )
     assert config.mini_app_start_param == yaml_config_data_with_mini_app.get(
         "mini_app_start_param"
     ), "Mini app start param should match"
-    assert config.timeout == yaml_config_data_with_mini_app.get(
-        "timeout"
-    ), "Timeout should match"
-    assert config.retry_count == yaml_config_data_with_mini_app.get(
-        "retry_count"
-    ), "Retry count should match"
-    assert config.retry_delay == yaml_config_data_with_mini_app.get(
-        "retry_delay"
-    ), "Retry delay should match"
-    assert config.log_level == yaml_config_data_with_mini_app.get(
-        "log_level"
-    ), "Log level should match"
+    assert config.timeout == yaml_config_data_with_mini_app.get("timeout"), (
+        "Timeout should match"
+    )
+    assert config.retry_count == yaml_config_data_with_mini_app.get("retry_count"), (
+        "Retry count should match"
+    )
+    assert config.retry_delay == yaml_config_data_with_mini_app.get("retry_delay"), (
+        "Retry delay should match"
+    )
+    assert config.log_level == yaml_config_data_with_mini_app.get("log_level"), (
+        "Log level should match"
+    )
 
 
 @mark.unit

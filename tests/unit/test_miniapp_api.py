@@ -7,7 +7,7 @@ import pytest
 # Removed unittest.mock import - using pytest-mock instead AsyncMock, MagicMock, patch
 from httpx import RequestError, TimeoutException
 
-from src.mini_app.api import MiniAppApi
+from tma_test_framework.mini_app.api import MiniAppApi
 from tests.fixtures.miniapp_api import (
     generate_valid_init_data,
 )
@@ -23,7 +23,10 @@ class TestMiniAppApiInit:
 
     def test_init_with_url_and_config(self, mocker, valid_config, mock_httpx_client):
         """Test successful initialization with url and config. TC-API-001"""
-        mocker.patch("src.mini_app.api.AsyncClient", return_value=mock_httpx_client)
+        mocker.patch(
+            "tma_test_framework.mini_app.api.AsyncClient",
+            return_value=mock_httpx_client,
+        )
         api = MiniAppApi("https://example.com/app", valid_config)
 
         assert api.url == "https://example.com/app"
@@ -33,7 +36,10 @@ class TestMiniAppApiInit:
     def test_init_with_config_none_raises_error(self, mocker, mock_httpx_client):
         """Test initialization with config=None raises error. TC-API-002"""
         # BaseMiniApp raises ValueError when config is None
-        mocker.patch("src.mini_app.api.AsyncClient", return_value=mock_httpx_client)
+        mocker.patch(
+            "tma_test_framework.mini_app.api.AsyncClient",
+            return_value=mock_httpx_client,
+        )
         with pytest.raises(ValueError, match="config is required"):
             MiniAppApi("https://example.com/app", None)
 
@@ -42,7 +48,8 @@ class TestMiniAppApiInit:
     ):
         """Test AsyncClient is created with correct timeout. TC-API-003"""
         mock_client_class = mocker.patch(
-            "src.mini_app.api.AsyncClient", return_value=mock_httpx_client
+            "tma_test_framework.mini_app.api.AsyncClient",
+            return_value=mock_httpx_client,
         )
         _ = MiniAppApi("https://example.com/app", valid_config)
 
@@ -57,7 +64,8 @@ class TestMiniAppApiInit:
         """Test AsyncClient is created with correct Limits. TC-API-004"""
 
         mock_client_class = mocker.patch(
-            "src.mini_app.api.AsyncClient", return_value=mock_httpx_client
+            "tma_test_framework.mini_app.api.AsyncClient",
+            return_value=mock_httpx_client,
         )
         _ = MiniAppApi("https://example.com/app", valid_config)
 
@@ -223,7 +231,7 @@ class TestMiniAppApiValidateInitData:
         """Test validate_init_data uses hmac.compare_digest for security. TC-API-016"""
         init_data, bot_token = valid_init_data_and_token
 
-        mock_compare = mocker.patch("src.mini_app.api.compare_digest")
+        mock_compare = mocker.patch("tma_test_framework.mini_app.api.compare_digest")
         mock_compare.return_value = True
         result = await miniapp_api_with_config.validate_init_data(init_data, bot_token)
 
@@ -262,7 +270,8 @@ class TestMiniAppApiValidateInitData:
         # Force an exception by mocking hmac.new to raise an exception
         with caplog.at_level("ERROR"):
             mocker.patch(
-                "src.mini_app.api.new", side_effect=Exception("Test exception")
+                "tma_test_framework.mini_app.api.new",
+                side_effect=Exception("Test exception"),
             )
             result = await miniapp_api_with_config.validate_init_data(
                 "user=test&hash=abc", "token"
@@ -865,9 +874,12 @@ class TestMiniAppApiInheritance:
 
     def test_inherits_from_base_miniapp(self, mocker, valid_config, mock_httpx_client):
         """Test MiniAppApi inherits from BaseMiniApp."""
-        mocker.patch("src.mini_app.api.AsyncClient", return_value=mock_httpx_client)
+        mocker.patch(
+            "tma_test_framework.mini_app.api.AsyncClient",
+            return_value=mock_httpx_client,
+        )
         api = MiniAppApi("https://example.com/app", valid_config)
 
-        from src.mini_app.base import BaseMiniApp
+        from tma_test_framework.mini_app.base import BaseMiniApp
 
         assert isinstance(api, BaseMiniApp)

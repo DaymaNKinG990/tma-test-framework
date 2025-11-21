@@ -1,7 +1,7 @@
 # MiniAppApi Class - Unit Test Cases
 
 ## Overview
-Tests for `src.mini_app.api.MiniAppApi` class - HTTP API client for Telegram Mini Apps.
+Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client for Telegram Mini Apps.
 
 ## Test Categories
 

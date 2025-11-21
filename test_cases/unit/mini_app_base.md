@@ -1,7 +1,7 @@
 # BaseMiniApp Class - Unit Test Cases
 
 ## Overview
-Tests for `src.mini_app.base.BaseMiniApp` class - base class for Mini App testing.
+Tests for `tma_test_framework.mini_app.base.BaseMiniApp` class - base class for Mini App testing.
 
 ## Test Categories
 

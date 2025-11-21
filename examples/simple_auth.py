@@ -4,8 +4,8 @@ Simple authentication example showing the difference between first run and subse
 
 import asyncio
 import os
-from src.mtproto_client import UserTelegramClient
-from src.config import Config
+from tma_test_framework.mtproto_client import UserTelegramClient
+from tma_test_framework.config import Config
 
 
 async def main():

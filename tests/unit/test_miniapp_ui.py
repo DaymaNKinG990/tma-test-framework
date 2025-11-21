@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 # Removed unittest.mock import - using pytest-mock instead
 
-from src.mini_app.ui import MiniAppUI
+from tma_test_framework.mini_app.ui import MiniAppUI
 
 
 # ============================================================================
@@ -155,7 +155,9 @@ class TestMiniAppUISetupBrowser:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test first call to setup_browser launches Chromium. TC-UI-003"""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance
@@ -180,7 +182,9 @@ class TestMiniAppUISetupBrowser:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test setup_browser creates new page."""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance
@@ -202,7 +206,9 @@ class TestMiniAppUISetupBrowser:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test setup_browser sets custom User-Agent."""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance
@@ -249,7 +255,9 @@ class TestMiniAppUISetupBrowser:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test setup_browser returns self for method chaining. TC-UI-005"""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance
@@ -284,7 +292,9 @@ class TestMiniAppUISetupBrowser:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test setup_browser handles navigation failures gracefully. TC-UI-043"""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance
@@ -317,7 +327,9 @@ class TestMiniAppUISetupBrowser:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test setup_browser handles network errors during navigation. TC-UI-043"""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance
@@ -1078,7 +1090,9 @@ class TestMiniAppUIInheritance:
         self, mocker, miniapp_ui_with_config, mock_browser, mock_page
     ):
         """Test setup_browser returns Self for fluent interface."""
-        mock_playwright_class = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright_class = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.MagicMock()
         mock_playwright_instance.start = mocker.AsyncMock(
             return_value=mock_playwright_instance

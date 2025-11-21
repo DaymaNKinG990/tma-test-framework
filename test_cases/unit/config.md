@@ -1,7 +1,7 @@
 # Config Class - Unit Test Cases
 
 ## Overview
-Tests for `src.config.Config` class - configuration management for TMA Framework.
+Tests for `tma_test_framework.config.Config` class - configuration management for TMA Framework.
 
 ## Test Categories
 

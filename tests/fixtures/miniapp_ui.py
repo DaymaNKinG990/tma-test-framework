@@ -5,8 +5,8 @@ Fixtures for MiniAppUI testing.
 from pytest import fixture
 from playwright.async_api import Browser, Page
 
-from src.mini_app.ui import MiniAppUI
-from src.config import Config
+from tma_test_framework.mini_app.ui import MiniAppUI
+from tma_test_framework.config import Config
 from tests.fixtures.base_miniapp import _get_base_config_data
 
 

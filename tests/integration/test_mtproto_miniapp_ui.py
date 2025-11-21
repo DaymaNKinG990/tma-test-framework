@@ -5,8 +5,8 @@ Tests verify interaction between MTProto client and Mini App UI client.
 
 import pytest
 
-from src.mtproto_client import MessageInfo, UserInfo, ChatInfo
-from src.mini_app.ui import MiniAppUI
+from tma_test_framework.mtproto_client import MessageInfo, UserInfo, ChatInfo
+from tma_test_framework.mini_app.ui import MiniAppUI
 
 
 @pytest.mark.integration
@@ -51,7 +51,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.wait_for_selector = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -113,7 +115,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.title = mocker.AsyncMock(return_value="Test Mini App")
         mock_page.click = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -162,7 +166,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.click = mocker.AsyncMock()
         mock_page.wait_for_load_state = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -222,7 +228,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.click = mocker.AsyncMock()
         mock_page.dblclick = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -274,7 +282,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page = mocker.AsyncMock()
         mock_page.select_option = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -324,7 +334,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.check = mocker.AsyncMock()
         mock_page.uncheck = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -378,7 +390,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.click = mocker.AsyncMock()
         mock_page.wait_for_load_state = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -434,7 +448,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page = mocker.AsyncMock()
         mock_page.screenshot = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -483,7 +499,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page = mocker.AsyncMock()
         mock_page.evaluate = mocker.AsyncMock(return_value={"data": "test"})
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -525,7 +543,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page = mocker.AsyncMock()
         mock_page.click = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -578,7 +598,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.goto = mocker.AsyncMock()
         mock_page.wait_for_load_state = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -638,7 +660,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.check = mocker.AsyncMock()
         mock_page.select_option = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -737,7 +761,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page = mocker.AsyncMock()
         mock_page.click = mocker.AsyncMock()
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -787,7 +813,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_page.query_selector = mocker.AsyncMock(return_value=mock_element)
         mock_page.locator = mocker.MagicMock(return_value=mock_element)
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -842,7 +870,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_element.screenshot = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mock_element)
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -893,7 +923,9 @@ class TestMTProtoMiniAppUIIntegration:
         mock_app_data = {"userId": 123, "theme": "dark"}
         mock_page.evaluate = mocker.AsyncMock(return_value=mock_app_data)
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -970,7 +1002,9 @@ class TestMTProtoMiniAppUIIntegration:
             side_effect=PlaywrightTimeoutError("Element not found")
         )
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser
@@ -1025,7 +1059,9 @@ class TestMTProtoMiniAppUIIntegration:
             side_effect=Exception("JavaScript error: Unexpected token")
         )
 
-        mock_playwright = mocker.patch("src.mini_app.ui.async_playwright")
+        mock_playwright = mocker.patch(
+            "tma_test_framework.mini_app.ui.async_playwright"
+        )
         mock_playwright_instance = mocker.AsyncMock()
         mock_playwright_instance.chromium.launch = mocker.AsyncMock(
             return_value=mock_browser

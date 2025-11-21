@@ -9,7 +9,7 @@ import logging
 import pytest
 from loguru import logger
 from telethon.sessions import StringSession
-from src.mtproto_client import UserInfo, ChatInfo, MessageInfo
+from tma_test_framework.mtproto_client import UserInfo, ChatInfo, MessageInfo
 
 # Import fixtures from tests.fixtures modules
 # Pytest requires explicit imports for fixtures to be discovered

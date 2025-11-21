@@ -8,8 +8,8 @@ from datetime import datetime
 from pytest import fixture
 from telethon.tl.types import User, Channel, Chat, Message
 
-from src.config import Config
-from src.mtproto_client import UserTelegramClient, UserInfo
+from tma_test_framework.config import Config
+from tma_test_framework.mtproto_client import UserTelegramClient, UserInfo
 
 
 def _get_base_config_data() -> dict:
@@ -52,7 +52,7 @@ def config_with_session_file() -> Config:
 def config_without_session(mocker) -> Config:
     """Create Config without session (will use fallback)."""
     # Mock SQLiteSession to avoid file system operations
-    mocker.patch("src.mtproto_client.SQLiteSession")
+    mocker.patch("tma_test_framework.mtproto_client.SQLiteSession")
     data = _get_base_config_data()
     # For testing, we need a session, so use session_string
     # The actual code will use SQLiteSession fallback, but Config validation requires a session
@@ -222,10 +222,12 @@ def user_telegram_client(
     # Mock StringSession to avoid validation error
     # Patch StringSession where it's used in the module
     mock_session = mocker.MagicMock()
-    mocker.patch("src.mtproto_client.StringSession", return_value=mock_session)
+    mocker.patch(
+        "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+    )
     # Create client with patched TelegramClient
     mocker.patch(
-        "src.mtproto_client.TelegramClient",
+        "tma_test_framework.mtproto_client.TelegramClient",
         return_value=mock_telegram_client_authorized,
     )
     client = UserTelegramClient(valid_config)
@@ -240,7 +242,7 @@ def user_telegram_client_with_session_file(
 ) -> UserTelegramClient:
     """Create UserTelegramClient with session_file."""
     mocker.patch(
-        "src.mtproto_client.TelegramClient",
+        "tma_test_framework.mtproto_client.TelegramClient",
         return_value=mock_telegram_client_authorized,
     )
     client = UserTelegramClient(config_with_session_file)
@@ -254,7 +256,7 @@ def user_telegram_client_without_session(
 ) -> UserTelegramClient:
     """Create UserTelegramClient without session (fallback)."""
     mocker.patch(
-        "src.mtproto_client.TelegramClient",
+        "tma_test_framework.mtproto_client.TelegramClient",
         return_value=mock_telegram_client_authorized,
     )
     client = UserTelegramClient(config_without_session)

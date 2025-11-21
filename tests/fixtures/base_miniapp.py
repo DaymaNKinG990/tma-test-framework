@@ -4,8 +4,8 @@ Fixtures for BaseMiniApp testing.
 
 from pytest import fixture
 
-from src.config import Config
-from src.mini_app.base import BaseMiniApp
+from tma_test_framework.config import Config
+from tma_test_framework.mini_app.base import BaseMiniApp
 
 
 def _get_base_config_data() -> dict:

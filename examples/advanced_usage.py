@@ -8,8 +8,8 @@ retry logic, and comprehensive testing scenarios.
 
 import asyncio
 import os
-from src.mini_app import MiniAppApi, MiniAppUI
-from src.config import Config
+from tma_test_framework.mini_app import MiniAppApi, MiniAppUI
+from tma_test_framework.config import Config
 
 
 async def main():

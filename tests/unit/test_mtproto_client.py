@@ -9,7 +9,12 @@ from datetime import datetime
 
 from telethon.tl.types import User, Chat, Message
 
-from src.mtproto_client import UserTelegramClient, UserInfo, ChatInfo, MessageInfo
+from tma_test_framework.mtproto_client import (
+    UserTelegramClient,
+    UserInfo,
+    ChatInfo,
+    MessageInfo,
+)
 from tests.data.constants import (
     BOT_COMMANDS,
     BOT_TIMEOUTS,
@@ -30,8 +35,10 @@ class TestUserTelegramClientInit:
 
     def test_init_with_session_string(self, mocker, config_with_session_string):
         """Test initialization with session_string uses StringSession."""
-        mock_string_session = mocker.patch("src.mtproto_client.StringSession")
-        mock_client = mocker.patch("src.mtproto_client.TelegramClient")
+        mock_string_session = mocker.patch(
+            "tma_test_framework.mtproto_client.StringSession"
+        )
+        mock_client = mocker.patch("tma_test_framework.mtproto_client.TelegramClient")
         _ = UserTelegramClient(config_with_session_string)
 
         # Verify StringSession was called
@@ -43,15 +50,15 @@ class TestUserTelegramClientInit:
         # TelegramClient is called with positional args: (session, api_id, api_hash, ...)
         call_args = mock_client.call_args
         # Check positional arguments (args[0] is session, args[1] is api_id, args[2] is api_hash)
-        assert (
-            len(call_args.args) >= 3
-        ), "TelegramClient should be called with at least 3 positional args"
-        assert (
-            call_args.args[1] == config_with_session_string.api_id
-        ), "api_id should match"
-        assert (
-            call_args.args[2] == config_with_session_string.api_hash
-        ), "api_hash should match"
+        assert len(call_args.args) >= 3, (
+            "TelegramClient should be called with at least 3 positional args"
+        )
+        assert call_args.args[1] == config_with_session_string.api_id, (
+            "api_id should match"
+        )
+        assert call_args.args[2] == config_with_session_string.api_hash, (
+            "api_hash should match"
+        )
 
         # Check keyword arguments if present
         if call_args.kwargs:
@@ -70,8 +77,10 @@ class TestUserTelegramClientInit:
 
     def test_init_with_session_file(self, mocker, config_with_session_file):
         """Test initialization with session_file uses SQLiteSession."""
-        mock_sqlite_session = mocker.patch("src.mtproto_client.SQLiteSession")
-        mock_client = mocker.patch("src.mtproto_client.TelegramClient")
+        mock_sqlite_session = mocker.patch(
+            "tma_test_framework.mtproto_client.SQLiteSession"
+        )
+        mock_client = mocker.patch("tma_test_framework.mtproto_client.TelegramClient")
         _ = UserTelegramClient(config_with_session_file)
 
         # Verify SQLiteSession was called
@@ -84,10 +93,11 @@ class TestUserTelegramClientInit:
         """Test initialization without session uses fallback SQLiteSession."""
         # Mock StringSession to avoid validation error
         mock_string_session = mocker.patch(
-            "src.mtproto_client.StringSession", return_value=mocker.MagicMock()
+            "tma_test_framework.mtproto_client.StringSession",
+            return_value=mocker.MagicMock(),
         )
-        _ = mocker.patch("src.mtproto_client.SQLiteSession")
-        mock_client = mocker.patch("src.mtproto_client.TelegramClient")
+        _ = mocker.patch("tma_test_framework.mtproto_client.SQLiteSession")
+        mock_client = mocker.patch("tma_test_framework.mtproto_client.TelegramClient")
         _ = UserTelegramClient(config_without_session)
 
         # Verify StringSession was called (config_without_session has session_string)
@@ -98,7 +108,7 @@ class TestUserTelegramClientInit:
         """Test initialization without session uses fallback SQLiteSession("tma_session"). TC-CLIENT-002a"""
         # Create Config without session by bypassing __post_init__ validation
         # This tests the defensive code at line 75
-        from src.config import Config
+        from tma_test_framework.config import Config
 
         # Create Config with valid session first to pass validation
         config = Config(
@@ -117,8 +127,10 @@ class TestUserTelegramClientInit:
         object.__setattr__(config, "session_file", None)
 
         # Mock SQLiteSession to verify it's called with "tma_session"
-        mock_sqlite_session = mocker.patch("src.mtproto_client.SQLiteSession")
-        mock_client = mocker.patch("src.mtproto_client.TelegramClient")
+        mock_sqlite_session = mocker.patch(
+            "tma_test_framework.mtproto_client.SQLiteSession"
+        )
+        mock_client = mocker.patch("tma_test_framework.mtproto_client.TelegramClient")
 
         _ = UserTelegramClient(config)
 
@@ -129,8 +141,8 @@ class TestUserTelegramClientInit:
     def test_init_sets_initial_state(self, mocker, valid_config):
         """Test that initialization sets correct initial state."""
         # Mock StringSession to avoid validation error
-        mocker.patch("src.mtproto_client.StringSession")
-        mocker.patch("src.mtproto_client.TelegramClient")
+        mocker.patch("tma_test_framework.mtproto_client.StringSession")
+        mocker.patch("tma_test_framework.mtproto_client.TelegramClient")
         client = UserTelegramClient(valid_config)
 
         assert client._is_connected is False
@@ -772,7 +784,7 @@ class TestUserTelegramClientGetMessages:
             return_value=[mock_telegram_message]
         )
         # Mock self.get_entity to return chat successfully
-        from src.mtproto_client import ChatInfo
+        from tma_test_framework.mtproto_client import ChatInfo
 
         user_telegram_client_connected.get_entity = mocker.AsyncMock(
             return_value=ChatInfo(
@@ -977,7 +989,7 @@ class TestUserTelegramClientInteractWithBot:
         self, mocker, user_telegram_client_connected, mock_telegram_message
     ):
         """Test interact_with_bot() calls sleep when waiting for response."""
-        from src.mtproto_client import MessageInfo, UserInfo
+        from tma_test_framework.mtproto_client import MessageInfo, UserInfo
 
         sent_message = mock_telegram_message
         sent_message.id = 100
@@ -1022,9 +1034,9 @@ class TestUserTelegramClientInteractWithBot:
             side_effect=time_values
         )
 
-        # Mock sleep in the module where it's used (src.mtproto_client)
+        # Mock sleep in the module where it's used (tma_test_framework.mtproto_client)
         mock_sleep = mocker.patch(
-            "src.mtproto_client.sleep", new_callable=mocker.AsyncMock
+            "tma_test_framework.mtproto_client.sleep", new_callable=mocker.AsyncMock
         )
 
         result = await user_telegram_client_connected.interact_with_bot(

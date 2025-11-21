@@ -6,8 +6,8 @@ from pytest import fixture
 from httpx import Response
 from datetime import timedelta
 
-from src.mini_app.api import MiniAppApi
-from src.config import Config
+from tma_test_framework.mini_app.api import MiniAppApi
+from tma_test_framework.config import Config
 from tests.fixtures.base_miniapp import _get_base_config_data
 
 
@@ -114,7 +114,9 @@ def mock_httpx_client(mocker):
 @fixture
 def miniapp_api_with_config(mocker, valid_config, mock_httpx_client):
     """Create MiniAppApi with valid config and mocked httpx client."""
-    mocker.patch("src.mini_app.api.AsyncClient", return_value=mock_httpx_client)
+    mocker.patch(
+        "tma_test_framework.mini_app.api.AsyncClient", return_value=mock_httpx_client
+    )
     api = MiniAppApi("https://example.com/app", valid_config)
     api.client = mock_httpx_client
     return api

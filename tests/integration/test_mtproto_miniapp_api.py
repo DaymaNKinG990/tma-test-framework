@@ -7,8 +7,8 @@ import pytest
 from httpx import Response
 from datetime import timedelta
 
-from src.mtproto_client import MessageInfo, UserInfo, ChatInfo
-from src.mini_app.api import MiniAppApi
+from tma_test_framework.mtproto_client import MessageInfo, UserInfo, ChatInfo
+from tma_test_framework.mini_app.api import MiniAppApi
 
 
 @pytest.mark.integration
@@ -724,7 +724,7 @@ class TestMTProtoMiniAppApiIntegration:
 
         # Create MiniAppApi with short timeout
         # Create new config with short timeout instead of modifying frozen struct
-        from src.config import Config
+        from tma_test_framework.config import Config
 
         original_config = user_telegram_client_connected.config
         config = Config(

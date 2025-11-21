@@ -7,8 +7,8 @@ import asyncio
 import os
 import sys
 import traceback
-from src.mtproto_client import UserTelegramClient
-from src.config import Config
+from tma_test_framework.mtproto_client import UserTelegramClient
+from tma_test_framework.config import Config
 
 # Import telethon authorization-related exceptions
 try:

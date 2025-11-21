@@ -48,7 +48,7 @@ TMA Framework requires the following packages:
 
 ### Core Dependencies
 - `httpx` - HTTP client for API testing
-- `python-telegram-bot` - Telegram Bot API integration
+- `telethon` - MTProto client for Telegram user simulation
 - `playwright` - Browser automation for UI testing
 - `msgspec` - High-performance data validation and serialization
 - `loguru` - Logging framework

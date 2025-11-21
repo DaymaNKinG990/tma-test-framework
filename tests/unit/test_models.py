@@ -2,6 +2,7 @@
 Unit tests for TMA Framework data models.
 """
 
+import allure
 import json
 import pytest
 import msgspec
@@ -38,126 +39,191 @@ from tests.data.constants import (
 class TestUserInfo:
     """Test cases for UserInfo model."""
 
+    @allure.title("Create valid UserInfo")
+    @allure.description("Test creating a valid UserInfo.")
     def test_valid_user_info_creation(self):
         """Test creating a valid UserInfo."""
-        user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create UserInfo from valid data"):
+            user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        assert user.id == 123456789
-        assert user.first_name == "Test User"
-        assert user.username == "test_user"
-        assert user.last_name == "Test"
-        assert user.phone == "+1234567890"
-        assert user.is_bot is False
-        assert user.is_verified is True
-        assert user.is_premium is False
+        with allure.step("Verify user.id is correct"):
+            assert user.id == 123456789
+        with allure.step("Verify user.first_name is correct"):
+            assert user.first_name == "Test User"
+        with allure.step("Verify user.username is correct"):
+            assert user.username == "test_user"
+        with allure.step("Verify user.last_name is correct"):
+            assert user.last_name == "Test"
+        with allure.step("Verify user.phone is correct"):
+            assert user.phone == "+1234567890"
+        with allure.step("Verify user.is_bot is False"):
+            assert user.is_bot is False
+        with allure.step("Verify user.is_verified is True"):
+            assert user.is_verified is True
+        with allure.step("Verify user.is_premium is False"):
+            assert user.is_premium is False
 
+    @allure.title("Create bot UserInfo")
+    @allure.description("Test creating a bot UserInfo.")
     def test_bot_user_info_creation(self):
         """Test creating a bot UserInfo."""
-        user = UserInfo(**BOT_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create UserInfo from bot data"):
+            user = UserInfo(**BOT_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        assert user.id == 987654321
-        assert user.first_name == "Test Bot"
-        assert user.username == "test_bot"
-        assert user.last_name is None
-        assert user.phone is None
-        assert user.is_bot is True
-        assert user.is_verified is False
-        assert user.is_premium is False
+        with allure.step("Verify user.id is correct"):
+            assert user.id == 987654321
+        with allure.step("Verify user.first_name is correct"):
+            assert user.first_name == "Test Bot"
+        with allure.step("Verify user.username is correct"):
+            assert user.username == "test_bot"
+        with allure.step("Verify user.last_name is None"):
+            assert user.last_name is None
+        with allure.step("Verify user.phone is None"):
+            assert user.phone is None
+        with allure.step("Verify user.is_bot is True"):
+            assert user.is_bot is True
+        with allure.step("Verify user.is_verified is False"):
+            assert user.is_verified is False
+        with allure.step("Verify user.is_premium is False"):
+            assert user.is_premium is False
 
+    @allure.title("Create minimal UserInfo")
+    @allure.description("Test creating a minimal UserInfo.")
     def test_minimal_user_info_creation(self):
         """Test creating a minimal UserInfo."""
-        user = UserInfo(**MINIMAL_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create UserInfo from minimal data"):
+            user = UserInfo(**MINIMAL_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        assert user.id == 111222333
-        assert user.first_name == "Minimal User"
-        assert user.username is None
-        assert user.last_name is None
-        assert user.phone is None
-        assert user.is_bot is False
-        assert user.is_verified is False
-        assert user.is_premium is False
+        with allure.step("Verify user.id is correct"):
+            assert user.id == 111222333
+        with allure.step("Verify user.first_name is correct"):
+            assert user.first_name == "Minimal User"
+        with allure.step("Verify optional fields are None"):
+            assert user.username is None
+            assert user.last_name is None
+            assert user.phone is None
+        with allure.step("Verify boolean fields have default values"):
+            assert user.is_bot is False
+            assert user.is_verified is False
+            assert user.is_premium is False
 
+    @allure.title("UserInfo required fields")
+    @allure.description("Test UserInfo required fields.")
     def test_user_info_required_fields(self):
         """Test UserInfo required fields."""
-        # Test that id and first_name are required
-        with pytest.raises(TypeError):
-            UserInfo()  # type: ignore[call-arg]  # Missing required fields
+        with allure.step("Test that UserInfo() without args raises TypeError"):
+            # Test that id and first_name are required
+            with pytest.raises(TypeError):
+                UserInfo()  # type: ignore[call-arg]  # Missing required fields
 
-        with pytest.raises(TypeError):
-            UserInfo(id=123456789)  # type: ignore[call-arg]  # Missing first_name
+        with allure.step("Test that UserInfo(id) without first_name raises TypeError"):
+            with pytest.raises(TypeError):
+                UserInfo(id=123456789)  # type: ignore[call-arg]  # Missing first_name
 
-        with pytest.raises(TypeError):
-            UserInfo(first_name="Test")  # type: ignore[call-arg]  # Missing id
+        with allure.step("Test that UserInfo(first_name) without id raises TypeError"):
+            with pytest.raises(TypeError):
+                UserInfo(first_name="Test")  # type: ignore[call-arg]  # Missing id
 
+    @allure.title("UserInfo optional fields")
+    @allure.description("Test UserInfo optional fields.")
     def test_user_info_optional_fields(self):
         """Test UserInfo optional fields."""
-        user = UserInfo(id=123456789, first_name="Test User")
+        with allure.step("Create UserInfo with only required fields"):
+            user = UserInfo(id=123456789, first_name="Test User")
 
-        assert user.username is None
-        assert user.last_name is None
-        assert user.phone is None
-        assert user.is_bot is False
-        assert user.is_verified is False
-        assert user.is_premium is False
+        with allure.step("Verify optional fields have default values"):
+            assert user.username is None
+            assert user.last_name is None
+            assert user.phone is None
+            assert user.is_bot is False
+            assert user.is_verified is False
+            assert user.is_premium is False
 
+    @allure.title("UserInfo field types")
+    @allure.description("Test UserInfo field types.")
     def test_user_info_field_types(self):
         """Test UserInfo field types."""
-        user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create UserInfo from valid data"):
+            user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        assert isinstance(user.id, int)
-        assert isinstance(user.first_name, str)
-        assert isinstance(user.username, str) or user.username is None
-        assert isinstance(user.last_name, str) or user.last_name is None
-        assert isinstance(user.phone, str) or user.phone is None
-        assert isinstance(user.is_bot, bool)
-        assert isinstance(user.is_verified, bool)
-        assert isinstance(user.is_premium, bool)
+        with allure.step("Verify field types"):
+            assert isinstance(user.id, int)
+            assert isinstance(user.first_name, str)
+            assert isinstance(user.username, str) or user.username is None
+            assert isinstance(user.last_name, str) or user.last_name is None
+            assert isinstance(user.phone, str) or user.phone is None
+            assert isinstance(user.is_bot, bool)
+            assert isinstance(user.is_verified, bool)
+            assert isinstance(user.is_premium, bool)
 
+    @allure.title("UserInfo serialization")
+    @allure.description("Test UserInfo serialization.")
     def test_user_info_serialization(self):
         """Test UserInfo serialization."""
-        user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create UserInfo from valid data"):
+            user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        # Test serialization to dict
-        user_dict = msgspec.to_builtins(user)
-        assert isinstance(user_dict, dict)
-        assert user_dict["id"] == 123456789
-        assert user_dict["first_name"] == "Test User"
+        with allure.step("Test serialization to dict"):
+            # Test serialization to dict
+            user_dict = msgspec.to_builtins(user)
+            assert isinstance(user_dict, dict)
+            assert user_dict["id"] == 123456789
+            assert user_dict["first_name"] == "Test User"
 
+    @allure.title("UserInfo deserialization")
+    @allure.description("Test UserInfo deserialization.")
     def test_user_info_deserialization(self):
         """Test UserInfo deserialization."""
-        user_dict = VALID_USER_INFO_DATA.copy()
+        with allure.step("Prepare user dict"):
+            user_dict = VALID_USER_INFO_DATA.copy()
 
-        # Test deserialization from dict
-        user = msgspec.convert(user_dict, UserInfo)
-        assert isinstance(user, UserInfo)
-        assert user.id == 123456789
-        assert user.first_name == "Test User"
+        with allure.step("Test deserialization from dict"):
+            # Test deserialization from dict
+            user = msgspec.convert(user_dict, UserInfo)
+            assert isinstance(user, UserInfo)
+        with allure.step("Verify deserialized user data"):
+            assert user.id == 123456789
+            assert user.first_name == "Test User"
 
+    @allure.title("UserInfo equality")
+    @allure.description("Test UserInfo equality.")
     def test_user_info_equality(self):
         """Test UserInfo equality."""
-        user1 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
-        user2 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
-        user3 = UserInfo(**BOT_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create three UserInfo instances"):
+            user1 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+            user2 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+            user3 = UserInfo(**BOT_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        assert user1 == user2
-        assert user1 != user3
+        with allure.step("Verify user1 equals user2"):
+            assert user1 == user2
+        with allure.step("Verify user1 does not equal user3"):
+            assert user1 != user3
 
+    @allure.title("UserInfo hashing")
+    @allure.description("Test UserInfo hashing.")
     def test_user_info_hash(self):
         """Test UserInfo hashing."""
-        user1 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
-        user2 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create two identical UserInfo instances"):
+            user1 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+            user2 = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
 
-        assert hash(user1) == hash(user2)
+        with allure.step("Verify both instances have same hash"):
+            assert hash(user1) == hash(user2)
 
+    @allure.title("UserInfo string representation")
+    @allure.description("Test UserInfo string representation.")
     def test_user_info_repr(self):
         """Test UserInfo string representation."""
-        user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
+        with allure.step("Create UserInfo instance"):
+            user = UserInfo(**VALID_USER_INFO_DATA)  # type: ignore[arg-type]
         repr_str = repr(user)
 
         assert "UserInfo" in repr_str
         assert "id=123456789" in repr_str
         assert "first_name='Test User'" in repr_str
 
+    @allure.title("UserInfo edge cases")
+    @allure.description("Test UserInfo edge cases.")
     def test_user_info_edge_cases(self):
         """Test UserInfo edge cases."""
         user = UserInfo(**EDGE_CASE_USER_INFO)  # type: ignore[arg-type]
@@ -168,6 +234,8 @@ class TestUserInfo:
         assert user.last_name is not None and len(user.last_name) == 100
         assert user.phone is not None and len(user.phone) == 20
 
+    @allure.title("UserInfo with unicode characters")
+    @allure.description("Test UserInfo with unicode characters.")
     def test_user_info_unicode(self):
         """Test UserInfo with unicode characters."""
         user = UserInfo(**UNICODE_USER_INFO)  # type: ignore[arg-type]
@@ -176,6 +244,8 @@ class TestUserInfo:
         assert user.username == "test_用户"
         assert user.last_name == "テスト"
 
+    @allure.title("UserInfo boolean fields")
+    @allure.description("Test UserInfo boolean fields.")
     def test_user_info_boolean_fields(self):
         """Test UserInfo boolean fields."""
         user = UserInfo(
@@ -194,6 +264,8 @@ class TestUserInfo:
 class TestChatInfo:
     """Test cases for ChatInfo model."""
 
+    @allure.title("creating a valid ChatInfo")
+    @allure.description("Test creating a valid ChatInfo.")
     def test_valid_chat_info_creation(self):
         """Test creating a valid ChatInfo."""
         chat = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -204,6 +276,8 @@ class TestChatInfo:
         assert chat.type == "group"
         assert chat.is_verified is False
 
+    @allure.title("creating a private ChatInfo")
+    @allure.description("Test creating a private ChatInfo.")
     def test_private_chat_info_creation(self):
         """Test creating a private ChatInfo."""
         chat = ChatInfo(**PRIVATE_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -214,6 +288,8 @@ class TestChatInfo:
         assert chat.type == "private"
         assert chat.is_verified is False
 
+    @allure.title("creating a channel ChatInfo")
+    @allure.description("Test creating a channel ChatInfo.")
     def test_channel_chat_info_creation(self):
         """Test creating a channel ChatInfo."""
         chat = ChatInfo(**CHANNEL_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -224,6 +300,8 @@ class TestChatInfo:
         assert chat.type == "channel"
         assert chat.is_verified is True
 
+    @allure.title("ChatInfo required fields")
+    @allure.description("Test ChatInfo required fields.")
     def test_chat_info_required_fields(self):
         """Test ChatInfo required fields."""
         # Test that id, title, and type are required
@@ -236,6 +314,8 @@ class TestChatInfo:
         with pytest.raises(TypeError):
             ChatInfo(id=987654321, title="Test")  # type: ignore[call-arg]  # Missing type
 
+    @allure.title("ChatInfo optional fields")
+    @allure.description("Test ChatInfo optional fields.")
     def test_chat_info_optional_fields(self):
         """Test ChatInfo optional fields."""
         chat = ChatInfo(id=987654321, title="Test Chat", type="group")
@@ -243,6 +323,8 @@ class TestChatInfo:
         assert chat.username is None
         assert chat.is_verified is False
 
+    @allure.title("ChatInfo field types")
+    @allure.description("Test ChatInfo field types.")
     def test_chat_info_field_types(self):
         """Test ChatInfo field types."""
         chat = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -253,6 +335,8 @@ class TestChatInfo:
         assert isinstance(chat.type, str)
         assert isinstance(chat.is_verified, bool)
 
+    @allure.title("ChatInfo serialization")
+    @allure.description("Test ChatInfo serialization.")
     def test_chat_info_serialization(self):
         """Test ChatInfo serialization."""
         chat = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -263,6 +347,8 @@ class TestChatInfo:
         assert chat_dict["id"] == 987654321
         assert chat_dict["title"] == "Test Chat"
 
+    @allure.title("ChatInfo deserialization")
+    @allure.description("Test ChatInfo deserialization.")
     def test_chat_info_deserialization(self):
         """Test ChatInfo deserialization."""
         chat_dict = VALID_CHAT_INFO_DATA.copy()
@@ -273,6 +359,8 @@ class TestChatInfo:
         assert chat.id == 987654321
         assert chat.title == "Test Chat"
 
+    @allure.title("ChatInfo equality")
+    @allure.description("Test ChatInfo equality.")
     def test_chat_info_equality(self):
         """Test ChatInfo equality."""
         chat1 = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -282,6 +370,8 @@ class TestChatInfo:
         assert chat1 == chat2
         assert chat1 != chat3
 
+    @allure.title("ChatInfo hashing")
+    @allure.description("Test ChatInfo hashing.")
     def test_chat_info_hash(self):
         """Test ChatInfo hashing."""
         chat1 = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -289,6 +379,8 @@ class TestChatInfo:
 
         assert hash(chat1) == hash(chat2)
 
+    @allure.title("ChatInfo string representation")
+    @allure.description("Test ChatInfo string representation.")
     def test_chat_info_repr(self):
         """Test ChatInfo string representation."""
         chat = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type]
@@ -298,6 +390,8 @@ class TestChatInfo:
         assert "id=987654321" in repr_str
         assert "title='Test Chat'" in repr_str
 
+    @allure.title("different chat types")
+    @allure.description("Test different chat types.")
     def test_chat_info_types(self):
         """Test different chat types."""
         types = ["private", "group", "supergroup", "channel"]
@@ -310,6 +404,8 @@ class TestChatInfo:
 class TestMessageInfo:
     """Test cases for MessageInfo model."""
 
+    @allure.title("creating a valid MessageInfo")
+    @allure.description("Test creating a valid MessageInfo.")
     def test_valid_message_info_creation(self):
         """Test creating a valid MessageInfo."""
         from tma_test_framework.mtproto_client import ChatInfo, UserInfo
@@ -335,6 +431,8 @@ class TestMessageInfo:
         assert message.reply_to is None
         assert message.media is None
 
+    @allure.title("creating a reply MessageInfo")
+    @allure.description("Test creating a reply MessageInfo.")
     def test_reply_message_info_creation(self):
         """Test creating a reply MessageInfo."""
         message = MessageInfo(**REPLY_MESSAGE_INFO_DATA)  # type: ignore[arg-type]
@@ -343,6 +441,8 @@ class TestMessageInfo:
         assert message.text == "Reply message"
         assert message.reply_to == 111222333
 
+    @allure.title("creating a media MessageInfo")
+    @allure.description("Test creating a media MessageInfo.")
     def test_media_message_info_creation(self):
         """Test creating a media MessageInfo."""
         message = MessageInfo(**MEDIA_MESSAGE_INFO_DATA)  # type: ignore[arg-type]
@@ -352,6 +452,8 @@ class TestMessageInfo:
         assert message.media is not None
         assert message.media["type"] == "photo"
 
+    @allure.title("MessageInfo required fields")
+    @allure.description("Test MessageInfo required fields.")
     def test_message_info_required_fields(self):
         """Test MessageInfo required fields."""
         # Test that id, chat, and date are required
@@ -367,6 +469,8 @@ class TestMessageInfo:
                 chat=ChatInfo(**VALID_CHAT_INFO_DATA),  # type: ignore[arg-type]
             )  # Missing date
 
+    @allure.title("MessageInfo optional fields")
+    @allure.description("Test MessageInfo optional fields.")
     def test_message_info_optional_fields(self):
         """Test MessageInfo optional fields."""
         message = MessageInfo(
@@ -380,6 +484,8 @@ class TestMessageInfo:
         assert message.reply_to is None
         assert message.media is None
 
+    @allure.title("MessageInfo field types")
+    @allure.description("Test MessageInfo field types.")
     def test_message_info_field_types(self):
         """Test MessageInfo field types."""
         # Create message with proper chat data
@@ -397,6 +503,8 @@ class TestMessageInfo:
         assert isinstance(message.reply_to, int) or message.reply_to is None
         assert isinstance(message.media, dict) or message.media is None
 
+    @allure.title("MessageInfo serialization")
+    @allure.description("Test MessageInfo serialization.")
     def test_message_info_serialization(self):
         """Test MessageInfo serialization."""
         message = MessageInfo(**VALID_MESSAGE_INFO_DATA)  # type: ignore[arg-type]
@@ -407,6 +515,8 @@ class TestMessageInfo:
         assert message_dict["id"] == 111222333
         assert message_dict["text"] == "Test message"
 
+    @allure.title("MessageInfo deserialization")
+    @allure.description("Test MessageInfo deserialization.")
     def test_message_info_deserialization(self):
         """Test MessageInfo deserialization."""
         # Create proper dict with ChatInfo and UserInfo objects
@@ -428,6 +538,8 @@ class TestMessageInfo:
         assert message.id == 111222333
         assert message.text == "Test message"
 
+    @allure.title("MessageInfo equality")
+    @allure.description("Test MessageInfo equality.")
     def test_message_info_equality(self):
         """Test MessageInfo equality."""
         message1 = MessageInfo(**VALID_MESSAGE_INFO_DATA)  # type: ignore[arg-type]
@@ -437,6 +549,8 @@ class TestMessageInfo:
         assert message1 == message2
         assert message1 != message3
 
+    @allure.title("MessageInfo hashing")
+    @allure.description("Test MessageInfo hashing.")
     def test_message_info_hash(self):
         """Test MessageInfo hashing."""
         message1 = MessageInfo(**VALID_MESSAGE_INFO_DATA)  # type: ignore[arg-type]
@@ -444,6 +558,8 @@ class TestMessageInfo:
 
         assert hash(message1) == hash(message2)
 
+    @allure.title("MessageInfo string representation")
+    @allure.description("Test MessageInfo string representation.")
     def test_message_info_repr(self):
         """Test MessageInfo string representation."""
         message = MessageInfo(**VALID_MESSAGE_INFO_DATA)  # type: ignore[arg-type]
@@ -453,6 +569,8 @@ class TestMessageInfo:
         assert "id=111222333" in repr_str
         assert "text='Test message'" in repr_str
 
+    @allure.title("MessageInfo edge cases")
+    @allure.description("Test MessageInfo edge cases.")
     def test_message_info_edge_cases(self):
         """Test MessageInfo edge cases."""
         message = MessageInfo(**EDGE_CASE_MESSAGE_INFO)  # type: ignore[arg-type]
@@ -462,6 +580,8 @@ class TestMessageInfo:
         assert message.text is not None
         assert len(message.text) == 10000
 
+    @allure.title("MessageInfo with unicode characters")
+    @allure.description("Test MessageInfo with unicode characters.")
     def test_message_info_unicode(self):
         """Test MessageInfo with unicode characters."""
         from tma_test_framework.mtproto_client import ChatInfo, UserInfo
@@ -486,6 +606,8 @@ class TestMessageInfo:
 class TestMiniAppInfo:
     """Test cases for MiniAppInfo model."""
 
+    @allure.title("creating a valid MiniAppInfo")
+    @allure.description("Test creating a valid MiniAppInfo.")
     def test_valid_mini_app_info_creation(self):
         """Test creating a valid MiniAppInfo."""
         mini_app = MiniAppInfo(**VALID_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -495,6 +617,8 @@ class TestMiniAppInfo:
         assert mini_app.theme_params == {"bg_color": "#ffffff", "text_color": "#000000"}
         assert mini_app.platform == "web"
 
+    @allure.title("creating a mobile MiniAppInfo")
+    @allure.description("Test creating a mobile MiniAppInfo.")
     def test_mobile_mini_app_info_creation(self):
         """Test creating a mobile MiniAppInfo."""
         mini_app = MiniAppInfo(**MOBILE_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -504,6 +628,8 @@ class TestMiniAppInfo:
         assert mini_app.theme_params is None
         assert mini_app.platform == "mobile"
 
+    @allure.title("creating a minimal MiniAppInfo with only url")
+    @allure.description("Test creating a minimal MiniAppInfo with only url.")
     def test_minimal_mini_app_info_creation(self):
         """Test creating a minimal MiniAppInfo with only url."""
         mini_app = MiniAppInfo(**MINIMAL_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -513,12 +639,16 @@ class TestMiniAppInfo:
         assert mini_app.theme_params is None
         assert mini_app.platform == "web"  # Default value
 
+    @allure.title("MiniAppInfo required fields")
+    @allure.description("Test MiniAppInfo required fields.")
     def test_mini_app_info_required_fields(self):
         """Test MiniAppInfo required fields."""
         # Test that url is required
         with pytest.raises(TypeError):
             MiniAppInfo()  # type: ignore[call-arg]  # Missing required field url
 
+    @allure.title("MiniAppInfo optional fields")
+    @allure.description("Test MiniAppInfo optional fields.")
     def test_mini_app_info_optional_fields(self):
         """Test MiniAppInfo optional fields."""
         mini_app = MiniAppInfo(url="https://example.com/mini-app")
@@ -527,6 +657,8 @@ class TestMiniAppInfo:
         assert mini_app.theme_params is None
         assert mini_app.platform == "web"  # Default value
 
+    @allure.title("MiniAppInfo field types")
+    @allure.description("Test MiniAppInfo field types.")
     def test_mini_app_info_field_types(self):
         """Test MiniAppInfo field types."""
         mini_app = MiniAppInfo(**VALID_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -536,6 +668,8 @@ class TestMiniAppInfo:
         assert isinstance(mini_app.theme_params, dict)
         assert isinstance(mini_app.platform, str)
 
+    @allure.title("MiniAppInfo with invalid url type")
+    @allure.description("Test MiniAppInfo with invalid url type.")
     def test_mini_app_info_invalid_url_type(self):
         """Test MiniAppInfo with invalid url type."""
         # msgspec doesn't validate types at creation time, it accepts any type
@@ -545,6 +679,8 @@ class TestMiniAppInfo:
         assert isinstance(mini_app.url, int)  # msgspec doesn't convert, stores as-is
         assert mini_app.url == 123
 
+    @allure.title("MiniAppInfo with invalid platform type")
+    @allure.description("Test MiniAppInfo with invalid platform type.")
     def test_mini_app_info_invalid_platform_type(self):
         """Test MiniAppInfo with invalid platform type."""
         # msgspec validates types during JSON deserialization, not at object creation
@@ -561,6 +697,8 @@ class TestMiniAppInfo:
         error_message = str(exc_info.value)
         assert "platform" in error_message.lower() or "type" in error_message.lower()
 
+    @allure.title("MiniAppInfo with invalid theme_params type")
+    @allure.description("Test MiniAppInfo with invalid theme_params type.")
     def test_mini_app_info_invalid_theme_params_type(self):
         """Test MiniAppInfo with invalid theme_params type."""
         # msgspec will validate this, so we test with msgspec.ValidationError
@@ -574,6 +712,8 @@ class TestMiniAppInfo:
             # If it raises, that's also acceptable - strict validation
             pass
 
+    @allure.title("MiniAppInfo with empty string start_param")
+    @allure.description("Test MiniAppInfo with empty string start_param.")
     def test_mini_app_info_empty_string_start_param(self):
         """Test MiniAppInfo with empty string start_param."""
         mini_app = MiniAppInfo(url="https://example.com", start_param="")
@@ -588,11 +728,15 @@ class TestMiniAppInfo:
             "",  # Empty string - допустима?
         ],
     )
+    @allure.title("MiniAppInfo with different URL formats")
+    @allure.description("Test MiniAppInfo with different URL formats.")
     def test_mini_app_info_url_variations(self, url):
         """Test MiniAppInfo with different URL formats."""
         mini_app = MiniAppInfo(url=url)
         assert mini_app.url == url
 
+    @allure.title("MiniAppInfo serialization")
+    @allure.description("Test MiniAppInfo serialization.")
     def test_mini_app_info_serialization(self):
         """Test MiniAppInfo serialization."""
         mini_app = MiniAppInfo(**VALID_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -608,6 +752,8 @@ class TestMiniAppInfo:
         }
         assert mini_app_dict["platform"] == "web"
 
+    @allure.title("MiniAppInfo deserialization")
+    @allure.description("Test MiniAppInfo deserialization.")
     def test_mini_app_info_deserialization(self):
         """Test MiniAppInfo deserialization."""
         mini_app_dict = VALID_MINI_APP_INFO_DATA.copy()
@@ -618,6 +764,10 @@ class TestMiniAppInfo:
         assert mini_app.url == "https://example.com/mini-app"
         assert mini_app.start_param == "test_param"
 
+    @allure.title("MiniAppInfo deserialization with None in optional fields")
+    @allure.description(
+        "Test MiniAppInfo deserialization with None in optional fields."
+    )
     def test_mini_app_info_deserialization_with_none(self):
         """Test MiniAppInfo deserialization with None in optional fields."""
         mini_app_dict = {
@@ -629,6 +779,8 @@ class TestMiniAppInfo:
         assert mini_app.start_param is None
         assert mini_app.theme_params is None
 
+    @allure.title("MiniAppInfo equality")
+    @allure.description("Test MiniAppInfo equality.")
     def test_mini_app_info_equality(self):
         """Test MiniAppInfo equality."""
         mini_app1 = MiniAppInfo(**VALID_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -638,6 +790,8 @@ class TestMiniAppInfo:
         assert mini_app1 == mini_app2
         assert mini_app1 != mini_app3
 
+    @allure.title("MiniAppInfo inequality")
+    @allure.description("Test MiniAppInfo inequality.")
     def test_mini_app_info_inequality(self):
         """Test MiniAppInfo inequality."""
         mini_app1 = MiniAppInfo(url="https://example.com/app1")
@@ -645,6 +799,8 @@ class TestMiniAppInfo:
 
         assert mini_app1 != mini_app2
 
+    @allure.title("MiniAppInfo hashing")
+    @allure.description("Test MiniAppInfo hashing.")
     def test_mini_app_info_hash(self):
         """Test MiniAppInfo hashing."""
         # msgspec.Struct with frozen=True should be hashable
@@ -667,6 +823,8 @@ class TestMiniAppInfo:
             # If dict causes hash issues, that's expected - skip this assertion
             pass
 
+    @allure.title("MiniAppInfo hash inequality")
+    @allure.description("Test MiniAppInfo hash inequality.")
     def test_mini_app_info_hash_inequality(self):
         """Test MiniAppInfo hash inequality."""
         mini_app1 = MiniAppInfo(url="https://example.com/app1")
@@ -674,6 +832,8 @@ class TestMiniAppInfo:
 
         assert hash(mini_app1) != hash(mini_app2)
 
+    @allure.title("MiniAppInfo string representation")
+    @allure.description("Test MiniAppInfo string representation.")
     def test_mini_app_info_repr(self):
         """Test MiniAppInfo string representation."""
         mini_app = MiniAppInfo(**VALID_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -682,6 +842,8 @@ class TestMiniAppInfo:
         assert "MiniAppInfo" in repr_str
         assert "url='https://example.com/mini-app'" in repr_str
 
+    @allure.title("different platform values")
+    @allure.description("Test different platform values.")
     def test_mini_app_info_platforms(self):
         """Test different platform values."""
         platforms = ["web", "mobile", "desktop", "tv"]
@@ -692,6 +854,8 @@ class TestMiniAppInfo:
             )
             assert mini_app.platform == platform
 
+    @allure.title("that MiniAppInfo is frozen (cannot modify attributes)")
+    @allure.description("Test that MiniAppInfo is frozen (cannot modify attributes).")
     def test_mini_app_info_frozen(self):
         """Test that MiniAppInfo is frozen (cannot modify attributes)."""
         mini_app = MiniAppInfo(url="https://example.com")
@@ -699,6 +863,8 @@ class TestMiniAppInfo:
         with pytest.raises(AttributeError, match="immutable type"):
             mini_app.url = "https://example.com/new"  # type: ignore[misc]
 
+    @allure.title("MiniAppInfo edge cases")
+    @allure.description("Test MiniAppInfo edge cases.")
     def test_mini_app_info_edge_cases(self):
         """Test MiniAppInfo edge cases."""
         mini_app = MiniAppInfo(**EDGE_CASE_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -707,6 +873,8 @@ class TestMiniAppInfo:
         assert mini_app.start_param == ""
         assert mini_app.theme_params == {}
 
+    @allure.title("MiniAppInfo with unicode characters")
+    @allure.description("Test MiniAppInfo with unicode characters.")
     def test_mini_app_info_unicode(self):
         """Test MiniAppInfo with unicode characters."""
         mini_app = MiniAppInfo(**UNICODE_MINI_APP_INFO_DATA)  # type: ignore[arg-type]
@@ -715,6 +883,8 @@ class TestMiniAppInfo:
         assert mini_app.start_param == "параметр_用户_テスト"
         assert mini_app.theme_params == {"title": "Тест", "description": "测试"}
 
+    @allure.title("MiniAppInfo with nested theme_params")
+    @allure.description("Test MiniAppInfo with nested theme_params.")
     def test_mini_app_info_theme_params_nested(self):
         """Test MiniAppInfo with nested theme_params."""
         nested_params = {
@@ -724,6 +894,8 @@ class TestMiniAppInfo:
         mini_app = MiniAppInfo(url="https://example.com", theme_params=nested_params)
         assert mini_app.theme_params == nested_params
 
+    @allure.title("MiniAppInfo with very long URL")
+    @allure.description("Test MiniAppInfo with very long URL.")
     def test_mini_app_info_very_long_url(self):
         """Test MiniAppInfo with very long URL."""
         long_url = "https://example.com/" + "a" * 10000
@@ -734,6 +906,8 @@ class TestMiniAppInfo:
 class TestApiResult:
     """Test cases for ApiResult model."""
 
+    @allure.title("creating a valid ApiResult")
+    @allure.description("Test creating a valid ApiResult.")
     def test_valid_api_result_creation(self):
         """Test creating a valid ApiResult."""
         result = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -753,6 +927,8 @@ class TestApiResult:
         assert result.reason == "OK"
         assert result.error_message is None
 
+    @allure.title("creating an error ApiResult")
+    @allure.description("Test creating an error ApiResult.")
     def test_error_api_result_creation(self):
         """Test creating an error ApiResult."""
         result = ApiResult(**ERROR_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -765,6 +941,8 @@ class TestApiResult:
         assert result.client_error is True
         assert result.error_message == "Bad Request"
 
+    @allure.title("creating a timeout ApiResult")
+    @allure.description("Test creating a timeout ApiResult.")
     def test_timeout_api_result_creation(self):
         """Test creating a timeout ApiResult."""
         result = ApiResult(**TIMEOUT_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -775,6 +953,8 @@ class TestApiResult:
         assert result.client_error is True
         assert result.error_message == "Request timeout"
 
+    @allure.title("creating a redirect ApiResult")
+    @allure.description("Test creating a redirect ApiResult.")
     def test_redirect_api_result_creation(self):
         """Test creating a redirect ApiResult."""
         result = ApiResult(**REDIRECT_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -783,6 +963,8 @@ class TestApiResult:
         assert result.redirect is True
         assert result.success is False
 
+    @allure.title("creating a server error ApiResult")
+    @allure.description("Test creating a server error ApiResult.")
     def test_server_error_api_result_creation(self):
         """Test creating a server error ApiResult."""
         result = ApiResult(**SERVER_ERROR_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -791,6 +973,8 @@ class TestApiResult:
         assert result.server_error is True
         assert result.success is False
 
+    @allure.title("creating an informational ApiResult")
+    @allure.description("Test creating an informational ApiResult.")
     def test_informational_api_result_creation(self):
         """Test creating an informational ApiResult."""
         result = ApiResult(**INFORMATIONAL_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -799,6 +983,8 @@ class TestApiResult:
         assert result.informational is True
         assert result.success is False
 
+    @allure.title("ApiResult required fields")
+    @allure.description("Test ApiResult required fields.")
     def test_api_result_required_fields(self):
         """Test ApiResult required fields."""
         # Test that all required fields are needed
@@ -808,6 +994,8 @@ class TestApiResult:
         with pytest.raises(TypeError):
             ApiResult(endpoint="/api/test")  # type: ignore[call-arg]  # Missing other required fields
 
+    @allure.title("ApiResult field types")
+    @allure.description("Test ApiResult field types.")
     def test_api_result_field_types(self):
         """Test ApiResult field types."""
         result = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -822,6 +1010,8 @@ class TestApiResult:
         assert isinstance(result.server_error, bool)
         assert isinstance(result.informational, bool)
 
+    @allure.title("ApiResult with invalid status_code type")
+    @allure.description("Test ApiResult with invalid status_code type.")
     def test_api_result_invalid_status_code_type(self):
         """Test ApiResult with invalid status_code type."""
         # msgspec doesn't validate types at creation time, it accepts any type
@@ -842,6 +1032,8 @@ class TestApiResult:
         )  # msgspec doesn't convert, stores as-is
         assert result.status_code == "200"
 
+    @allure.title("ApiResult with invalid response_time type")
+    @allure.description("Test ApiResult with invalid response_time type.")
     def test_api_result_invalid_response_time_type(self):
         """Test ApiResult with invalid response_time type."""
         # msgspec doesn't validate types at creation time, it accepts any type
@@ -862,6 +1054,8 @@ class TestApiResult:
         )  # msgspec doesn't convert, stores as-is
         assert result.response_time == "fast"
 
+    @allure.title("ApiResult with invalid headers type")
+    @allure.description("Test ApiResult with invalid headers type.")
     def test_api_result_invalid_headers_type(self):
         """Test ApiResult with invalid headers type."""
         # msgspec may be lenient with Optional fields
@@ -886,6 +1080,8 @@ class TestApiResult:
             pass
 
     @pytest.mark.parametrize("status_code", [200, 301, 404, 500, 101])
+    @allure.title("different status codes")
+    @allure.description("Test different status codes.")
     def test_api_result_status_codes(self, status_code):
         """Test different status codes."""
         result = ApiResult(
@@ -906,6 +1102,8 @@ class TestApiResult:
         assert result.server_error == (500 <= status_code < 600)
         assert result.informational == (100 <= status_code < 200)
 
+    @allure.title("different response times")
+    @allure.description("Test different response times.")
     def test_api_result_response_times(self):
         """Test different response times."""
         response_times = [0.001, 0.1, 1.0, 10.0, 100.0]
@@ -924,6 +1122,8 @@ class TestApiResult:
             )
             assert result.response_time == response_time
 
+    @allure.title("ApiResult serialization")
+    @allure.description("Test ApiResult serialization.")
     def test_api_result_serialization(self):
         """Test ApiResult serialization."""
         result = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -935,6 +1135,8 @@ class TestApiResult:
         assert result_dict["status_code"] == 200
         assert result_dict["success"] is True
 
+    @allure.title("ApiResult serialization with response data")
+    @allure.description("Test ApiResult serialization with response data.")
     def test_api_result_serialization_with_response_data(self):
         """Test ApiResult serialization with response data."""
         result = ApiResult(
@@ -966,6 +1168,8 @@ class TestApiResult:
         expected_body_base64 = base64.b64encode(b'{"test": "data"}').decode("utf-8")
         assert result_dict["body"] == expected_body_base64
 
+    @allure.title("ApiResult deserialization")
+    @allure.description("Test ApiResult deserialization.")
     def test_api_result_deserialization(self):
         """Test ApiResult deserialization."""
         result_dict = VALID_API_RESULT_DATA.copy()
@@ -977,6 +1181,8 @@ class TestApiResult:
         assert result.status_code == 200
         assert result.success is True
 
+    @allure.title("ApiResult deserialization with None in optional fields")
+    @allure.description("Test ApiResult deserialization with None in optional fields.")
     def test_api_result_deserialization_with_none(self):
         """Test ApiResult deserialization with None in optional fields."""
         result_dict = {
@@ -1002,6 +1208,8 @@ class TestApiResult:
         assert result.reason is None
         assert result.error_message is None
 
+    @allure.title("ApiResult equality")
+    @allure.description("Test ApiResult equality.")
     def test_api_result_equality(self):
         """Test ApiResult equality."""
         result1 = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -1011,6 +1219,8 @@ class TestApiResult:
         assert result1 == result2
         assert result1 != result3
 
+    @allure.title("ApiResult inequality")
+    @allure.description("Test ApiResult inequality.")
     def test_api_result_inequality(self):
         """Test ApiResult inequality."""
         result1 = ApiResult(
@@ -1038,6 +1248,8 @@ class TestApiResult:
 
         assert result1 != result2
 
+    @allure.title("ApiResult hashing")
+    @allure.description("Test ApiResult hashing.")
     def test_api_result_hash(self):
         """Test ApiResult hashing."""
         result1 = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -1052,6 +1264,8 @@ class TestApiResult:
         with pytest.raises(TypeError, match="unhashable type"):
             hash(result2)
 
+    @allure.title("ApiResult hash inequality")
+    @allure.description("Test ApiResult hash inequality.")
     def test_api_result_hash_inequality(self):
         """Test ApiResult hash inequality."""
         result1 = ApiResult(
@@ -1085,6 +1299,8 @@ class TestApiResult:
         with pytest.raises(TypeError, match="unhashable type"):
             hash(result2)
 
+    @allure.title("ApiResult string representation")
+    @allure.description("Test ApiResult string representation.")
     def test_api_result_repr(self):
         """Test ApiResult string representation."""
         result = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -1095,6 +1311,8 @@ class TestApiResult:
         assert "status_code=200" in repr_str
         assert "success=True" in repr_str
 
+    @allure.title("that ApiResult is frozen (cannot modify attributes)")
+    @allure.description("Test that ApiResult is frozen (cannot modify attributes).")
     def test_api_result_frozen(self):
         """Test that ApiResult is frozen (cannot modify attributes)."""
         result = ApiResult(**VALID_API_RESULT_DATA)  # type: ignore[arg-type]
@@ -1102,6 +1320,8 @@ class TestApiResult:
         with pytest.raises(AttributeError, match="immutable type"):
             result.endpoint = "/api/new"  # type: ignore[misc]
 
+    @allure.title("ApiResult with empty strings")
+    @allure.description("Test ApiResult with empty strings.")
     def test_api_result_empty_strings(self):
         """Test ApiResult with empty strings."""
         result = ApiResult(
@@ -1120,6 +1340,8 @@ class TestApiResult:
         assert result.method == ""
         assert result.error_message == ""
 
+    @allure.title("ApiResult with unicode characters")
+    @allure.description("Test ApiResult with unicode characters.")
     def test_api_result_unicode(self):
         """Test ApiResult with unicode characters."""
         result = ApiResult(
@@ -1137,6 +1359,8 @@ class TestApiResult:
         assert result.endpoint == "/api/тест"
         assert result.error_message == "Ошибка 错误"
 
+    @allure.title("ApiResult with very long strings")
+    @allure.description("Test ApiResult with very long strings.")
     def test_api_result_very_long_strings(self):
         """Test ApiResult with very long strings."""
         long_endpoint = "/api/" + "a" * 10000
@@ -1153,6 +1377,8 @@ class TestApiResult:
         )
         assert len(result.endpoint) == len(long_endpoint)
 
+    @allure.title("ApiResult with response data fields")
+    @allure.description("Test ApiResult with response data fields.")
     def test_api_result_with_response_data(self):
         """Test ApiResult with response data fields."""
         result = ApiResult(
@@ -1180,6 +1406,280 @@ class TestApiResult:
         assert result.reason == "OK"
         assert result.status_code == 200
 
+    @allure.title("ApiResult.json() method")
+    @allure.description("Test ApiResult.json() method.")
+    def test_api_result_json_method(self):
+        """Test ApiResult.json() method."""
+        json_data = {"key": "value", "number": 123}
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+            body=json.dumps(json_data).encode("utf-8"),
+        )
+
+        parsed = result.json()
+        assert parsed == json_data
+        assert parsed["key"] == "value"
+        assert parsed["number"] == 123
+
+    @allure.title("ApiResult.json() raises ValueError for invalid JSON")
+    @allure.description("Test ApiResult.json() raises ValueError for invalid JSON.")
+    def test_api_result_json_method_invalid_json(self):
+        """Test ApiResult.json() raises ValueError for invalid JSON."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+            body=b"not valid json",
+        )
+
+        with pytest.raises(ValueError, match="Failed to parse JSON"):
+            result.json()
+
+    @allure.title("ApiResult.text() method")
+    @allure.description("Test ApiResult.text() method.")
+    def test_api_result_text_method(self):
+        """Test ApiResult.text() method."""
+        text_content = "Hello, World!"
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+            body=text_content.encode("utf-8"),
+        )
+
+        assert result.text() == text_content
+
+    @allure.title("ApiResult.text() handles decode errors gracefully")
+    @allure.description("Test ApiResult.text() handles decode errors gracefully.")
+    def test_api_result_text_method_with_errors(self):
+        """Test ApiResult.text() handles decode errors gracefully."""
+        # Invalid UTF-8 sequence
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+            body=b"\xff\xfe\x00\x01",  # Invalid UTF-8
+        )
+
+        # Should not raise, but return replacement characters
+        text = result.text()
+        assert isinstance(text, str)
+
+    @allure.title("ApiResult.raise_for_status() does not raise for success")
+    @allure.description("Test ApiResult.raise_for_status() does not raise for success.")
+    def test_api_result_raise_for_status_success(self):
+        """Test ApiResult.raise_for_status() does not raise for success."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+        )
+
+        # Should not raise
+        result.raise_for_status()
+
+    @allure.title("ApiResult.raise_for_status() raises for 4xx status")
+    @allure.description("Test ApiResult.raise_for_status() raises for 4xx status.")
+    def test_api_result_raise_for_status_client_error(self):
+        """Test ApiResult.raise_for_status() raises for 4xx status."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=404,
+            response_time=0.1,
+            success=False,
+            redirect=False,
+            client_error=True,
+            server_error=False,
+            informational=False,
+            error_message="Not Found",
+        )
+
+        with pytest.raises(Exception, match="HTTP 404"):
+            result.raise_for_status()
+
+    @allure.title("ApiResult.raise_for_status() raises for 5xx status")
+    @allure.description("Test ApiResult.raise_for_status() raises for 5xx status.")
+    def test_api_result_raise_for_status_server_error(self):
+        """Test ApiResult.raise_for_status() raises for 5xx status."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=500,
+            response_time=0.1,
+            success=False,
+            redirect=False,
+            client_error=False,
+            server_error=True,
+            informational=False,
+            error_message="Internal Server Error",
+        )
+
+        with pytest.raises(Exception, match="HTTP 500"):
+            result.raise_for_status()
+
+    @allure.title("ApiResult.assert_status_code() with matching code")
+    @allure.description("Test ApiResult.assert_status_code() with matching code.")
+    def test_api_result_assert_status_code_success(self):
+        """Test ApiResult.assert_status_code() with matching code."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+        )
+
+        # Should not raise
+        result.assert_status_code(200)
+
+    @allure.title("ApiResult.assert_status_code() raises AssertionError for mismatch")
+    @allure.description(
+        "Test ApiResult.assert_status_code() raises AssertionError for mismatch."
+    )
+    def test_api_result_assert_status_code_failure(self):
+        """Test ApiResult.assert_status_code() raises AssertionError for mismatch."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=404,
+            response_time=0.1,
+            success=False,
+            redirect=False,
+            client_error=True,
+            server_error=False,
+            informational=False,
+            body=b"Not Found",
+        )
+
+        with pytest.raises(AssertionError, match="Expected status code 200, got 404"):
+            result.assert_status_code(200)
+
+    @allure.title("ApiResult.assert_success() for successful request")
+    @allure.description("Test ApiResult.assert_success() for successful request.")
+    def test_api_result_assert_success(self):
+        """Test ApiResult.assert_success() for successful request."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+        )
+
+        # Should not raise
+        result.assert_success()
+
+    @allure.title("ApiResult.assert_success() raises AssertionError for failed request")
+    @allure.description(
+        "Test ApiResult.assert_success() raises AssertionError for failed request."
+    )
+    def test_api_result_assert_success_failure(self):
+        """Test ApiResult.assert_success() raises AssertionError for failed request."""
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=500,
+            response_time=0.1,
+            success=False,
+            redirect=False,
+            client_error=False,
+            server_error=True,
+            informational=False,
+            body=b"Server Error",
+        )
+
+        with pytest.raises(AssertionError, match="Request failed with status 500"):
+            result.assert_success()
+
+    @allure.title("ApiResult.assert_has_fields() with all fields present")
+    @allure.description("Test ApiResult.assert_has_fields() with all fields present.")
+    def test_api_result_assert_has_fields_success(self):
+        """Test ApiResult.assert_has_fields() with all fields present."""
+        json_data = {"name": "test", "id": 123, "status": "active"}
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+            body=json.dumps(json_data).encode("utf-8"),
+        )
+
+        # Should not raise
+        result.assert_has_fields("name", "id", "status")
+
+    @allure.title(
+        "ApiResult.assert_has_fields() raises AssertionError for missing fields"
+    )
+    @allure.description(
+        "Test ApiResult.assert_has_fields() raises AssertionError for missing fields."
+    )
+    def test_api_result_assert_has_fields_missing(self):
+        """Test ApiResult.assert_has_fields() raises AssertionError for missing fields."""
+        json_data = {"name": "test", "id": 123}
+        result = ApiResult(
+            endpoint="/api/test",
+            method="GET",
+            status_code=200,
+            response_time=0.1,
+            success=True,
+            redirect=False,
+            client_error=False,
+            server_error=False,
+            informational=False,
+            body=json.dumps(json_data).encode("utf-8"),
+        )
+
+        with pytest.raises(AssertionError, match="Missing required fields"):
+            result.assert_has_fields("name", "id", "status", "email")
+
+    @allure.title("different HTTP methods")
+    @allure.description("Test different HTTP methods.")
     def test_api_result_methods(self):
         """Test different HTTP methods."""
         methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]

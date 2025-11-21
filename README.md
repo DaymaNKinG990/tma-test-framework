@@ -257,6 +257,42 @@ Run the performance benchmarks:
 uv run python tests/test_performance.py
 ```
 
+## CI/CD and Test Reports
+
+This project uses GitHub Actions to run tests and publish Allure reports to GitHub Pages.
+
+### Test Reports
+
+After each push to `main` or `master` branch, tests are automatically run and Allure reports are published to GitHub Pages.
+
+**View test reports**: `https://<your-username>.github.io/<repo-name>/`
+
+### Setting up GitHub Pages
+
+1. Go to your repository **Settings** → **Pages**
+2. Under **Source**, select **GitHub Actions**
+3. The workflow will automatically deploy reports after each successful test run
+
+### Local Test Execution
+
+Run tests locally with Allure:
+
+```bash
+# Run tests and generate Allure results
+uv run pytest --alluredir=allure-results
+
+# Generate and serve Allure report locally
+uv run allure serve allure-results
+```
+
+### GitHub Actions Workflow
+
+The workflow (`.github/workflows/tests.yml`) automatically:
+- Runs tests on push/PR to main branches
+- Generates Allure test reports
+- Publishes reports to GitHub Pages
+- Uploads coverage reports as artifacts
+
 ## License
 
 MIT License

@@ -1,12 +1,11 @@
 [project]
 name = "tma-test-framework"
-version = "1.1.0"
+version = "1.2.0"
 description = "Simple Python framework for working with Telegram API and Mini Apps"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
-    "python-telegram-bot>=22.5",
     "playwright>=1.56.0",
     "msgspec>=0.19.0",
     "loguru>=0.7.3",
@@ -77,6 +76,7 @@ dev = [
     "ruff>=0.14.5",
     "types-PyYAML>=6.0.12",
     "pre-commit>=4.4.0",
+    "allure-pytest>=2.15.0",
 ]
 
 [tool.mypy]

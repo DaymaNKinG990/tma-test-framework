@@ -7,6 +7,13 @@ from .mini_app import (
     ApiResult,
 )
 from .config import Config
+from .utils import (
+    parse_json,
+    validate_response_structure,
+    extract_pagination_info,
+    get_error_detail,
+    generate_telegram_init_data,
+)
 
 
 __version__ = "0.2.0"
@@ -21,4 +28,9 @@ __all__ = [
     "MiniAppInfo",
     "ApiResult",
     "Config",
+    "parse_json",
+    "validate_response_structure",
+    "extract_pagination_info",
+    "get_error_detail",
+    "generate_telegram_init_data",
 ]

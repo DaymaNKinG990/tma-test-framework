@@ -69,16 +69,43 @@
 | TC-API-035 | Make request with base URL containing query params | `test_make_request_removes_query_params_from_base_url` | ✅ |
 | TC-API-036 | Make request with very long endpoint | `test_make_request_very_long_endpoint` | ✅ |
 | TC-API-037 | Make request with unicode in endpoint | `test_make_request_unicode_endpoint` | ✅ |
+| TC-API-038 | Handle response_time when elapsed is unavailable | `test_make_request_response_time_unavailable`, `test_make_request_response_time_runtime_error` | ✅ |
 
 **Дополнительные тесты** (не в тест-кейсах):
 - `test_make_request_get_method` - явная проверка GET метода
-- `test_make_request_timeout_respected` - проверка таймаута
 
 ### 5. Edge Cases
 
 Все edge cases покрыты тестами.
 
-### 6. Inheritance and Context Manager
+### 6. Authentication Token Management Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-API-039 | Initialize MiniAppApi with default auth token values | `test_init_sets_default_auth_token_values` | ✅ |
+| TC-API-040 | Set authentication token with default type | `test_set_auth_token` | ✅ |
+| TC-API-041 | Set authentication token with custom type | `test_set_auth_token_with_custom_type` | ✅ |
+| TC-API-042 | Clear authentication token | `test_clear_auth_token` | ✅ |
+| TC-API-043 | Make request automatically adds auth token to headers | `test_make_request_adds_auth_token_automatically` | ✅ |
+| TC-API-044 | Make request without token does not add Authorization header | `test_make_request_without_token_no_auth_header` | ✅ |
+| TC-API-045 | Make request uses custom token type | `test_make_request_custom_token_type` | ✅ |
+| TC-API-046 | Make request allows overriding Authorization header | `test_make_request_headers_override_auth_token` | ✅ |
+| TC-API-047 | Make request merges custom headers with auth token | `test_make_request_merges_headers_with_token` | ✅ |
+| TC-API-048 | Make request sets Content-Type for requests with data | `test_make_request_sets_content_type_for_data` | ✅ |
+| TC-API-049 | Make request preserves custom Content-Type header | `test_make_request_preserves_custom_content_type` | ✅ |
+
+### 6. Query Parameters Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-API-050 | Make request with query parameters | `test_make_request_with_query_params` | ✅ |
+| TC-API-051 | Make request with query params and existing query string | `test_make_request_with_query_params_and_existing_query` | ✅ |
+| TC-API-052 | Make request with empty params dict | `test_make_request_with_empty_params` | ✅ |
+
+**Дополнительные тесты** (не в тест-кейсах):
+- `test_make_request_timeout_respected` - проверка таймаута
+
+### 7. Inheritance and Context Manager
 
 | Тест-кейс | Описание | Соответствующий тест | Статус |
 |-----------|----------|---------------------|--------|
@@ -200,19 +227,96 @@
 | - | Browser closed in close | `test_browser_closed_in_close` | ✅ |
 | - | Logs contain context | `test_logs_contain_context` | ✅ |
 
+## ApiResult Methods - Сопоставление
+
+### 1. JSON and Text Methods
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-MODEL-API-022 | ApiResult.json() parses valid JSON | `test_api_result_json_method` | ✅ |
+| TC-MODEL-API-023 | ApiResult.json() raises ValueError for invalid JSON | `test_api_result_json_method_invalid_json` | ✅ |
+| TC-MODEL-API-024 | ApiResult.text() returns decoded body | `test_api_result_text_method` | ✅ |
+| TC-MODEL-API-025 | ApiResult.text() handles decode errors gracefully | `test_api_result_text_method_with_errors` | ✅ |
+
+### 2. Status Code Assertion Methods
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-MODEL-API-026 | ApiResult.raise_for_status() does not raise for success | `test_api_result_raise_for_status_success` | ✅ |
+| TC-MODEL-API-027 | ApiResult.raise_for_status() raises for 4xx status | `test_api_result_raise_for_status_client_error` | ✅ |
+| TC-MODEL-API-028 | ApiResult.raise_for_status() raises for 5xx status | `test_api_result_raise_for_status_server_error` | ✅ |
+| TC-MODEL-API-029 | ApiResult.assert_status_code() with matching code | `test_api_result_assert_status_code_success` | ✅ |
+| TC-MODEL-API-030 | ApiResult.assert_status_code() raises for mismatch | `test_api_result_assert_status_code_failure` | ✅ |
+| TC-MODEL-API-031 | ApiResult.assert_success() for successful request | `test_api_result_assert_success` | ✅ |
+| TC-MODEL-API-032 | ApiResult.assert_success() raises for failed request | `test_api_result_assert_success_failure` | ✅ |
+| TC-MODEL-API-033 | ApiResult.assert_has_fields() with all fields present | `test_api_result_assert_has_fields_success` | ✅ |
+| TC-MODEL-API-034 | ApiResult.assert_has_fields() raises for missing fields | `test_api_result_assert_has_fields_missing` | ✅ |
+
+## Utility Functions - Сопоставление
+
+### 1. parse_json() Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-UTILS-001 | Parse valid JSON | `test_parse_json_valid` | ✅ |
+| TC-UTILS-002 | Parse invalid JSON returns empty dict | `test_parse_json_invalid` | ✅ |
+| TC-UTILS-003 | Parse empty body returns empty dict | `test_parse_json_empty` | ✅ |
+| TC-UTILS-004 | Parse JSON with unicode characters | `test_parse_json_unicode` | ✅ |
+
+### 2. validate_response_structure() Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-UTILS-005 | Validate structure with all fields present | `test_validate_response_structure_all_fields_present` | ✅ |
+| TC-UTILS-006 | Validate structure with missing fields | `test_validate_response_structure_missing_fields` | ✅ |
+| TC-UTILS-007 | Validate structure with empty expected fields | `test_validate_response_structure_empty_fields` | ✅ |
+
+### 3. extract_pagination_info() Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-UTILS-008 | Extract complete pagination info | `test_extract_pagination_info_complete` | ✅ |
+| TC-UTILS-009 | Extract partial pagination info | `test_extract_pagination_info_partial` | ✅ |
+| TC-UTILS-010 | Extract pagination info from empty data | `test_extract_pagination_info_empty` | ✅ |
+
+### 4. get_error_detail() Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-UTILS-011 | Extract error detail from 'detail' field | `test_get_error_detail_with_detail` | ✅ |
+| TC-UTILS-012 | Extract error detail from 'error' field | `test_get_error_detail_with_error` | ✅ |
+| TC-UTILS-013 | Extract error detail fallback to string representation | `test_get_error_detail_fallback` | ✅ |
+
+### 5. generate_telegram_init_data() Tests
+
+| Тест-кейс | Описание | Соответствующий тест | Статус |
+|-----------|----------|---------------------|--------|
+| TC-UTILS-014 | Generate init data with default parameters | `test_generate_telegram_init_data_default` | ✅ |
+| TC-UTILS-015 | Generate init data with custom parameters | `test_generate_telegram_init_data_custom` | ✅ |
+| TC-UTILS-016 | Generate init data with valid hash format | `test_generate_telegram_init_data_hash_format` | ✅ |
+| TC-UTILS-017 | Generate init data can be validated | `test_generate_telegram_init_data_validates` | ✅ |
+
 ## Выводы
 
 ### Покрытие тест-кейсов
 
 **MiniAppApi**:
-- Всего тест-кейсов: 37
-- Покрыто тестами: 36 (97%)
-- Не покрыто: 1 (TC-API-002 - Config обязателен, тест-кейс устарел)
+- Всего тест-кейсов: 52 (было 37, добавлено 15 новых)
+- Покрыто тестами: 52 (100%)
+- Новые тест-кейсы: TC-API-050, TC-API-051, TC-API-052 (query params)
 
 **MiniAppUI**:
 - Всего тест-кейсов: 41
 - Покрыто тестами: 40 (98%)
 - Не покрыто: 1 (некоторые edge cases частично)
+
+**ApiResult Methods**:
+- Всего тест-кейсов: 13 (TC-MODEL-API-022 до TC-MODEL-API-034)
+- Покрыто тестами: 13 (100%)
+
+**Utility Functions**:
+- Всего тест-кейсов: 17 (TC-UTILS-001 до TC-UTILS-017)
+- Покрыто тестами: 17 (100%)
 
 ### Рекомендации
 

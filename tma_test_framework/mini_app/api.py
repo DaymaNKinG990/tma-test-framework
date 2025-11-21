@@ -37,10 +37,38 @@ class MiniAppApi(BaseMiniApp):
             timeout=self.config.timeout,
             limits=Limits(max_keepalive_connections=5, max_connections=10),
         )
+        self._auth_token: Optional[str] = None
+        self._auth_token_type: str = "Bearer"
 
     async def close(self) -> None:
         """Close HTTP client."""
         await self.client.aclose()
+
+    def set_auth_token(self, token: str, token_type: str = "Bearer") -> None:
+        """
+        Set authentication token for all subsequent requests.
+
+        Args:
+            token: Authentication token (JWT, API key, etc.)
+            token_type: Token type (default: "Bearer")
+
+        Example:
+            >>> client = MiniAppApi("http://api.example.com", config)
+            >>> result = await client.make_request("v1/login/", method="POST", data=credentials)
+            >>> token_data = json.loads(result.body)
+            >>> client.set_auth_token(token_data["access"])
+            >>> # All subsequent requests will automatically include the token
+            >>> result = await client.make_request("v1/users/", method="GET")
+        """
+        self._auth_token = token
+        self._auth_token_type = token_type
+        self.logger.debug(f"Authentication token set (type: {token_type})")
+
+    def clear_auth_token(self) -> None:
+        """Clear authentication token."""
+        self._auth_token = None
+        self._auth_token_type = "Bearer"
+        self.logger.debug("Authentication token cleared")
 
     async def validate_init_data(self, init_data: str, bot_token: str) -> bool:
         """
@@ -89,6 +117,7 @@ class MiniAppApi(BaseMiniApp):
         endpoint: str,
         method: str = "GET",
         data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
     ) -> ApiResult:
         """
@@ -97,8 +126,9 @@ class MiniAppApi(BaseMiniApp):
         Args:
             endpoint: API endpoint to test
             method: HTTP method (GET, POST, PUT, DELETE)
-            data: Request data
-            headers: Request headers
+            data: Request data (for POST, PUT, PATCH)
+            params: Query parameters (for GET requests)
+            headers: Request headers (will be merged with auth token if set)
 
         Returns:
             ApiResult with request result
@@ -110,9 +140,33 @@ class MiniAppApi(BaseMiniApp):
                 # Assume endpoint is relative to Mini App URL
                 base_url = self.url.split("?")[0]  # Remove query params
                 url = f"{base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+
+            # Add query params to URL
+            if params:
+                from urllib.parse import urlencode
+
+                query_string = urlencode(params)
+                if query_string:
+                    separator = "&" if "?" in url else "?"
+                    url = f"{url}{separator}{query_string}"
+
+            # Prepare headers with automatic token addition
+            request_headers: Dict[str, str] = {}
+            if headers:
+                request_headers.update(headers)
+
+            # Automatically add token if set (unless Authorization header is already provided)
+            if self._auth_token and "Authorization" not in request_headers:
+                auth_header = f"{self._auth_token_type} {self._auth_token}"
+                request_headers["Authorization"] = auth_header
+
+            # Set default Content-Type if not specified and data is provided
+            if data is not None and "Content-Type" not in request_headers:
+                request_headers["Content-Type"] = "application/json"
+
             self.logger.info(f"Making request: {method} {url}")
             response = await self.client.request(
-                method=method, url=url, json=data, headers=headers
+                method=method, url=url, json=data, headers=request_headers
             )
             # Extract response data before closing
             # response.content automatically reads the response body

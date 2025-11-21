@@ -385,3 +385,146 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
   1. Call make_request with unicode endpoint
 - **Expected Result**: Request works correctly
 - **Coverage**: Unicode handling
+
+### 6. Authentication Token Management Tests
+
+#### TC-API-039: Initialize MiniAppApi with default auth token values
+- **Purpose**: Verify MiniAppApi initializes with default auth token values
+- **Preconditions**: Valid URL and Config object
+- **Test Steps**:
+  1. Create MiniAppApi(url, config)
+  2. Verify _auth_token is None
+  3. Verify _auth_token_type is "Bearer"
+- **Expected Result**: Default values: _auth_token=None, _auth_token_type="Bearer"
+- **Coverage**: `__init__` auth token initialization
+
+#### TC-API-040: Set authentication token with default type
+- **Purpose**: Verify set_auth_token sets token with default Bearer type
+- **Preconditions**: MiniAppApi instance
+- **Test Steps**:
+  1. Call set_auth_token("test_token_123")
+  2. Verify _auth_token equals "test_token_123"
+  3. Verify _auth_token_type equals "Bearer"
+- **Expected Result**: Token and type are set correctly
+- **Coverage**: `set_auth_token()` method
+
+#### TC-API-041: Set authentication token with custom type
+- **Purpose**: Verify set_auth_token accepts custom token type
+- **Preconditions**: MiniAppApi instance
+- **Test Steps**:
+  1. Call set_auth_token("api_key_456", "ApiKey")
+  2. Verify _auth_token equals "api_key_456"
+  3. Verify _auth_token_type equals "ApiKey"
+- **Expected Result**: Token and custom type are set correctly
+- **Coverage**: `set_auth_token()` with custom type
+
+#### TC-API-042: Clear authentication token
+- **Purpose**: Verify clear_auth_token resets token to None
+- **Preconditions**: MiniAppApi instance with token set
+- **Test Steps**:
+  1. Call set_auth_token("test_token")
+  2. Verify _auth_token is set
+  3. Call clear_auth_token()
+  4. Verify _auth_token is None
+  5. Verify _auth_token_type is reset to "Bearer"
+- **Expected Result**: Token cleared, type reset to default
+- **Coverage**: `clear_auth_token()` method
+
+#### TC-API-043: Make request automatically adds auth token to headers
+- **Purpose**: Verify make_request automatically adds Authorization header when token is set
+- **Preconditions**: MiniAppApi instance with token set
+- **Test Steps**:
+  1. Call set_auth_token("test_token_123")
+  2. Call make_request("/api/data")
+  3. Verify Authorization header is present in request
+  4. Verify Authorization header value is "Bearer test_token_123"
+- **Expected Result**: Authorization header automatically added to request
+- **Coverage**: `make_request()` automatic token injection
+
+#### TC-API-044: Make request without token does not add Authorization header
+- **Purpose**: Verify make_request does not add Authorization header when token is not set
+- **Preconditions**: MiniAppApi instance without token
+- **Test Steps**:
+  1. Call make_request("/api/data") without setting token
+  2. Verify Authorization header is not present in request headers
+- **Expected Result**: No Authorization header in request
+- **Coverage**: `make_request()` without token
+
+#### TC-API-045: Make request uses custom token type
+- **Purpose**: Verify make_request uses custom token type in Authorization header
+- **Preconditions**: MiniAppApi instance with custom token type
+- **Test Steps**:
+  1. Call set_auth_token("api_key_456", "ApiKey")
+  2. Call make_request("/api/data")
+  3. Verify Authorization header value is "ApiKey api_key_456"
+- **Expected Result**: Authorization header uses custom token type
+- **Coverage**: `make_request()` with custom token type
+
+#### TC-API-046: Make request allows overriding Authorization header
+- **Purpose**: Verify make_request allows overriding Authorization header in headers parameter
+- **Preconditions**: MiniAppApi instance with token set
+- **Test Steps**:
+  1. Call set_auth_token("default_token")
+  2. Call make_request("/api/data", headers={"Authorization": "Bearer custom_token"})
+  3. Verify Authorization header in request is "Bearer custom_token" (not default)
+- **Expected Result**: Custom Authorization header overrides automatic token
+- **Coverage**: `make_request()` header override
+
+#### TC-API-047: Make request merges custom headers with auth token
+- **Purpose**: Verify make_request merges custom headers with automatically added token
+- **Preconditions**: MiniAppApi instance with token set
+- **Test Steps**:
+  1. Call set_auth_token("test_token")
+  2. Call make_request("/api/data", headers={"X-Custom-Header": "custom_value"})
+  3. Verify Authorization header is present
+  4. Verify X-Custom-Header is present
+- **Expected Result**: Both Authorization and custom headers are present
+- **Coverage**: `make_request()` header merging
+
+#### TC-API-048: Make request sets Content-Type for requests with data
+- **Purpose**: Verify make_request automatically sets Content-Type when data is provided
+- **Preconditions**: MiniAppApi instance
+- **Test Steps**:
+  1. Call make_request("/api/data", method="POST", data={"key": "value"})
+  2. Verify Content-Type header is "application/json"
+- **Expected Result**: Content-Type automatically set to application/json
+- **Coverage**: `make_request()` Content-Type handling
+
+#### TC-API-049: Make request preserves custom Content-Type header
+- **Purpose**: Verify make_request preserves custom Content-Type if provided
+- **Preconditions**: MiniAppApi instance
+- **Test Steps**:
+  1. Call make_request("/api/data", method="POST", data={"key": "value"}, headers={"Content-Type": "application/xml"})
+  2. Verify Content-Type header is "application/xml" (not overridden)
+- **Expected Result**: Custom Content-Type is preserved
+- **Coverage**: `make_request()` Content-Type override
+
+### 6. Query Parameters Tests
+
+#### TC-API-050: Make request with query parameters
+- **Purpose**: Verify make_request adds query params to URL
+- **Preconditions**: MiniAppApi instance
+- **Test Steps**:
+  1. Call make_request("/api/data", params={"page": 1, "limit": 10})
+  2. Verify URL contains query parameters: "?page=1&limit=10" or "?limit=10&page=1"
+- **Expected Result**: Query parameters are added to URL
+- **Coverage**: `make_request()` query params handling
+
+#### TC-API-051: Make request with query params and existing query string
+- **Purpose**: Verify make_request appends query params to URL with existing query string
+- **Preconditions**: MiniAppApi instance, endpoint with existing query params
+- **Test Steps**:
+  1. Call make_request("https://example.com/api/data?existing=param", params={"filter": "active"})
+  2. Verify URL contains both existing and new query params
+  3. Verify separator is "&" (not "?")
+- **Expected Result**: Query params are appended with "&" separator
+- **Coverage**: `make_request()` query params appending
+
+#### TC-API-052: Make request with empty params dict
+- **Purpose**: Verify make_request handles empty params dict gracefully
+- **Preconditions**: MiniAppApi instance
+- **Test Steps**:
+  1. Call make_request("/api/data", params={})
+  2. Verify URL does not contain "?" or query params
+- **Expected Result**: Empty params dict does not add query string to URL
+- **Coverage**: `make_request()` empty params handling

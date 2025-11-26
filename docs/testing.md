@@ -13,18 +13,19 @@ TMA Framework has comprehensive test coverage with both unit and integration tes
 Unit tests are located in `tests/unit/` and cover individual components in isolation:
 
 - **Config** - Configuration management and validation
-- **BaseMiniApp** - Base class functionality
-- **MiniAppApi** - HTTP API client
-- **MiniAppUI** - Browser automation client
+- **BaseClient** - Base class functionality
+- **ApiClient** (MiniAppApi) - HTTP API client
+- **UiClient** (MiniAppUI) - Browser automation client
 - **UserTelegramClient** - MTProto client
+- **DBClient** - Database client
 - **Models** - Data models and validation
 
 ### Integration Tests
 
 Integration tests are located in `tests/integration/` and verify interactions between components:
 
-- **MTProto + MiniAppApi** - Integration between Telegram client and API testing
-- **MTProto + MiniAppUI** - Integration between Telegram client and UI testing
+- **MTProto + ApiClient** - Integration between Telegram client and API testing
+- **MTProto + UiClient** - Integration between Telegram client and UI testing
 - **End-to-End** - Complete workflows from start to finish
 - **External Services** - Integration with real external services (optional)
 
@@ -121,8 +122,8 @@ The framework uses pytest fixtures for test setup and teardown:
 - `valid_config` - Valid configuration object
 - `user_telegram_client` - UserTelegramClient instance
 - `user_telegram_client_connected` - Connected UserTelegramClient
-- `miniapp_api_with_config` - MiniAppApi instance
-- `miniapp_ui_with_config` - MiniAppUI instance
+- `miniapp_api_with_config` - ApiClient instance (aliased as MiniAppApi)
+- `miniapp_ui_with_config` - UiClient instance (aliased as MiniAppUI)
 - `mock_mini_app_url` - Mock Mini App URL
 
 ## Writing Tests
@@ -161,6 +162,7 @@ async def test_get_mini_app_and_test_api(
 
     mini_app_ui = await user_telegram_client_connected.get_mini_app_from_bot("test_bot")
     config = user_telegram_client_connected.config
+    from tma_test_framework.clients import ApiClient as MiniAppApi
     mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
     # Test API...

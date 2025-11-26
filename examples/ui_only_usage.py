@@ -7,7 +7,7 @@ for comprehensive UI testing of Telegram Mini Apps.
 
 import asyncio
 import os
-from tma_test_framework.mini_app import MiniAppUI
+from tma_test_framework.clients.ui_client import UiClient as MiniAppUI
 from tma_test_framework.config import Config
 
 

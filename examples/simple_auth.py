@@ -4,7 +4,7 @@ Simple authentication example showing the difference between first run and subse
 
 import asyncio
 import os
-from tma_test_framework.mtproto_client import UserTelegramClient
+from tma_test_framework.clients.mtproto_client import UserTelegramClient
 from tma_test_framework.config import Config
 
 

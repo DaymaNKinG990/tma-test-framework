@@ -3,13 +3,18 @@ Integration tests for UserTelegramClient + MiniAppApi.
 Tests verify interaction between MTProto client and Mini App API client.
 """
 
+import asyncio
+import time
+
 import allure
 import pytest
-from httpx import Response
+from httpx import Response, RequestError
 from datetime import timedelta
 
-from tma_test_framework.mtproto_client import MessageInfo, UserInfo, ChatInfo
-from tma_test_framework.mini_app.api import MiniAppApi
+from tma_test_framework.clients.mtproto_client import MessageInfo, UserInfo, ChatInfo
+from tma_test_framework.clients.api_client import ApiClient as MiniAppApi
+from tma_test_framework.config import Config
+from tests.fixtures.miniapp_api import generate_valid_init_data
 
 
 @pytest.mark.integration
@@ -25,7 +30,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify complete flow: get Mini App from bot, then test its API."
     )
     async def test_get_mini_app_and_test_api_endpoint(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-001: Get Mini App from bot and test API endpoint.
@@ -34,7 +44,6 @@ class TestMTProtoMiniAppApiIntegration:
         """
 
         # Mock get_mini_app_from_bot to return MiniAppUI
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -53,17 +62,7 @@ class TestMTProtoMiniAppApiIntegration:
         mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
         # Mock HTTP response
-        mock_response = mocker.MagicMock(spec=Response)
-        mock_response.status_code = 200
-        mock_response.elapsed = timedelta(seconds=0.5)
-        mock_response.is_informational = False
-        mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
-        mock_response.content = b'{"status": "ok"}'
-        mock_response.headers = {"Content-Type": "application/json"}
-        mock_response.reason_phrase = "OK"
+        mock_response = mock_httpx_response_basic
         mock_response.json = mocker.MagicMock(return_value={"status": "ok"})
 
         mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
@@ -89,7 +88,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify Mini App retrieval with start parameter."
     )
     async def test_get_mini_app_with_start_param_and_test_api(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url_with_start_param
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url_with_start_param,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-002: Get Mini App with start_param and test API.
@@ -97,7 +101,6 @@ class TestMTProtoMiniAppApiIntegration:
         Verify Mini App retrieval with start parameter.
         """
         # Mock get_mini_app_from_bot to return MiniAppUI with start param
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url_with_start_param
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -115,17 +118,9 @@ class TestMTProtoMiniAppApiIntegration:
         mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
         # Mock HTTP response
-        mock_response = mocker.MagicMock(spec=Response)
-        mock_response.status_code = 200
+        mock_response = mock_httpx_response_basic
         mock_response.elapsed = timedelta(seconds=0.3)
-        mock_response.is_informational = False
-        mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
         mock_response.content = b'{"param": "test123"}'
-        mock_response.headers = {"Content-Type": "application/json"}
-        mock_response.reason_phrase = "OK"
 
         mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
 
@@ -144,7 +139,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify Mini App retrieval from message media."
     )
     async def test_get_mini_app_from_media_and_test_api(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-003: Get Mini App from media and test API.
@@ -177,7 +177,6 @@ class TestMTProtoMiniAppApiIntegration:
         )
 
         # Mock get_mini_app_from_bot to extract from media
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -196,17 +195,9 @@ class TestMTProtoMiniAppApiIntegration:
         mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
         # Mock HTTP response
-        mock_response = mocker.MagicMock(spec=Response)
-        mock_response.status_code = 200
+        mock_response = mock_httpx_response_basic
         mock_response.elapsed = timedelta(seconds=0.4)
-        mock_response.is_informational = False
-        mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
         mock_response.content = b'{"media": "web_app"}'
-        mock_response.headers = {"Content-Type": "application/json"}
-        mock_response.reason_phrase = "OK"
 
         mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
 
@@ -225,17 +216,15 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify initData validation in integration context."
     )
     async def test_validate_init_data_integration(
-        self, mocker, user_telegram_client_connected, mock_bot_token
+        self, mocker, user_telegram_client_connected, mock_bot_token, mock_mini_app_ui
     ):
         """
         TC-INTEGRATION-MTAPI-004: Get initData from bot and validate.
 
         Verify initData validation in integration context.
         """
-        from tests.fixtures.miniapp_api import generate_valid_init_data
 
         # Get Mini App (simulated)
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = "https://example.com/mini-app"
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -267,7 +256,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify GET request to Mini App API."
     )
     async def test_get_endpoint_after_getting_mini_app(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-006: Test GET endpoint after getting Mini App.
@@ -275,7 +269,6 @@ class TestMTProtoMiniAppApiIntegration:
         Verify GET request to Mini App API.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -290,17 +283,9 @@ class TestMTProtoMiniAppApiIntegration:
         mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
         # Mock GET response
-        mock_response = mocker.MagicMock(spec=Response)
-        mock_response.status_code = 200
+        mock_response = mock_httpx_response_basic
         mock_response.elapsed = timedelta(seconds=0.2)
-        mock_response.is_informational = False
-        mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
         mock_response.content = b'{"status": "ok", "data": {"key": "value"}}'
-        mock_response.headers = {"Content-Type": "application/json"}
-        mock_response.reason_phrase = "OK"
 
         mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
 
@@ -323,7 +308,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify POST request with JSON data."
     )
     async def test_post_endpoint_with_data(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-007: Test POST endpoint with data.
@@ -331,7 +321,6 @@ class TestMTProtoMiniAppApiIntegration:
         Verify POST request with JSON data.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -346,16 +335,11 @@ class TestMTProtoMiniAppApiIntegration:
         mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
         # Mock POST response
-        mock_response = mocker.MagicMock(spec=Response)
+        mock_response = mock_httpx_response_basic
         mock_response.status_code = 201
         mock_response.elapsed = timedelta(seconds=0.3)
-        mock_response.is_informational = False
         mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
         mock_response.content = b'{"id": 123, "created": true}'
-        mock_response.headers = {"Content-Type": "application/json"}
         mock_response.reason_phrase = "Created"
 
         mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
@@ -384,7 +368,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify testing multiple endpoints in sequence."
     )
     async def test_multiple_api_endpoints(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-008: Test multiple API endpoints.
@@ -392,7 +381,6 @@ class TestMTProtoMiniAppApiIntegration:
         Verify testing multiple endpoints in sequence.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -409,6 +397,7 @@ class TestMTProtoMiniAppApiIntegration:
         # Mock responses for different endpoints
         def create_mock_response(status_code, content):
             mock_response = mocker.MagicMock(spec=Response)
+            # Copy base properties from fixture
             mock_response.status_code = status_code
             mock_response.elapsed = timedelta(seconds=0.2)
             mock_response.is_informational = status_code < 200
@@ -421,6 +410,7 @@ class TestMTProtoMiniAppApiIntegration:
             )
             mock_response.headers = {"Content-Type": "application/json"}
             mock_response.reason_phrase = "OK"
+            mock_response.json = mock_httpx_response_basic.json
             return mock_response
 
         # Test endpoint 1: /api/status
@@ -456,7 +446,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify API requests with authentication headers."
     )
     async def test_api_with_authentication(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-009: Test API with authentication.
@@ -464,7 +459,6 @@ class TestMTProtoMiniAppApiIntegration:
         Verify API requests with authentication headers.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -479,17 +473,9 @@ class TestMTProtoMiniAppApiIntegration:
         mini_app_api = MiniAppApi(mini_app_ui.url, config)
 
         # Mock authenticated response
-        mock_response = mocker.MagicMock(spec=Response)
-        mock_response.status_code = 200
+        mock_response = mock_httpx_response_basic
         mock_response.elapsed = timedelta(seconds=0.2)
-        mock_response.is_informational = False
-        mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
         mock_response.content = b'{"authenticated": true}'
-        mock_response.headers = {"Content-Type": "application/json"}
-        mock_response.reason_phrase = "OK"
 
         mini_app_api.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
 
@@ -543,17 +529,19 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify error handling for API failures."
     )
     async def test_handle_mini_app_api_errors(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTAPI-011: Handle Mini App API errors.
 
         Verify error handling for API failures.
         """
-        from httpx import RequestError
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -589,7 +577,12 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify context manager usage in integration."
     )
     async def test_context_manager_integration(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-013: Use context manager for full flow.
@@ -597,24 +590,14 @@ class TestMTProtoMiniAppApiIntegration:
         Verify context manager usage in integration.
         """
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
         )
 
         # Mock HTTP response
-        mock_response = mocker.MagicMock(spec=Response)
-        mock_response.status_code = 200
+        mock_response = mock_httpx_response_basic
         mock_response.elapsed = timedelta(seconds=0.2)
-        mock_response.is_informational = False
-        mock_response.is_success = True
-        mock_response.is_redirect = False
-        mock_response.is_client_error = False
-        mock_response.is_server_error = False
-        mock_response.content = b'{"status": "ok"}'
-        mock_response.headers = {"Content-Type": "application/json"}
-        mock_response.reason_phrase = "OK"
 
         # Use context managers
         async with user_telegram_client_connected as client:
@@ -635,17 +618,20 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify performance with multiple requests."
     )
     async def test_multiple_api_calls_performance(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-014: Test multiple API calls performance.
 
         Verify performance with multiple requests.
         """
-        import time
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -662,6 +648,7 @@ class TestMTProtoMiniAppApiIntegration:
         # Mock responses for multiple calls
         def create_mock_response():
             mock_response = mocker.MagicMock(spec=Response)
+            # Copy base properties from fixture
             mock_response.status_code = 200
             mock_response.elapsed = timedelta(seconds=0.1)
             mock_response.is_informational = False
@@ -672,6 +659,7 @@ class TestMTProtoMiniAppApiIntegration:
             mock_response.content = b'{"status": "ok"}'
             mock_response.headers = {"Content-Type": "application/json"}
             mock_response.reason_phrase = "OK"
+            mock_response.json = mock_httpx_response_basic.json
             return mock_response
 
         mini_app_api.client.request = mocker.AsyncMock(  # type: ignore[method-assign]
@@ -706,17 +694,20 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify concurrent request handling."
     )
     async def test_concurrent_api_calls(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_httpx_response_basic,
     ):
         """
         TC-INTEGRATION-MTAPI-015: Test concurrent API calls.
 
         Verify concurrent request handling.
         """
-        import asyncio
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -733,6 +724,7 @@ class TestMTProtoMiniAppApiIntegration:
         # Mock responses for concurrent calls
         def create_mock_response(index):
             mock_response = mocker.MagicMock(spec=Response)
+            # Copy base properties from fixture
             mock_response.status_code = 200
             mock_response.elapsed = timedelta(seconds=0.1)
             mock_response.is_informational = False
@@ -743,6 +735,7 @@ class TestMTProtoMiniAppApiIntegration:
             mock_response.content = f'{{"index": {index}}}'.encode()
             mock_response.headers = {"Content-Type": "application/json"}
             mock_response.reason_phrase = "OK"
+            mock_response.json = mock_httpx_response_basic.json
             return mock_response
 
         # Create 5 concurrent requests
@@ -777,17 +770,19 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify timeout handling in integration."
     )
     async def test_handle_network_timeout(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTAPI-012: Handle network timeout.
 
         Verify timeout handling in integration.
         """
-        import asyncio
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -799,7 +794,6 @@ class TestMTProtoMiniAppApiIntegration:
 
         # Create MiniAppApi with short timeout
         # Create new config with short timeout instead of modifying frozen struct
-        from tma_test_framework.config import Config
 
         original_config = user_telegram_client_connected.config
         config = Config(
@@ -843,17 +837,15 @@ class TestMTProtoMiniAppApiIntegration:
         "Verify initData validation with multiple bots."
     )
     async def test_validate_init_data_with_different_bot_tokens(
-        self, mocker, user_telegram_client_connected
+        self, mocker, user_telegram_client_connected, mock_mini_app_ui
     ):
         """
         TC-INTEGRATION-MTAPI-005: Validate initData with different bot tokens.
 
         Verify initData validation with multiple bots.
         """
-        from tests.fixtures.miniapp_api import generate_valid_init_data
 
         # Get Mini App (simulated)
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = "https://example.com/mini-app"
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui

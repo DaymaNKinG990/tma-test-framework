@@ -1,11 +1,11 @@
 """
-Fixtures for MiniAppUI testing.
+Fixtures for UiClient testing.
 """
 
 from pytest import fixture
 from playwright.async_api import Browser, Page
 
-from tma_test_framework.mini_app.ui import MiniAppUI
+from tma_test_framework.clients.ui_client import UiClient
 from tma_test_framework.config import Config
 from tests.fixtures.base_miniapp import _get_base_config_data
 
@@ -75,13 +75,13 @@ def mock_page(mocker):
 
 @fixture
 def miniapp_ui_with_config(valid_config):
-    """Create MiniAppUI with valid config."""
-    return MiniAppUI("https://example.com/app", valid_config)
+    """Create UiClient with valid config."""
+    return UiClient("https://example.com/app", valid_config)
 
 
 @fixture
 def miniapp_ui_with_browser(miniapp_ui_with_config, mock_browser, mock_page):
-    """Create MiniAppUI with browser and page set up."""
+    """Create UiClient with browser and page set up."""
     miniapp_ui_with_config.browser = mock_browser
     miniapp_ui_with_config.page = mock_page
     return miniapp_ui_with_config

@@ -8,7 +8,10 @@ Get up and running with TMA Framework in just a few minutes.
 
 ```python
 import asyncio
-from tma_framework import UserTelegramClient, MiniAppApi, MiniAppUI, Config
+from tma_test_framework import UserTelegramClient, MiniAppApi, MiniAppUI, Config
+# Note: MiniAppApi and MiniAppUI are aliases for ApiClient and UiClient
+# You can also use the new names directly:
+# from tma_test_framework.clients import ApiClient, UiClient
 ```
 
 ### 2. Create Configuration
@@ -60,7 +63,7 @@ async def test_api():
         mini_app = await client.get_mini_app_from_bot("example_bot")
 
         if mini_app:
-            async with MiniAppApi(mini_app.url, config) as api:
+            async with MiniAppApi(mini_app.url, config) as api:  # MiniAppApi is alias for ApiClient
                 # Test GET endpoint
                 result = await api.make_request("/api/status", "GET")
                 print(f"Status: {result.status_code}")
@@ -103,7 +106,7 @@ async def test_ui():
         mini_app = await client.get_mini_app_from_bot("example_bot")
 
         if mini_app:
-            async with MiniAppUI(mini_app.url, config) as ui:
+            async with MiniAppUI(mini_app.url, config) as ui:  # MiniAppUI is alias for UiClient
                 # Setup browser and navigate
                 await ui.setup_browser()
                 await ui.page.goto(mini_app.url, wait_until="networkidle")
@@ -129,7 +132,8 @@ Here's a complete example that combines user simulation, API testing, and UI tes
 
 ```python
 import asyncio
-from tma_framework import UserTelegramClient, MiniAppApi, MiniAppUI, Config
+from tma_test_framework import UserTelegramClient, MiniAppApi, MiniAppUI, Config
+# Note: MiniAppApi and MiniAppUI are aliases for backward compatibility
 
 async def complete_example():
     # Setup

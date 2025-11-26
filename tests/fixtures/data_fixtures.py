@@ -7,8 +7,8 @@ import pytest
 
 # Local imports
 from tma_test_framework.config import Config
-from tma_test_framework.mtproto_client import UserInfo, ChatInfo, MessageInfo
-from tma_test_framework.mini_app import MiniAppInfo, ApiResult
+from tma_test_framework.clients.mtproto_client import UserInfo, ChatInfo, MessageInfo
+from tma_test_framework.clients.models import MiniAppInfo, ApiResult
 from tests.data.constants import (
     ERROR_API_RESULT_DATA,
     TIMEOUT_API_RESULT_DATA,

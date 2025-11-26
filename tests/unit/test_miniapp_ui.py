@@ -1,14 +1,16 @@
 """
-Unit tests for MiniAppUI.
+Unit tests for UiClient.
 """
 
 import allure
 import pytest
 import tempfile
 from pathlib import Path
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+
 # Removed unittest.mock import - using pytest-mock instead
 
-from tma_test_framework.mini_app.ui import MiniAppUI
+from tma_test_framework.clients.ui_client import UiClient
 
 
 # ============================================================================
@@ -16,25 +18,25 @@ from tma_test_framework.mini_app.ui import MiniAppUI
 # ============================================================================
 
 
-class TestMiniAppUIInit:
-    """Test MiniAppUI initialization."""
+class TestUiClientInit:
+    """Test UiClient initialization."""
 
-    @allure.title("MiniAppUI rejects None config with ValueError")
+    @allure.title("UiClient rejects None config with ValueError")
     @allure.description(
-        "Test that MiniAppUI rejects None config with ValueError. TC-UI-002"
+        "Test that UiClient rejects None config with ValueError. TC-UI-002"
     )
     def test_init_with_config_none_raises_value_error(self):
-        """Test that MiniAppUI rejects None config with ValueError. TC-UI-002"""
-        with allure.step("Attempt to create MiniAppUI with config=None"):
+        """Test that UiClient rejects None config with ValueError. TC-UI-002"""
+        with allure.step("Attempt to create UiClient with config=None"):
             with pytest.raises(ValueError, match="config is required"):
-                MiniAppUI("https://example.com/app", None)
+                UiClient("https://example.com/app", None)
 
-    @allure.title("TC-UI-001: Initialize MiniAppUI with URL and config")
+    @allure.title("TC-UI-001: Initialize UiClient with URL and config")
     @allure.description("Test successful initialization with url and config. TC-UI-001")
     def test_init_with_url_and_config(self, valid_config):
         """Test successful initialization with url and config. TC-UI-001"""
-        with allure.step("Create MiniAppUI instance"):
-            ui = MiniAppUI("https://example.com/app", valid_config)
+        with allure.step("Create UiClient instance"):
+            ui = UiClient("https://example.com/app", valid_config)
 
         with allure.step("Verify ui.url is set correctly"):
             assert ui.url == "https://example.com/app"
@@ -48,8 +50,8 @@ class TestMiniAppUIInit:
     @allure.description("Test that browser and page are initially None.")
     def test_init_sets_browser_and_page_to_none(self, valid_config):
         """Test that browser and page are initially None."""
-        with allure.step("Create MiniAppUI instance"):
-            ui = MiniAppUI("https://example.com/app", valid_config)
+        with allure.step("Create UiClient instance"):
+            ui = UiClient("https://example.com/app", valid_config)
 
         with allure.step("Verify browser is None"):
             assert ui.browser is None
@@ -147,8 +149,8 @@ class TestMiniAppUIInit:
         assert result is None  # Should return None when browser not set
 
 
-class TestMiniAppUIClose:
-    """Test MiniAppUI close method."""
+class TestUiClientClose:
+    """Test UiClient close method."""
 
     @pytest.mark.asyncio
     @allure.title("TC-UI-006: close() closes browser if it's set")
@@ -182,8 +184,8 @@ class TestMiniAppUIClose:
 # ============================================================================
 
 
-class TestMiniAppUISetupBrowser:
-    """Test MiniAppUI setup_browser method."""
+class TestUiClientSetupBrowser:
+    """Test UiClient setup_browser method."""
 
     @pytest.mark.asyncio
     @allure.title("TC-UI-003: First call to setup_browser launches Chromium")
@@ -194,7 +196,7 @@ class TestMiniAppUISetupBrowser:
         """Test first call to setup_browser launches Chromium. TC-UI-003"""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(
@@ -229,7 +231,7 @@ class TestMiniAppUISetupBrowser:
         """Test setup_browser creates new page."""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(
@@ -258,7 +260,7 @@ class TestMiniAppUISetupBrowser:
         """Test setup_browser sets custom User-Agent."""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(
@@ -327,7 +329,7 @@ class TestMiniAppUISetupBrowser:
         """Test setup_browser returns self for method chaining. TC-UI-005"""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(
@@ -354,13 +356,13 @@ class TestMiniAppUISetupBrowser:
         """Test setup_browser rejects empty or invalid URL. TC-UI-042"""
         with allure.step("Test with empty string URL"):
             # Test with empty string
-            ui = MiniAppUI("", valid_config)
+            ui = UiClient("", valid_config)
             with pytest.raises(ValueError, match="URL is not set or is empty"):
                 await ui.setup_browser()
 
         with allure.step("Test with whitespace-only string URL"):
             # Test with whitespace-only string
-            ui = MiniAppUI("   ", valid_config)
+            ui = UiClient("   ", valid_config)
             with pytest.raises(ValueError, match="URL is not set or is empty"):
                 await ui.setup_browser()
 
@@ -375,7 +377,7 @@ class TestMiniAppUISetupBrowser:
         """Test setup_browser handles navigation failures gracefully. TC-UI-043"""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(
@@ -391,7 +393,6 @@ class TestMiniAppUISetupBrowser:
             mock_page.set_extra_http_headers = mocker.AsyncMock()
 
             # Mock page.goto() to raise an exception (e.g., TimeoutError)
-            from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
             mock_page.goto = mocker.AsyncMock(
                 side_effect=PlaywrightTimeoutError("Navigation timeout")
@@ -417,7 +418,7 @@ class TestMiniAppUISetupBrowser:
         """Test setup_browser handles network errors during navigation. TC-UI-043"""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(
@@ -451,8 +452,8 @@ class TestMiniAppUISetupBrowser:
 # ============================================================================
 
 
-class TestMiniAppUIElementInteraction:
-    """Test MiniAppUI element interaction methods."""
+class TestUiClientElementInteraction:
+    """Test UiClient element interaction methods."""
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -794,8 +795,8 @@ class TestMiniAppUIElementInteraction:
 # ============================================================================
 
 
-class TestMiniAppUIWaitAndNavigation:
-    """Test MiniAppUI wait and navigation methods."""
+class TestUiClientWaitAndNavigation:
+    """Test UiClient wait and navigation methods."""
 
     @pytest.mark.asyncio
     @allure.title("TC-UI-012: wait_for_element waits for element to appear")
@@ -820,8 +821,6 @@ class TestMiniAppUIWaitAndNavigation:
     ):
         """Test wait_for_element handles timeout. TC-UI-013"""
         with allure.step("Mock wait_for_selector to raise TimeoutError"):
-            from playwright.async_api import TimeoutError as PlaywrightTimeoutError
-
             error = PlaywrightTimeoutError("Timeout")
             miniapp_ui_with_browser.page.wait_for_selector = mocker.AsyncMock(
                 side_effect=error
@@ -857,8 +856,6 @@ class TestMiniAppUIWaitAndNavigation:
     ):
         """Test wait_for_navigation handles timeout. TC-UI-030"""
         with allure.step("Mock wait_for_load_state to raise TimeoutError"):
-            from playwright.async_api import TimeoutError as PlaywrightTimeoutError
-
             error = PlaywrightTimeoutError("Timeout")
             miniapp_ui_with_browser.page.wait_for_load_state = mocker.AsyncMock(
                 side_effect=error
@@ -877,8 +874,8 @@ class TestMiniAppUIWaitAndNavigation:
 # ============================================================================
 
 
-class TestMiniAppUIGetData:
-    """Test MiniAppUI data retrieval methods."""
+class TestUiClientGetData:
+    """Test UiClient data retrieval methods."""
 
     @pytest.mark.asyncio
     @allure.title("get_element_text returns text if element found")
@@ -1084,8 +1081,8 @@ class TestMiniAppUIGetData:
 # ============================================================================
 
 
-class TestMiniAppUIScreenshotsAndFiles:
-    """Test MiniAppUI screenshot and file methods."""
+class TestUiClientScreenshotsAndFiles:
+    """Test UiClient screenshot and file methods."""
 
     @pytest.mark.asyncio
     @allure.title("TC-UI-035: take_screenshot creates file")
@@ -1169,8 +1166,8 @@ class TestMiniAppUIScreenshotsAndFiles:
 # ============================================================================
 
 
-class TestMiniAppUIKeyboardAndScripts:
-    """Test MiniAppUI keyboard and script methods."""
+class TestUiClientKeyboardAndScripts:
+    """Test UiClient keyboard and script methods."""
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("key", ["Enter", "Tab", "Escape", "ArrowDown"])
@@ -1282,8 +1279,8 @@ class TestMiniAppUIKeyboardAndScripts:
 # ============================================================================
 
 
-class TestMiniAppUIScroll:
-    """Test MiniAppUI scroll methods."""
+class TestUiClientScroll:
+    """Test UiClient scroll methods."""
 
     @pytest.mark.asyncio
     @allure.title("scroll_to_element calls scroll_into_view_if_needed")
@@ -1330,8 +1327,8 @@ class TestMiniAppUIScroll:
 # ============================================================================
 
 
-class TestMiniAppUIContextManager:
-    """Test MiniAppUI async context manager."""
+class TestUiClientContextManager:
+    """Test UiClient async context manager."""
 
     @pytest.mark.asyncio
     @allure.title("__aenter__ returns self")
@@ -1366,7 +1363,7 @@ class TestMiniAppUIContextManager:
         with allure.step("Use async context manager"):
             async with miniapp_ui_with_config as ui:
                 with allure.step("Verify UI instance and URL"):
-                    assert isinstance(ui, MiniAppUI)
+                    assert isinstance(ui, UiClient)
                     assert ui.url == "https://example.com/app"
 
 
@@ -1375,8 +1372,8 @@ class TestMiniAppUIContextManager:
 # ============================================================================
 
 
-class TestMiniAppUISafety:
-    """Test MiniAppUI safety and reliability."""
+class TestUiClientSafety:
+    """Test UiClient safety and reliability."""
 
     @pytest.mark.asyncio
     @allure.title("No exceptions are propagated from public methods")
@@ -1421,13 +1418,13 @@ class TestMiniAppUISafety:
             assert "#submit" in caplog.text
             assert "Enter" in caplog.text
 
-    @allure.title("logger is bound to MiniAppUI class name")
-    @allure.description("Test logger is bound to MiniAppUI class name.")
+    @allure.title("logger is bound to UiClient class name")
+    @allure.description("Test logger is bound to UiClient class name.")
     def test_logger_bound_to_class_name(self, miniapp_ui_with_config):
-        """Test logger is bound to MiniAppUI class name."""
+        """Test logger is bound to UiClient class name."""
         with allure.step("Verify logger is initialized"):
             assert miniapp_ui_with_config.logger is not None
-            # Logger should be bound to "MiniAppUI"
+            # Logger should be bound to "UiClient"
 
 
 # ============================================================================
@@ -1435,22 +1432,22 @@ class TestMiniAppUISafety:
 # ============================================================================
 
 
-class TestMiniAppUIInheritance:
-    """Test MiniAppUI inheritance compatibility."""
+class TestUiClientInheritance:
+    """Test UiClient inheritance compatibility."""
 
-    @allure.title("MiniAppUI can be inherited")
-    @allure.description("Test MiniAppUI can be inherited.")
+    @allure.title("UiClient can be inherited")
+    @allure.description("Test UiClient can be inherited.")
     def test_can_be_inherited(self, valid_config):
-        """Test MiniAppUI can be inherited."""
-        with allure.step("Create custom class inheriting from MiniAppUI"):
+        """Test UiClient can be inherited."""
+        with allure.step("Create custom class inheriting from UiClient"):
 
-            class CustomMiniAppUI(MiniAppUI):
+            class CustomUiClient(UiClient):
                 pass
 
         with allure.step("Create instance of custom class"):
-            ui = CustomMiniAppUI("https://example.com/app", valid_config)
-        with allure.step("Verify instance is also MiniAppUI"):
-            assert isinstance(ui, MiniAppUI)
+            ui = CustomUiClient("https://example.com/app", valid_config)
+        with allure.step("Verify instance is also UiClient"):
+            assert isinstance(ui, UiClient)
 
     @pytest.mark.asyncio
     @allure.title("setup_browser returns Self for fluent interface")
@@ -1461,7 +1458,7 @@ class TestMiniAppUIInheritance:
         """Test setup_browser returns Self for fluent interface."""
         with allure.step("Mock async_playwright and browser setup"):
             mock_playwright_class = mocker.patch(
-                "tma_test_framework.mini_app.ui.async_playwright"
+                "tma_test_framework.clients.ui_client.async_playwright"
             )
             mock_playwright_instance = mocker.MagicMock()
             mock_playwright_instance.start = mocker.AsyncMock(

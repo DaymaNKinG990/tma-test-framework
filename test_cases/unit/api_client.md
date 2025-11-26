@@ -1,29 +1,29 @@
-# MiniAppApi Class - Unit Test Cases
+# ApiClient Class - Unit Test Cases
 
 ## Overview
-Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client for Telegram Mini Apps.
+Tests for `tma_test_framework.clients.api_client.ApiClient` class - HTTP API client for Telegram Mini Apps.
 
 ## Test Categories
 
 ### 1. Initialization Tests
 
-#### TC-API-001: Initialize MiniAppApi with URL and config
-- **Purpose**: Verify MiniAppApi can be initialized with URL and Config
+#### TC-API-001: Initialize ApiClient with URL and config
+- **Purpose**: Verify ApiClient can be initialized with URL and Config
 - **Preconditions**: Valid URL and Config object
 - **Test Steps**:
-  1. Create MiniAppApi(url, config)
+  1. Create ApiClient(url, config)
   2. Verify url, config, and client are initialized
   3. Verify AsyncClient is created with correct timeout
-- **Expected Result**: MiniAppApi created with httpx.AsyncClient initialized
+- **Expected Result**: ApiClient created with httpx.AsyncClient initialized
 - **Coverage**: `__init__` method
 
-#### TC-API-002: Initialize MiniAppApi with config=None raises error
-- **Purpose**: Verify MiniAppApi rejects None config with TypeError
+#### TC-API-002: Initialize ApiClient with config=None raises error
+- **Purpose**: Verify ApiClient rejects None config with ValueError
 - **Preconditions**: Valid URL, config=None
 - **Test Steps**:
-  1. Create MiniAppApi(url, config=None)
-  2. Verify TypeError is raised
-- **Expected Result**: TypeError raised (Config is required)
+  1. Create ApiClient(url, config=None)
+  2. Verify ValueError is raised
+- **Expected Result**: ValueError raised (Config is required)
 - **Coverage**: `__init__` validation
 
 #### TC-API-003: Verify AsyncClient is initialized with correct timeout
@@ -31,37 +31,37 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 - **Preconditions**: Config with custom timeout
 - **Test Steps**:
   1. Create Config with timeout=60
-  2. Create MiniAppApi with this config
+  2. Create ApiClient with this config
   3. Verify client timeout matches config
 - **Expected Result**: AsyncClient timeout equals config.timeout
 - **Coverage**: Client initialization with timeout
 
 #### TC-API-004: Verify AsyncClient limits are set correctly
 - **Purpose**: Verify client has correct connection limits
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
-  1. Create MiniAppApi
+  1. Create ApiClient
   2. Verify client limits: max_keepalive_connections=5, max_connections=10
 - **Expected Result**: Connection limits set correctly
 - **Coverage**: Client limits configuration
 
 ### 2. Close Method Tests
 
-#### TC-API-005: Close MiniAppApi client
+#### TC-API-005: Close ApiClient client
 - **Purpose**: Verify close() closes AsyncClient
-- **Preconditions**: MiniAppApi instance with active client
+- **Preconditions**: ApiClient instance with active client
 - **Test Steps**:
-  1. Create MiniAppApi
+  1. Create ApiClient
   2. Call await api.close()
   3. Verify client.aclose() was called
 - **Expected Result**: AsyncClient closed successfully
 - **Coverage**: `close()` method
 
-#### TC-API-006: Close MiniAppApi multiple times
+#### TC-API-006: Close ApiClient multiple times
 - **Purpose**: Verify close() can be called multiple times safely
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
-  1. Create MiniAppApi
+  1. Create ApiClient
   2. Call close() multiple times
 - **Expected Result**: No errors, idempotent behavior
 - **Coverage**: `close()` idempotency
@@ -199,9 +199,9 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-020: Make GET request to relative endpoint
 - **Purpose**: Verify make_request() constructs URL correctly for relative paths
-- **Preconditions**: MiniAppApi with base URL, relative endpoint
+- **Preconditions**: ApiClient with base URL, relative endpoint
 - **Test Steps**:
-  1. Create MiniAppApi with base URL
+  1. Create ApiClient with base URL
   2. Call make_request("/api/status")
   3. Verify URL is constructed: base_url + "/api/status"
 - **Expected Result**: Request made to correct URL
@@ -362,7 +362,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 - **Purpose**: Verify query params are removed from base URL
 - **Preconditions**: Base URL with query params
 - **Test Steps**:
-  1. Create MiniAppApi with URL="https://example.com/app?start=123"
+  1. Create ApiClient with URL="https://example.com/app?start=123"
   2. Call make_request("/api/status")
   3. Verify base URL query params are removed
 - **Expected Result**: URL constructed without base query params
@@ -388,11 +388,11 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 ### 6. Authentication Token Management Tests
 
-#### TC-API-039: Initialize MiniAppApi with default auth token values
-- **Purpose**: Verify MiniAppApi initializes with default auth token values
+#### TC-API-039: Initialize ApiClient with default auth token values
+- **Purpose**: Verify ApiClient initializes with default auth token values
 - **Preconditions**: Valid URL and Config object
 - **Test Steps**:
-  1. Create MiniAppApi(url, config)
+  1. Create ApiClient(url, config)
   2. Verify _auth_token is None
   3. Verify _auth_token_type is "Bearer"
 - **Expected Result**: Default values: _auth_token=None, _auth_token_type="Bearer"
@@ -400,7 +400,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-040: Set authentication token with default type
 - **Purpose**: Verify set_auth_token sets token with default Bearer type
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
   1. Call set_auth_token("test_token_123")
   2. Verify _auth_token equals "test_token_123"
@@ -410,7 +410,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-041: Set authentication token with custom type
 - **Purpose**: Verify set_auth_token accepts custom token type
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
   1. Call set_auth_token("api_key_456", "ApiKey")
   2. Verify _auth_token equals "api_key_456"
@@ -420,7 +420,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-042: Clear authentication token
 - **Purpose**: Verify clear_auth_token resets token to None
-- **Preconditions**: MiniAppApi instance with token set
+- **Preconditions**: ApiClient instance with token set
 - **Test Steps**:
   1. Call set_auth_token("test_token")
   2. Verify _auth_token is set
@@ -432,7 +432,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-043: Make request automatically adds auth token to headers
 - **Purpose**: Verify make_request automatically adds Authorization header when token is set
-- **Preconditions**: MiniAppApi instance with token set
+- **Preconditions**: ApiClient instance with token set
 - **Test Steps**:
   1. Call set_auth_token("test_token_123")
   2. Call make_request("/api/data")
@@ -443,7 +443,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-044: Make request without token does not add Authorization header
 - **Purpose**: Verify make_request does not add Authorization header when token is not set
-- **Preconditions**: MiniAppApi instance without token
+- **Preconditions**: ApiClient instance without token
 - **Test Steps**:
   1. Call make_request("/api/data") without setting token
   2. Verify Authorization header is not present in request headers
@@ -452,7 +452,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-045: Make request uses custom token type
 - **Purpose**: Verify make_request uses custom token type in Authorization header
-- **Preconditions**: MiniAppApi instance with custom token type
+- **Preconditions**: ApiClient instance with custom token type
 - **Test Steps**:
   1. Call set_auth_token("api_key_456", "ApiKey")
   2. Call make_request("/api/data")
@@ -462,7 +462,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-046: Make request allows overriding Authorization header
 - **Purpose**: Verify make_request allows overriding Authorization header in headers parameter
-- **Preconditions**: MiniAppApi instance with token set
+- **Preconditions**: ApiClient instance with token set
 - **Test Steps**:
   1. Call set_auth_token("default_token")
   2. Call make_request("/api/data", headers={"Authorization": "Bearer custom_token"})
@@ -472,7 +472,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-047: Make request merges custom headers with auth token
 - **Purpose**: Verify make_request merges custom headers with automatically added token
-- **Preconditions**: MiniAppApi instance with token set
+- **Preconditions**: ApiClient instance with token set
 - **Test Steps**:
   1. Call set_auth_token("test_token")
   2. Call make_request("/api/data", headers={"X-Custom-Header": "custom_value"})
@@ -483,7 +483,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-048: Make request sets Content-Type for requests with data
 - **Purpose**: Verify make_request automatically sets Content-Type when data is provided
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
   1. Call make_request("/api/data", method="POST", data={"key": "value"})
   2. Verify Content-Type header is "application/json"
@@ -492,18 +492,18 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-049: Make request preserves custom Content-Type header
 - **Purpose**: Verify make_request preserves custom Content-Type if provided
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
   1. Call make_request("/api/data", method="POST", data={"key": "value"}, headers={"Content-Type": "application/xml"})
   2. Verify Content-Type header is "application/xml" (not overridden)
 - **Expected Result**: Custom Content-Type is preserved
 - **Coverage**: `make_request()` Content-Type override
 
-### 6. Query Parameters Tests
+### 7. Query Parameters Tests
 
 #### TC-API-050: Make request with query parameters
 - **Purpose**: Verify make_request adds query params to URL
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
   1. Call make_request("/api/data", params={"page": 1, "limit": 10})
   2. Verify URL contains query parameters: "?page=1&limit=10" or "?limit=10&page=1"
@@ -512,7 +512,7 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-051: Make request with query params and existing query string
 - **Purpose**: Verify make_request appends query params to URL with existing query string
-- **Preconditions**: MiniAppApi instance, endpoint with existing query params
+- **Preconditions**: ApiClient instance, endpoint with existing query params
 - **Test Steps**:
   1. Call make_request("https://example.com/api/data?existing=param", params={"filter": "active"})
   2. Verify URL contains both existing and new query params
@@ -522,9 +522,127 @@ Tests for `tma_test_framework.mini_app.api.MiniAppApi` class - HTTP API client f
 
 #### TC-API-052: Make request with empty params dict
 - **Purpose**: Verify make_request handles empty params dict gracefully
-- **Preconditions**: MiniAppApi instance
+- **Preconditions**: ApiClient instance
 - **Test Steps**:
   1. Call make_request("/api/data", params={})
   2. Verify URL does not contain "?" or query params
 - **Expected Result**: Empty params dict does not add query string to URL
 - **Coverage**: `make_request()` empty params handling
+
+### 8. TMA Authentication Setup (setup_tma_auth)
+
+#### TC-API-053: Setup TMA auth with user_info and create_user=True
+- **Purpose**: Verify setup_tma_auth() creates user and sets init_data token
+- **Preconditions**: ApiClient instance, UserInfo object, valid config
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock make_request to return 201 (CREATED)
+  3. Call await setup_tma_auth(user_info, config, create_user=True)
+  4. Verify make_request was called with POST to "v1/create/tma/"
+  5. Verify auth token is set with type "tma"
+- **Expected Result**: User created, init_data token set
+- **Coverage**: `setup_tma_auth()` with user_info
+
+#### TC-API-054: Setup TMA auth with user_info and create_user=False
+- **Purpose**: Verify setup_tma_auth() skips user creation when create_user=False
+- **Preconditions**: ApiClient instance, UserInfo object, valid config
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Call await setup_tma_auth(user_info, config, create_user=False)
+  3. Verify make_request was NOT called
+  4. Verify auth token is set with type "tma"
+- **Expected Result**: User not created, init_data token set
+- **Coverage**: `setup_tma_auth()` with create_user=False
+
+#### TC-API-055: Setup TMA auth without user_info (gets from UserTelegramClient)
+- **Purpose**: Verify setup_tma_auth() gets user_info from UserTelegramClient when not provided
+- **Preconditions**: ApiClient instance, valid config with MTProto credentials
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock UserTelegramClient to return UserInfo
+  3. Mock make_request to return 201
+  4. Call await setup_tma_auth(config=config, user_info=None)
+  5. Verify UserTelegramClient was used to get user_info
+  6. Verify auth token is set
+- **Expected Result**: User info obtained from Telegram, user created, token set
+- **Coverage**: `setup_tma_auth()` without user_info
+
+#### TC-API-056: Setup TMA auth with custom endpoint
+- **Purpose**: Verify setup_tma_auth() uses custom create_user_endpoint
+- **Preconditions**: ApiClient instance, UserInfo object, valid config
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock make_request to return 201
+  3. Call await setup_tma_auth(user_info, config, create_user_endpoint="v1/custom/endpoint/")
+  4. Verify make_request was called with POST to "v1/custom/endpoint/"
+- **Expected Result**: Custom endpoint used for user creation
+- **Coverage**: `setup_tma_auth()` with custom endpoint
+
+#### TC-API-057: Setup TMA auth with config=None raises error
+- **Purpose**: Verify setup_tma_auth() raises ValueError when config is None
+- **Preconditions**: ApiClient instance, UserInfo object
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Call await setup_tma_auth(user_info, config=None)
+  3. Verify ValueError is raised with message about config
+- **Expected Result**: ValueError raised: "config is required for generating init_data"
+- **Coverage**: `setup_tma_auth()` validation
+
+#### TC-API-058: Setup TMA auth fails when UserTelegramClient cannot get user_info
+- **Purpose**: Verify setup_tma_auth() raises ValueError when UserTelegramClient fails
+- **Preconditions**: ApiClient instance, config without valid MTProto credentials
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock UserTelegramClient to raise exception
+  3. Call await setup_tma_auth(config=config, user_info=None)
+  4. Verify ValueError is raised with error message
+- **Expected Result**: ValueError raised: "Failed to get user info from Telegram: ..."
+- **Coverage**: `setup_tma_auth()` error handling (UserTelegramClient)
+
+#### TC-API-059: Setup TMA auth handles user already exists (400 status)
+- **Purpose**: Verify setup_tma_auth() handles 400 status (user already exists) gracefully
+- **Preconditions**: ApiClient instance, UserInfo object, valid config
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock make_request to return 400 (BAD_REQUEST)
+  3. Call await setup_tma_auth(user_info, config, create_user=True)
+  4. Verify no exception is raised
+  5. Verify auth token is still set
+- **Expected Result**: No exception, auth token set (400 is acceptable)
+- **Coverage**: `setup_tma_auth()` handling user already exists
+
+#### TC-API-060: Setup TMA auth raises error on user creation failure
+- **Purpose**: Verify setup_tma_auth() raises error when user creation fails (non-400/201 status)
+- **Preconditions**: ApiClient instance, UserInfo object, valid config
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock make_request to return 500 (SERVER_ERROR)
+  3. Call await setup_tma_auth(user_info, config, create_user=True)
+  4. Verify exception is raised
+- **Expected Result**: Exception raised (from raise_for_status)
+- **Coverage**: `setup_tma_auth()` error handling (user creation)
+
+#### TC-API-061: Setup TMA auth generates correct init_data
+- **Purpose**: Verify setup_tma_auth() generates init_data with correct user data
+- **Preconditions**: ApiClient instance, UserInfo object, valid config with bot_token
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock make_request to return 201
+  3. Mock generate_telegram_init_data to verify it's called with correct params
+  4. Call await setup_tma_auth(user_info, config)
+  5. Verify generate_telegram_init_data called with user_info fields
+- **Expected Result**: init_data generated with correct user data
+- **Coverage**: `setup_tma_auth()` init_data generation
+
+#### TC-API-062: Setup TMA auth sets token type to "tma"
+- **Purpose**: Verify setup_tma_auth() sets auth token with type "tma"
+- **Preconditions**: ApiClient instance, UserInfo object, valid config
+- **Test Steps**:
+  1. Create ApiClient instance
+  2. Mock make_request to return 201
+  3. Call await setup_tma_auth(user_info, config)
+  4. Verify _auth_token_type is "tma"
+  5. Verify _auth_token is set (init_data string)
+- **Expected Result**: Auth token type is "tma", token is init_data
+- **Coverage**: `setup_tma_auth()` token type
+

@@ -1,26 +1,26 @@
-# MiniAppUI Class - Unit Test Cases
+# UiClient Class - Unit Test Cases
 
 ## Overview
-Tests for `tma_test_framework.mini_app.ui.MiniAppUI` class - UI testing client using Playwright.
+Tests for `tma_test_framework.clients.ui_client.UiClient` class - UI testing client using Playwright.
 
 ## Test Categories
 
 ### 1. Initialization Tests
 
-#### TC-UI-001: Initialize MiniAppUI with URL and config
-- **Purpose**: Verify MiniAppUI can be initialized
+#### TC-UI-001: Initialize UiClient with URL and config
+- **Purpose**: Verify UiClient can be initialized
 - **Preconditions**: Valid URL and Config
 - **Test Steps**:
-  1. Create MiniAppUI(url, config)
+  1. Create UiClient(url, config)
   2. Verify url, config, browser=None, page=None
-- **Expected Result**: MiniAppUI created with browser and page as None
+- **Expected Result**: UiClient created with browser and page as None
 - **Coverage**: `__init__` method
 
-#### TC-UI-002: Initialize MiniAppUI with config=None raises error
-- **Purpose**: Verify MiniAppUI rejects None config with ValueError
+#### TC-UI-002: Initialize UiClient with config=None raises error
+- **Purpose**: Verify UiClient rejects None config with ValueError
 - **Preconditions**: Valid URL, config=None
 - **Test Steps**:
-  1. Create MiniAppUI(url, config=None)
+  1. Create UiClient(url, config=None)
   2. Verify ValueError is raised with message "config is required"
 - **Expected Result**: ValueError raised (Config is required)
 - **Coverage**: `__init__` validation
@@ -29,7 +29,7 @@ Tests for `tma_test_framework.mini_app.ui.MiniAppUI` class - UI testing client u
 
 #### TC-UI-003: Setup browser for first time
 - **Purpose**: Verify setup_browser() launches browser and creates page
-- **Preconditions**: MiniAppUI instance, browser not setup
+- **Preconditions**: UiClient instance, browser not setup
 - **Test Steps**:
   1. Call await ui.setup_browser()
   2. Verify browser is created
@@ -50,7 +50,7 @@ Tests for `tma_test_framework.mini_app.ui.MiniAppUI` class - UI testing client u
 
 #### TC-UI-005: Verify setup_browser returns Self
 - **Purpose**: Verify method chaining works
-- **Preconditions**: MiniAppUI instance
+- **Preconditions**: UiClient instance
 - **Test Steps**:
   1. Call ui.setup_browser()
   2. Verify returns self
@@ -60,9 +60,9 @@ Tests for `tma_test_framework.mini_app.ui.MiniAppUI` class - UI testing client u
 
 #### TC-UI-042: Reject setup_browser with empty or invalid URL
 - **Purpose**: Verify setup_browser() rejects empty, None, or invalid URL
-- **Preconditions**: MiniAppUI with empty/None/invalid URL
+- **Preconditions**: UiClient with empty/None/invalid URL
 - **Test Steps**:
-  1. Create MiniAppUI with url="" or url=None or url="   "
+  1. Create UiClient with url="" or url=None or url="   "
   2. Call await ui.setup_browser()
   3. Verify ValueError is raised with message about URL not set
 - **Expected Result**: ValueError raised: "URL is not set or is empty. Cannot setup browser without a valid URL."

@@ -1,7 +1,7 @@
-# MTProto + MiniAppApi Integration Test Cases
+# MTProto + ApiClient Integration Test Cases
 
 ## Overview
-Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
+Tests for integration between `UserTelegramClient` and `ApiClient` (aliased as `MiniAppApi`) components.
 
 ## Test Categories
 
@@ -17,12 +17,12 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
   1. Create UserTelegramClient with valid config
   2. Connect to Telegram
   3. Call `get_mini_app_from_bot(bot_username)`
-  4. Verify MiniAppUI is returned with correct URL
-  5. Create MiniAppApi from the URL
+  4. Verify `UiClient` is returned with correct URL
+  5. Create `ApiClient` (or use `MiniAppApi` alias) from the URL
   6. Test API endpoint using `make_request()`
   7. Verify response is valid
 - **Expected Result**: Mini App retrieved and API tested successfully
-- **Coverage**: `get_mini_app_from_bot()`, `MiniAppApi.make_request()`
+- **Coverage**: `get_mini_app_from_bot()`, `ApiClient.make_request()` (or `MiniAppApi.make_request()`)
 - **Dependencies**: Real Telegram bot, Mini App with API
 
 #### TC-INTEGRATION-MTAPI-002: Get Mini App with start_param and test API
@@ -58,7 +58,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Test Steps**:
   1. Get Mini App from bot
   2. Receive initData from bot or Mini App
-  3. Use MiniAppApi.validate_init_data()
+  3. Use `ApiClient.validate_init_data()` (or `MiniAppApi.validate_init_data()`)
   4. Verify validation succeeds
 - **Expected Result**: initData validated successfully
 - **Coverage**: `validate_init_data()` in real scenario
@@ -82,7 +82,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App with GET endpoint
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi
+  2. Create `ApiClient` (or use `MiniAppApi` alias)
   3. Call `make_request("/api/status", method="GET")`
   4. Verify response status and data
 - **Expected Result**: GET request successful
@@ -94,7 +94,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App with POST endpoint
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi
+  2. Create `ApiClient` (or use `MiniAppApi` alias)
   3. Call `make_request("/api/data", method="POST", data={"key": "value"})`
   4. Verify response
 - **Expected Result**: POST request successful with data
@@ -106,7 +106,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App with multiple endpoints
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi
+  2. Create `ApiClient` (or use `MiniAppApi` alias)
   3. Test endpoint 1: `/api/status`
   4. Test endpoint 2: `/api/data`
   5. Test endpoint 3: `/api/users`
@@ -147,7 +147,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App with failing endpoint
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi
+  2. Create `ApiClient` (or use `MiniAppApi` alias)
   3. Call `make_request()` to failing endpoint
   4. Verify error is caught and returned in ApiResult
 - **Expected Result**: Error handled, ApiResult with error_message
@@ -159,7 +159,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App with slow endpoint
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi with short timeout
+  2. Create `ApiClient` (or use `MiniAppApi` alias) with short timeout
   3. Call `make_request()` to slow endpoint
   4. Verify timeout is handled
 - **Expected Result**: Timeout handled gracefully
@@ -174,7 +174,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Test Steps**:
   1. Use `async with UserTelegramClient(config) as client:`
   2. Get Mini App from bot
-  3. Use `async with MiniAppApi(url, config) as api:`
+  3. Use `async with ApiClient(url, config) as api:` (or `async with MiniAppApi(url, config) as api:`)
   4. Test API endpoints
   5. Verify both close correctly on exit
 - **Expected Result**: Both clients close properly
@@ -188,7 +188,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App with fast endpoints
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi
+  2. Create `ApiClient` (or use `MiniAppApi` alias)
   3. Make 10 sequential API calls
   4. Measure total time
   5. Verify all succeed
@@ -201,7 +201,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppApi` components.
 - **Preconditions**: Mini App supporting concurrent requests
 - **Test Steps**:
   1. Get Mini App from bot
-  2. Create MiniAppApi
+  2. Create `ApiClient` (or use `MiniAppApi` alias)
   3. Make 5 concurrent API calls using asyncio.gather
   4. Verify all complete
 - **Expected Result**: Concurrent requests handled correctly

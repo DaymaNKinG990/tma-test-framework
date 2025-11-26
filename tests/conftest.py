@@ -9,7 +9,7 @@ import logging
 import pytest
 from loguru import logger
 from telethon.sessions import StringSession
-from tma_test_framework.mtproto_client import UserInfo, ChatInfo, MessageInfo
+from tma_test_framework.clients.mtproto_client import UserInfo, ChatInfo, MessageInfo
 
 # Import fixtures from tests.fixtures modules
 # Pytest requires explicit imports for fixtures to be discovered
@@ -23,6 +23,8 @@ from tests.fixtures.config import *  # noqa: F401, F403
 from tests.fixtures.data_fixtures import (  # noqa: F401
     valid_config_data as valid_config_data_from_data,
     valid_config,  # Main valid_config fixture
+    valid_user_info_data,  # UserInfo data fixture (required by valid_user_info)
+    valid_user_info,  # UserInfo fixture for tests
 )
 
 # MiniAppApi fixtures
@@ -281,3 +283,258 @@ def performance_timer():
 
     start_time = time.perf_counter()
     yield lambda: time.perf_counter() - start_time
+
+
+# ============================================================================
+# Database Mock Fixtures (scope=function for isolation)
+# ============================================================================
+
+
+@pytest.fixture(scope="function")
+def mock_asyncpg_module(mocker):
+    """Create a mock asyncpg module for sys.modules."""
+    import sys
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_asyncpg = MagicMock()
+    mock_connection = AsyncMock()
+    mock_connect = AsyncMock(return_value=mock_connection)
+    mock_asyncpg.connect = mock_connect
+    sys.modules["asyncpg"] = mock_asyncpg
+
+    yield {
+        "module": mock_asyncpg,
+        "connection": mock_connection,
+        "connect": mock_connect,
+    }
+
+    # Cleanup: remove from sys.modules if it was added
+    if "asyncpg" in sys.modules and sys.modules["asyncpg"] is mock_asyncpg:
+        del sys.modules["asyncpg"]
+
+
+@pytest.fixture(scope="function")
+def mock_psycopg_module(mocker):
+    """Create a mock psycopg module for sys.modules."""
+    import sys
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_psycopg = MagicMock()
+    mock_connection = AsyncMock()
+    mock_connect = AsyncMock(return_value=mock_connection)
+    # psycopg uses AsyncConnection.connect pattern
+    mock_async_connection = MagicMock()
+    mock_async_connection.connect = mock_connect
+    mock_psycopg.AsyncConnection = mock_async_connection
+    sys.modules["psycopg"] = mock_psycopg
+
+    yield {
+        "module": mock_psycopg,
+        "connection": mock_connection,
+        "connect": mock_connect,
+        "AsyncConnection": mock_async_connection,
+    }
+
+    # Cleanup: remove from sys.modules if it was added
+    if "psycopg" in sys.modules and sys.modules["psycopg"] is mock_psycopg:
+        del sys.modules["psycopg"]
+
+
+@pytest.fixture(scope="function")
+def mock_aiomysql_module(mocker):
+    """Create a mock aiomysql module for sys.modules."""
+    import sys
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_aiomysql = MagicMock()
+    mock_connection = AsyncMock()
+    mock_connect = AsyncMock(return_value=mock_connection)
+    mock_aiomysql.connect = mock_connect
+    mock_aiomysql.DictCursor = MagicMock()
+    sys.modules["aiomysql"] = mock_aiomysql
+
+    yield {
+        "module": mock_aiomysql,
+        "connection": mock_connection,
+        "connect": mock_connect,
+        "DictCursor": mock_aiomysql.DictCursor,
+    }
+
+    # Cleanup: remove from sys.modules if it was added
+    if "aiomysql" in sys.modules and sys.modules["aiomysql"] is mock_aiomysql:
+        del sys.modules["aiomysql"]
+
+
+@pytest.fixture(scope="function")
+def mock_pymysql_module(mocker):
+    """Create a mock pymysql module for sys.modules."""
+    import sys
+    from unittest.mock import MagicMock
+
+    mock_pymysql = MagicMock()
+    mock_connection = MagicMock()
+    mock_cursor = MagicMock()
+    mock_connection.cursor.return_value = mock_cursor
+    mock_pymysql.connect = MagicMock(return_value=mock_connection)
+    sys.modules["pymysql"] = mock_pymysql
+
+    yield {
+        "module": mock_pymysql,
+        "connection": mock_connection,
+        "cursor": mock_cursor,
+        "connect": mock_pymysql.connect,
+    }
+
+    # Cleanup: remove from sys.modules if it was added
+    if "pymysql" in sys.modules and sys.modules["pymysql"] is mock_pymysql:
+        del sys.modules["pymysql"]
+
+
+@pytest.fixture(scope="function")
+def mock_db_connection(mocker):
+    """Create a mock database connection (AsyncMock)."""
+    from unittest.mock import AsyncMock
+
+    connection = AsyncMock()
+    connection.execute = AsyncMock()
+    connection.fetch = AsyncMock()
+    connection.fetchrow = AsyncMock()
+    connection.fetchval = AsyncMock()
+    connection.commit = AsyncMock()
+    connection.rollback = AsyncMock()
+    connection.close = AsyncMock()
+    connection.begin = AsyncMock()
+
+    return connection
+
+
+@pytest.fixture(scope="function")
+def mock_db_cursor(mocker):
+    """Create a mock database cursor (AsyncMock) for MySQL/PostgreSQL adapters."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    cursor = AsyncMock()
+    cursor.execute = AsyncMock()
+    cursor.fetchall = AsyncMock(return_value=[])
+    cursor.fetchone = AsyncMock(return_value=None)
+    cursor.fetchmany = AsyncMock(return_value=[])
+    cursor.description = []
+    cursor.rowcount = 0
+    cursor.__aenter__ = AsyncMock(return_value=cursor)
+    cursor.__aexit__ = AsyncMock(return_value=None)
+    # For pymysql (synchronous)
+    cursor.__enter__ = MagicMock(return_value=cursor)
+    cursor.__exit__ = MagicMock(return_value=None)
+
+    return cursor
+
+
+@pytest.fixture(scope="function")
+def mock_mini_app_ui(mocker):
+    """Create a mock MiniAppUI object for integration tests."""
+    from unittest.mock import MagicMock
+
+    mock_ui = MagicMock()
+    mock_ui.url = "https://example.com/app"
+    mock_ui.start_param = None
+    return mock_ui
+
+
+@pytest.fixture(scope="function")
+def mock_httpx_response_basic(mocker):
+    """Create a basic mock httpx.Response for API tests."""
+    from datetime import timedelta
+    from httpx import Response
+
+    response = mocker.MagicMock(spec=Response)
+    response.status_code = 200
+    response.elapsed = timedelta(seconds=0.5)
+    response.is_informational = False
+    response.is_success = True
+    response.is_redirect = False
+    response.is_client_error = False
+    response.is_server_error = False
+    response.content = b'{"status": "ok"}'
+    response.headers = {"Content-Type": "application/json"}
+    response.reason_phrase = "OK"
+    response.json = mocker.MagicMock(return_value={"status": "ok"})
+
+    return response
+
+
+@pytest.fixture(scope="function")
+def mock_telegram_client_context_manager(mocker, valid_user_info):  # noqa: F811
+    """Create a mock UserTelegramClient that works as async context manager."""
+    from unittest.mock import AsyncMock
+
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=None)
+    # Parameter name matches fixture name - using noqa to suppress redefinition warning
+    mock_client.get_me = AsyncMock(return_value=valid_user_info)
+    mock_client.connect = AsyncMock()
+    mock_client.disconnect = AsyncMock()
+
+    return mock_client
+
+
+@pytest.fixture(scope="function")
+def mock_playwright_browser_and_page(mocker):
+    """Create mock Playwright browser and page for integration tests."""
+    from unittest.mock import AsyncMock
+
+    mock_browser = AsyncMock()
+    mock_page = AsyncMock()
+    mock_page.click = AsyncMock()
+    mock_page.fill = AsyncMock()
+    mock_page.goto = AsyncMock()
+    mock_page.wait_for_selector = AsyncMock()
+    mock_page.screenshot = AsyncMock()
+    mock_page.evaluate = AsyncMock()
+    mock_page.locator = AsyncMock()
+    mock_page.title = AsyncMock(return_value="Test Page")
+    mock_page.url = "https://example.com/app"
+    mock_browser.new_page = AsyncMock(return_value=mock_page)
+
+    mock_playwright = mocker.patch(
+        "tma_test_framework.clients.ui_client.async_playwright"
+    )
+    mock_playwright_instance = AsyncMock()
+    mock_playwright_instance.chromium.launch = AsyncMock(return_value=mock_browser)
+    mock_playwright.return_value.start = AsyncMock(
+        return_value=mock_playwright_instance
+    )
+
+    return {
+        "browser": mock_browser,
+        "page": mock_page,
+        "playwright": mock_playwright,
+        "playwright_instance": mock_playwright_instance,
+    }
+
+
+@pytest.fixture(scope="function")
+def mock_httpx_response_elapsed_error(mocker):
+    """Create a mock httpx.Response where elapsed raises AttributeError."""
+    from httpx import Response
+
+    mock_response = mocker.MagicMock(spec=Response)
+    mock_response.status_code = 200
+    mock_response.is_informational = False
+    mock_response.is_success = True
+    mock_response.is_redirect = False
+    mock_response.is_client_error = False
+    mock_response.is_server_error = False
+    mock_response.content = b'{"test": "data"}'
+    mock_response.headers = {"Content-Type": "application/json"}
+    mock_response.reason_phrase = "OK"
+
+    # Create a mock elapsed object that raises AttributeError when total_seconds() is called
+    mock_elapsed = mocker.MagicMock()
+    mock_elapsed.total_seconds = mocker.Mock(
+        side_effect=AttributeError("elapsed not available")
+    )
+    # Make elapsed property return the mock that raises error
+    type(mock_response).elapsed = mocker.PropertyMock(return_value=mock_elapsed)
+
+    return mock_response

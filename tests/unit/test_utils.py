@@ -3,6 +3,9 @@ Unit tests for utility functions.
 """
 
 import json
+import urllib.parse
+from typing import Any
+
 import allure
 
 from tma_test_framework.utils import (
@@ -170,8 +173,6 @@ class TestExtractPaginationInfo:
     def test_extract_pagination_info_empty(self):
         """Test extract_pagination_info with empty data."""
         with allure.step("Prepare empty data dictionary"):
-            from typing import Any
-
             data: dict[str, Any] = {}
 
         with allure.step(
@@ -293,7 +294,7 @@ class TestGenerateTelegramInitData:
         with allure.step("Generate init_data"):
             init_data = generate_telegram_init_data(bot_token=bot_token)
 
-        with allure.step("Create MiniAppApi instance and verify init_data structure"):
+        with allure.step("Create ApiClient instance and verify init_data structure"):
             # Note: This test requires actual validation logic
             # For now, just verify the structure
             assert "hash=" in init_data
@@ -311,7 +312,6 @@ class TestGenerateTelegramInitData:
 
         with allure.step("Extract hash from init_data and verify format"):
             # Extract hash from init_data
-            import urllib.parse
 
             parsed = urllib.parse.parse_qs(init_data)
             hash_value = parsed.get("hash", [""])[0]

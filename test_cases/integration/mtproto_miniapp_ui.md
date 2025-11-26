@@ -1,7 +1,7 @@
-# MTProto + MiniAppUI Integration Test Cases
+# MTProto + UiClient Integration Test Cases
 
 ## Overview
-Tests for integration between `UserTelegramClient` and `MiniAppUI` components.
+Tests for integration between `UserTelegramClient` and `UiClient` (aliased as `MiniAppUI`) components.
 
 ## Test Categories
 
@@ -17,12 +17,12 @@ Tests for integration between `UserTelegramClient` and `MiniAppUI` components.
   1. Create UserTelegramClient with valid config
   2. Connect to Telegram
   3. Call `get_mini_app_from_bot(bot_username)`
-  4. Verify MiniAppUI is returned with correct URL
+  4. Verify `UiClient` is returned with correct URL
   5. Setup browser using `setup_browser()`
   6. Navigate to Mini App URL
   7. Test UI elements (click, fill, etc.)
 - **Expected Result**: Mini App retrieved and UI tested successfully
-- **Coverage**: `get_mini_app_from_bot()`, `MiniAppUI` methods
+- **Coverage**: `get_mini_app_from_bot()`, `UiClient` methods (or `MiniAppUI` methods)
 - **Dependencies**: Real Telegram bot, Mini App with UI
 
 #### TC-INTEGRATION-MTUI-002: Get Mini App with start_param and test UI
@@ -46,7 +46,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppUI` components.
   2. Get messages from bot
   3. Find message with web_app media
   4. Extract Mini App URL from media
-  5. Create MiniAppUI and test UI
+  5. Create `UiClient` (or use `MiniAppUI` alias) and test UI
 - **Expected Result**: Mini App extracted from media, UI tested
 - **Coverage**: `get_mini_app_from_bot()` media extraction, UI testing
 - **Dependencies**: Bot with web_app media
@@ -236,7 +236,7 @@ Tests for integration between `UserTelegramClient` and `MiniAppUI` components.
 - **Test Steps**:
   1. Use `async with UserTelegramClient(config) as client:`
   2. Get Mini App from bot
-  3. Use `async with MiniAppUI(url, config) as ui:`
+  3. Use `async with UiClient(url, config) as ui:` (or `async with MiniAppUI(url, config) as ui:`)
   4. Setup browser and test UI
   5. Verify both close correctly on exit
 - **Expected Result**: Both clients close properly

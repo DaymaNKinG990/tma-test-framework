@@ -26,7 +26,7 @@ REQUIREMENTS FOR ACTIVATION:
 
 import asyncio
 import os
-from tma_test_framework.mtproto_client import UserTelegramClient
+from tma_test_framework.clients.mtproto_client import UserTelegramClient
 from tma_test_framework.config import Config
 
 

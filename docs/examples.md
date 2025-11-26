@@ -7,6 +7,7 @@ This document provides comprehensive examples of using TMA Framework for various
 - [Basic Usage](#basic-usage)
 - [API Testing](#api-testing)
 - [UI Testing](#ui-testing)
+- [Database Testing](#database-testing)
 - [Error Handling](#error-handling)
 - [Configuration Examples](#configuration-examples)
 - [Advanced Patterns](#advanced-patterns)
@@ -20,8 +21,9 @@ This document provides comprehensive examples of using TMA Framework for various
 >
 > For Mini App testing with TMA Framework, use the framework's classes instead:
 > - **`Config`** - Configuration management for API credentials and session data
-> - **`MiniAppApi`** - API testing utilities for making requests to Mini App endpoints
-> - **`MiniAppUI`** - UI testing utilities for interacting with Mini App interfaces
+> - **`ApiClient`** (aliased as `MiniAppApi`) - API testing utilities for making requests to Mini App endpoints
+> - **`UiClient`** (aliased as `MiniAppUI`) - UI testing utilities for interacting with Mini App interfaces
+> - **`DBClient`** - Database client for testing Mini Apps with database backends
 >
 > See the [API Testing](#api-testing) and [UI Testing](#ui-testing) sections below for examples using TMA Framework utilities.
 
@@ -62,7 +64,7 @@ asyncio.run(basic_user_example())
 ```python
 # TMA Framework example - executable code
 import asyncio
-from tma_framework import UserTelegramClient, Config  # TMA Framework package
+from tma_test_framework import UserTelegramClient, Config  # TMA Framework package
 
 async def get_mini_app_example():
     config = Config(
@@ -94,7 +96,7 @@ asyncio.run(get_mini_app_example())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def basic_api_test():
     config = Config.from_env()
@@ -116,7 +118,7 @@ asyncio.run(basic_api_test())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def post_request_example():
     config = Config.from_env()
@@ -154,7 +156,7 @@ asyncio.run(post_request_example())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def init_data_validation_example():
     config = Config.from_env()
@@ -180,7 +182,7 @@ asyncio.run(init_data_validation_example())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def multiple_endpoints_example():
     config = Config.from_env()
@@ -220,7 +222,8 @@ asyncio.run(multiple_endpoints_example())
 
 ```python
 import asyncio
-from tma_framework import MiniAppUI, Config
+from tma_test_framework.clients import UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def basic_ui_test():
     config = Config.from_env()
@@ -245,7 +248,8 @@ asyncio.run(basic_ui_test())
 
 ```python
 import asyncio
-from tma_framework import MiniAppUI, Config
+from tma_test_framework.clients import UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def form_interaction_example():
     config = Config.from_env()
@@ -284,7 +288,8 @@ asyncio.run(form_interaction_example())
 
 ```python
 import asyncio
-from tma_framework import MiniAppUI, Config
+from tma_test_framework.clients import UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def advanced_ui_interactions():
     config = Config.from_env()
@@ -327,13 +332,162 @@ async def advanced_ui_interactions():
 asyncio.run(advanced_ui_interactions())
 ```
 
+## Database Testing
+
+### Basic Database Operations
+
+```python
+import asyncio
+from tma_test_framework.clients import DBClient
+from tma_test_framework import Config
+
+async def basic_database_test():
+    config = Config.from_env()
+
+    # SQLite example
+    async with await DBClient.create(
+        "https://example.com/app",
+        config,
+        db_type="sqlite",
+        connection_string="sqlite:///:memory:"
+    ) as db:
+        await db.connect()
+
+        # Create table
+        await db.execute_command(
+            "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)"
+        )
+
+        # Insert data
+        await db.execute_command(
+            "INSERT INTO users (name, email) VALUES (:name, :email)",
+            {"name": "Test User", "email": "test@example.com"}
+        )
+
+        # Query data
+        users = await db.execute_query("SELECT * FROM users")
+        print(f"Users: {users}")
+
+        # Update data
+        rows_affected = await db.execute_command(
+            "UPDATE users SET email = :email WHERE name = :name",
+            {"email": "updated@example.com", "name": "Test User"}
+        )
+        print(f"Updated {rows_affected} rows")
+
+        # Delete data
+        rows_affected = await db.execute_command(
+            "DELETE FROM users WHERE name = :name",
+            {"name": "Test User"}
+        )
+        print(f"Deleted {rows_affected} rows")
+
+asyncio.run(basic_database_test())
+```
+
+### Database Transactions
+
+```python
+import asyncio
+from tma_test_framework.clients import DBClient
+from tma_test_framework import Config
+
+async def database_transactions():
+    config = Config.from_env()
+
+    # PostgreSQL example with transactions
+    db = await DBClient.create(
+        "https://example.com/app",
+        config,
+        db_type="postgresql",
+        connection_string="postgresql://user:pass@localhost/db"
+    )
+
+    try:
+        await db.connect()
+
+        # Use transaction context manager
+        async with db.transaction():
+            await db.execute_command(
+                "INSERT INTO users (name) VALUES (:name)",
+                {"name": "User 1"}
+            )
+            await db.execute_command(
+                "INSERT INTO users (name) VALUES (:name)",
+                {"name": "User 2"}
+            )
+            # Transaction commits automatically on exit
+
+        # Manual transaction management
+        await db.begin_transaction()
+        try:
+            await db.execute_command(
+                "INSERT INTO users (name) VALUES (:name)",
+                {"name": "User 3"}
+            )
+            await db.commit_transaction()
+        except Exception:
+            await db.rollback_transaction()
+            raise
+
+    finally:
+        await db.disconnect()
+
+asyncio.run(database_transactions())
+```
+
+### MySQL Database Example
+
+```python
+import asyncio
+from tma_test_framework.clients import DBClient
+from tma_test_framework import Config
+
+async def mysql_database_example():
+    config = Config.from_env()
+
+    # MySQL example using kwargs
+    db = await DBClient.create(
+        "https://example.com/app",
+        config,
+        db_type="mysql",
+        host="localhost",
+        port=3306,
+        database="testdb",
+        user="testuser",
+        password="testpass"
+    )
+
+    try:
+        await db.connect()
+
+        # Execute queries
+        results = await db.execute_query(
+            "SELECT * FROM users WHERE id = :id",
+            {"id": 1}
+        )
+
+        # Execute commands
+        rows_affected = await db.execute_command(
+            "INSERT INTO users (name, email) VALUES (:name, :email)",
+            {"name": "New User", "email": "new@example.com"}
+        )
+
+        print(f"Inserted {rows_affected} row(s)")
+
+    finally:
+        await db.disconnect()
+
+asyncio.run(mysql_database_example())
+```
+
 ## Error Handling
 
 ### Robust API Testing
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def robust_api_testing():
     config = Config.from_env()
@@ -365,7 +519,8 @@ asyncio.run(robust_api_testing())
 
 ```python
 import asyncio
-from tma_framework import MiniAppUI, Config
+from tma_test_framework.clients import UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def ui_error_recovery():
     config = Config.from_env()
@@ -399,7 +554,7 @@ asyncio.run(ui_error_recovery())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def retry_logic_example():
     config = Config.from_env()
@@ -437,7 +592,7 @@ asyncio.run(retry_logic_example())
 
 ```python
 import os
-from tma_framework import Config
+from tma_test_framework import Config
 
 # Using environment variables
 config = Config.from_env()
@@ -455,7 +610,7 @@ config = Config(
 
 ```python
 import os
-from tma_framework import Config
+from tma_test_framework import Config
 
 def get_config_for_environment(env: str) -> Config:
     """Get configuration for specific environment."""
@@ -494,7 +649,7 @@ config = get_config_for_environment("development")
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, Config
+from tma_test_framework import ApiClient as MiniAppApi, Config
 
 async def parallel_api_testing():
     config = Config.from_env()
@@ -538,7 +693,8 @@ asyncio.run(parallel_api_testing())
 ```python
 import asyncio
 from typing import List, Dict, Any
-from tma_framework import MiniAppApi, MiniAppUI, Config
+from tma_test_framework.clients import ApiClient as MiniAppApi, UiClient as MiniAppUI
+from tma_test_framework import Config
 
 class MiniAppTestSuite:
     def __init__(self, config: Config):
@@ -708,7 +864,8 @@ asyncio.run(run_test_suite())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, MiniAppUI, Config
+from tma_test_framework.clients import ApiClient as MiniAppApi, UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def ecommerce_testing():
     config = Config.from_env()
@@ -768,7 +925,8 @@ asyncio.run(ecommerce_testing())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, MiniAppUI, Config
+from tma_test_framework.clients import ApiClient as MiniAppApi, UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def social_media_testing():
     config = Config.from_env()
@@ -825,7 +983,8 @@ asyncio.run(social_media_testing())
 
 ```python
 import asyncio
-from tma_framework import MiniAppApi, MiniAppUI, Config
+from tma_test_framework.clients import ApiClient as MiniAppApi, UiClient as MiniAppUI
+from tma_test_framework import Config
 
 async def game_testing():
     config = Config.from_env()

@@ -2,13 +2,15 @@
 Unit tests for TMA Framework data models.
 """
 
+import base64
+
 import allure
 import json
 import pytest
 import msgspec
 
-from tma_test_framework.mtproto_client import UserInfo, ChatInfo, MessageInfo
-from tma_test_framework.mini_app import MiniAppInfo, ApiResult
+from tma_test_framework.clients.mtproto_client import UserInfo, ChatInfo, MessageInfo
+from tma_test_framework.clients.models import MiniAppInfo, ApiResult
 from tests.data.constants import (
     VALID_USER_INFO_DATA,
     BOT_USER_INFO_DATA,
@@ -39,8 +41,8 @@ from tests.data.constants import (
 class TestUserInfo:
     """Test cases for UserInfo model."""
 
-    @allure.title("Create valid UserInfo")
-    @allure.description("Test creating a valid UserInfo.")
+    @allure.title("TC-MODEL-USER-001: Create valid UserInfo")
+    @allure.description("Test creating a valid UserInfo. TC-MODEL-USER-001")
     def test_valid_user_info_creation(self):
         """Test creating a valid UserInfo."""
         with allure.step("Create UserInfo from valid data"):
@@ -63,8 +65,8 @@ class TestUserInfo:
         with allure.step("Verify user.is_premium is False"):
             assert user.is_premium is False
 
-    @allure.title("Create bot UserInfo")
-    @allure.description("Test creating a bot UserInfo.")
+    @allure.title("TC-MODEL-USER-002: Create bot UserInfo")
+    @allure.description("Test creating a bot UserInfo. TC-MODEL-USER-002")
     def test_bot_user_info_creation(self):
         """Test creating a bot UserInfo."""
         with allure.step("Create UserInfo from bot data"):
@@ -408,7 +410,6 @@ class TestMessageInfo:
     @allure.description("Test creating a valid MessageInfo.")
     def test_valid_message_info_creation(self):
         """Test creating a valid MessageInfo."""
-        from tma_test_framework.mtproto_client import ChatInfo, UserInfo
 
         # Create proper dict with ChatInfo and UserInfo objects
         message_dict = {
@@ -489,7 +490,6 @@ class TestMessageInfo:
     def test_message_info_field_types(self):
         """Test MessageInfo field types."""
         # Create message with proper chat data
-        from tests.data.constants import VALID_CHAT_INFO_DATA
 
         message_data = VALID_MESSAGE_INFO_DATA.copy()
         message_data["chat"] = ChatInfo(**VALID_CHAT_INFO_DATA)  # type: ignore[arg-type,assignment]
@@ -520,7 +520,6 @@ class TestMessageInfo:
     def test_message_info_deserialization(self):
         """Test MessageInfo deserialization."""
         # Create proper dict with ChatInfo and UserInfo objects
-        from tma_test_framework.mtproto_client import ChatInfo, UserInfo
 
         message_dict = {
             "id": 111222333,
@@ -584,7 +583,6 @@ class TestMessageInfo:
     @allure.description("Test MessageInfo with unicode characters.")
     def test_message_info_unicode(self):
         """Test MessageInfo with unicode characters."""
-        from tma_test_framework.mtproto_client import ChatInfo, UserInfo
 
         # Create proper dict with ChatInfo and UserInfo objects
         unicode_message_dict = {
@@ -1163,7 +1161,6 @@ class TestApiResult:
         assert "reason" in result_dict
         assert result_dict["headers"] == {"content-type": "application/json"}
         # msgspec serializes bytes to base64 string by default
-        import base64
 
         expected_body_base64 = base64.b64encode(b'{"test": "data"}').decode("utf-8")
         assert result_dict["body"] == expected_body_base64

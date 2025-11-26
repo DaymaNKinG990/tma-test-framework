@@ -7,7 +7,7 @@ for testing Telegram WebApp API functionality.
 
 import asyncio
 import os
-from tma_test_framework.mini_app import MiniAppApi
+from tma_test_framework.clients.api_client import ApiClient as MiniAppApi
 from tma_test_framework.config import Config
 
 

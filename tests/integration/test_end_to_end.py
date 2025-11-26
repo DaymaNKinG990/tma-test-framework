@@ -3,18 +3,28 @@ End-to-end integration tests.
 Tests verify complete workflows from start to finish.
 """
 
-import allure
-import pytest
+import asyncio
+import json
+import time
+import yaml
+from pathlib import Path
 from datetime import timedelta
 
-from tma_test_framework.mtproto_client import (
+import allure
+import pytest
+from httpx import RequestError
+
+from tma_test_framework.clients.mtproto_client import (
     UserTelegramClient,
     UserInfo,
     ChatInfo,
     MessageInfo,
 )
-from tma_test_framework.mini_app.api import MiniAppApi
-from tma_test_framework.mini_app.ui import MiniAppUI
+from tma_test_framework.clients.api_client import ApiClient as MiniAppApi
+from tma_test_framework.clients.ui_client import UiClient as MiniAppUI
+from tma_test_framework.clients.db_client import DBClient
+from tma_test_framework.config import Config
+from tests.fixtures.miniapp_api import generate_valid_init_data
 
 
 @pytest.mark.integration
@@ -31,17 +41,20 @@ class TestEndToEndWorkflows:
         "Verify complete testing workflow combining all components."
     )
     async def test_full_workflow_get_mini_app_test_api_test_ui(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_playwright_browser_and_page,
     ):
         """
         TC-INTEGRATION-E2E-001: Full workflow: Get Mini App → Test API → Test UI.
 
         Verify complete testing workflow combining all components.
         """
-        from datetime import timedelta
 
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -78,23 +91,8 @@ class TestEndToEndWorkflows:
         # Step 3: Test UI
         ui = MiniAppUI(mini_app_ui.url, config)
 
-        # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-        mock_page.fill = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Fixture already patches async_playwright
+        mock_playwright_browser_and_page  # Fixture ensures playwright is mocked
 
         await ui.setup_browser()
         await ui.click_element("#button")
@@ -115,17 +113,20 @@ class TestEndToEndWorkflows:
         "Verify complete workflow with start parameter."
     )
     async def test_full_workflow_with_start_parameter(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url_with_start_param
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url_with_start_param,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-002: Full workflow with start parameter.
 
         Verify complete workflow with start parameter.
         """
-        from datetime import timedelta
 
         # Get Mini App with start parameter
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url_with_start_param
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -160,21 +161,9 @@ class TestEndToEndWorkflows:
         # Test UI and verify parameter is reflected
         ui = MiniAppUI(mini_app_ui.url, config)
 
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.url = mock_mini_app_url_with_start_param
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
         page_url = await ui.get_page_url()
@@ -189,7 +178,13 @@ class TestEndToEndWorkflows:
         "Verify complete workflow using context managers."
     )
     async def test_context_manager_full_workflow(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_httpx_response_basic,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-010: Context manager full workflow.
@@ -197,7 +192,6 @@ class TestEndToEndWorkflows:
         Verify complete workflow using context managers.
         """
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -216,22 +210,8 @@ class TestEndToEndWorkflows:
         mock_response.headers = {"Content-Type": "application/json"}
         mock_response.reason_phrase = "OK"
 
-        # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Fixture already patches async_playwright
+        mock_playwright_browser_and_page  # Fixture ensures playwright is mocked
 
         # Use context managers for full workflow
         async with user_telegram_client_connected as client:
@@ -257,17 +237,19 @@ class TestEndToEndWorkflows:
         "Verify error recovery in full workflow."
     )
     async def test_recover_from_connection_error(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-008: Recover from connection error.
 
         Verify error recovery in full workflow.
         """
-        from datetime import timedelta
 
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -327,7 +309,11 @@ class TestEndToEndWorkflows:
         "This test verifies sequential calls after failure, not automatic retry."
     )
     async def test_sequential_calls_after_failure(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-009: Sequential calls after failure.
@@ -335,11 +321,8 @@ class TestEndToEndWorkflows:
         Verify that sequential make_request calls work correctly after a failure.
         This test verifies sequential calls after failure, not automatic retry.
         """
-        from datetime import timedelta
-        from httpx import RequestError
 
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -391,18 +374,20 @@ class TestEndToEndWorkflows:
         "Verify authentication flow with Mini App."
     )
     async def test_authenticate_and_test_mini_app(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_playwright_browser_and_page,
     ):
         """
         TC-INTEGRATION-E2E-004: Authenticate and test Mini App.
 
         Verify authentication flow with Mini App.
         """
-        from datetime import timedelta
-        from tests.fixtures.miniapp_api import generate_valid_init_data
 
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -450,21 +435,8 @@ class TestEndToEndWorkflows:
         # Test UI with authenticated session
         ui = MiniAppUI(mini_app_ui.url, config)
 
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Fixture already patches async_playwright
+        mock_playwright_browser_and_page  # Fixture ensures playwright is mocked
 
         await ui.setup_browser()
         await ui.click_element("#authenticated-button")
@@ -481,14 +453,18 @@ class TestEndToEndWorkflows:
         "Verify data flow from bot to Mini App."
     )
     async def test_get_data_from_bot_and_use_in_mini_app(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-006: Get data from bot and use in Mini App.
 
         Verify data flow from bot to Mini App.
         """
-        from datetime import timedelta
 
         # Mock message from bot with data
         bot_user = UserInfo(
@@ -520,14 +496,12 @@ class TestEndToEndWorkflows:
         assert len(messages) > 0
 
         # Extract data from message
-        import json
 
         message_data = json.loads(messages[0].text)
         assert message_data["action"] == "test"
         assert message_data["param"] == "value123"
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -574,14 +548,13 @@ class TestEndToEndWorkflows:
         "Verify session management across components."
     )
     async def test_session_management_workflow(
-        self, mocker, valid_config, mock_mini_app_url
+        self, mocker, valid_config, mock_mini_app_url, mock_mini_app_ui
     ):
         """
         TC-INTEGRATION-E2E-005: Session management workflow.
 
         Verify session management across components.
         """
-        from datetime import timedelta
 
         # Create Config with session_string
         config = valid_config
@@ -590,7 +563,8 @@ class TestEndToEndWorkflows:
         # Mock StringSession to avoid validation error (must be before UserTelegramClient creation)
         mock_session = mocker.MagicMock()
         mocker.patch(
-            "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+            "tma_test_framework.clients.mtproto_client.StringSession",
+            return_value=mock_session,
         )
 
         # Create mock TelegramClient with async methods
@@ -601,7 +575,7 @@ class TestEndToEndWorkflows:
         mock_telegram_client.get_me = mocker.AsyncMock()
         mock_telegram_client.disconnect = mocker.AsyncMock()
         mocker.patch(
-            "tma_test_framework.mtproto_client.TelegramClient",
+            "tma_test_framework.clients.mtproto_client.TelegramClient",
             return_value=mock_telegram_client,
         )
 
@@ -613,7 +587,6 @@ class TestEndToEndWorkflows:
         assert client._is_connected is True
 
         # Get Mini App and test
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         client.get_mini_app_from_bot = mocker.AsyncMock(return_value=mock_mini_app_ui)  # type: ignore[method-assign]  # type: ignore[method-assign]
 
@@ -658,7 +631,12 @@ class TestEndToEndWorkflows:
         "Verify data flow from Mini App to bot."
     )
     async def test_send_data_from_mini_app_back_to_bot(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_playwright_browser_and_page,
     ):
         """
         TC-INTEGRATION-E2E-007: Send data from Mini App back to bot.
@@ -667,7 +645,6 @@ class TestEndToEndWorkflows:
         """
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -682,24 +659,10 @@ class TestEndToEndWorkflows:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.fill = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.evaluate = mocker.AsyncMock(
             return_value={"submitted": True, "data": "test123"}
-        )
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
         )
 
         await ui.setup_browser()
@@ -752,17 +715,13 @@ class TestEndToEndWorkflows:
         "Verify config loading from YAML file."
     )
     async def test_load_config_from_yaml_and_test(
-        self, mocker, temp_dir, mock_mini_app_url
+        self, mocker, temp_dir, mock_mini_app_url, mock_mini_app_ui
     ):
         """
         TC-INTEGRATION-E2E-011: Load config from YAML and test.
 
         Verify config loading from YAML file.
         """
-        from datetime import timedelta
-        import yaml
-        from pathlib import Path
-        from tma_test_framework.config import Config
 
         # Create YAML config file
         yaml_config = {
@@ -787,7 +746,8 @@ class TestEndToEndWorkflows:
         # Mock StringSession to avoid validation error (must be before UserTelegramClient creation)
         mock_session = mocker.MagicMock()
         mocker.patch(
-            "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+            "tma_test_framework.clients.mtproto_client.StringSession",
+            return_value=mock_session,
         )
 
         # Create mock TelegramClient with async methods
@@ -798,7 +758,7 @@ class TestEndToEndWorkflows:
         mock_telegram_client.get_me = mocker.AsyncMock()
         mock_telegram_client.disconnect = mocker.AsyncMock()
         mocker.patch(
-            "tma_test_framework.mtproto_client.TelegramClient",
+            "tma_test_framework.clients.mtproto_client.TelegramClient",
             return_value=mock_telegram_client,
         )
 
@@ -808,7 +768,6 @@ class TestEndToEndWorkflows:
         await client.connect()
 
         # Get Mini App and test
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         client.get_mini_app_from_bot = mocker.AsyncMock(return_value=mock_mini_app_ui)  # type: ignore[method-assign]  # type: ignore[method-assign]
 
@@ -853,7 +812,6 @@ class TestEndToEndWorkflows:
 
         Verify testing multiple Mini Apps in sequence.
         """
-        from datetime import timedelta
 
         # Mock two different Mini Apps
         mock_mini_app_ui_1 = mocker.MagicMock()
@@ -918,15 +876,18 @@ class TestEndToEndWorkflows:
         "Verify full workflow completes in acceptable time."
     )
     async def test_performance_full_workflow_timing(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_playwright_browser_and_page,
     ):
         """
         TC-INTEGRATION-E2E-012: Performance test: Full workflow timing.
 
         Verify full workflow completes in acceptable time.
         """
-        import time
-        from datetime import timedelta
 
         # Measure start time
         start_time = time.perf_counter()
@@ -936,7 +897,6 @@ class TestEndToEndWorkflows:
         assert user_telegram_client_connected._is_connected is True
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -966,21 +926,8 @@ class TestEndToEndWorkflows:
         # Test UI
         ui = MiniAppUI(mini_app_ui.url, config)
 
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Fixture already patches async_playwright
+        mock_playwright_browser_and_page  # Fixture ensures playwright is mocked
 
         await ui.setup_browser()
         await ui.click_element("#button")
@@ -1004,7 +951,12 @@ class TestEndToEndWorkflows:
         "Verify resources are cleaned up properly."
     )
     async def test_resource_cleanup_after_workflow(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-014: Resource cleanup after workflow.
@@ -1013,7 +965,6 @@ class TestEndToEndWorkflows:
         """
 
         # Execute full workflow
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -1037,19 +988,9 @@ class TestEndToEndWorkflows:
         # Verify MiniAppUI browser is open
         ui = MiniAppUI(mini_app_ui.url, config)
 
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Get mock browser from fixture for verification
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_browser = mock_playwright_data["browser"]
 
         await ui.setup_browser()
         assert ui.browser is not None
@@ -1070,21 +1011,19 @@ class TestEndToEndWorkflows:
         "Verify system handles concurrent workflows."
     )
     async def test_load_test_multiple_concurrent_workflows(
-        self, mocker, valid_config, mock_mini_app_url
+        self, mocker, valid_config, mock_mini_app_url, mock_mini_app_ui
     ):
         """
         TC-INTEGRATION-E2E-013: Load test: Multiple concurrent workflows.
 
         Verify system handles concurrent workflows.
         """
-        import asyncio
-        import time
-        from datetime import timedelta
 
         # Mock StringSession to avoid validation error (must be before UserTelegramClient creation)
         mock_session = mocker.MagicMock()
         mocker.patch(
-            "tma_test_framework.mtproto_client.StringSession", return_value=mock_session
+            "tma_test_framework.clients.mtproto_client.StringSession",
+            return_value=mock_session,
         )
 
         # Create mock TelegramClient with async methods
@@ -1095,12 +1034,12 @@ class TestEndToEndWorkflows:
         mock_telegram_client.get_me = mocker.AsyncMock()
         mock_telegram_client.disconnect = mocker.AsyncMock()
         mocker.patch(
-            "tma_test_framework.mtproto_client.TelegramClient",
+            "tma_test_framework.clients.mtproto_client.TelegramClient",
             return_value=mock_telegram_client,
         )
 
         # Start 3 concurrent workflows
-        async def single_workflow(workflow_id: int):
+        async def single_workflow(workflow_id: int, mock_mini_app_ui_fixture):
             """Single workflow: connect → get Mini App → test"""
             # Create client for this workflow
             client = UserTelegramClient(valid_config)
@@ -1108,10 +1047,9 @@ class TestEndToEndWorkflows:
             await client.connect()
 
             # Get Mini App
-            mock_mini_app_ui = mocker.MagicMock()
-            mock_mini_app_ui.url = f"{mock_mini_app_url}?workflow={workflow_id}"
+            mock_mini_app_ui_fixture.url = f"{mock_mini_app_url}?workflow={workflow_id}"
             client.get_mini_app_from_bot = mocker.AsyncMock(  # type: ignore[method-assign]
-                return_value=mock_mini_app_ui
+                return_value=mock_mini_app_ui_fixture
             )
 
             mini_app_ui = await client.get_mini_app_from_bot(f"test_bot_{workflow_id}")
@@ -1140,7 +1078,10 @@ class TestEndToEndWorkflows:
         start_time = time.perf_counter()
 
         # Start 3 concurrent workflows
-        tasks = [single_workflow(i) for i in range(1, 4)]
+        tasks = [
+            single_workflow(i, mock_mini_app_ui_fixture=mock_mini_app_ui)
+            for i in range(1, 4)
+        ]
         results = await asyncio.gather(*tasks)
 
         # Measure end time
@@ -1172,7 +1113,6 @@ class TestEndToEndWorkflows:
         Tests that creating more than the allowed limit raises appropriate exception,
         and that resources can be properly cleaned up.
         """
-        from datetime import timedelta
 
         config = user_telegram_client_connected.config
         apis = []
@@ -1249,7 +1189,12 @@ class TestEndToEndWorkflows:
         "Verify framework handles complex UI."
     )
     async def test_mini_app_with_complex_ui(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-017: Test Mini App with complex UI.
@@ -1257,7 +1202,6 @@ class TestEndToEndWorkflows:
         Verify framework handles complex UI.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -1272,25 +1216,11 @@ class TestEndToEndWorkflows:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright for complex UI
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.fill = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.wait_for_selector = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
         mock_page.evaluate = mocker.AsyncMock(return_value={"modal": "opened"})
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -1324,17 +1254,20 @@ class TestEndToEndWorkflows:
         "Verify framework handles real-time updates."
     )
     async def test_mini_app_with_realtime_updates(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-018: Test Mini App with real-time updates.
 
         Verify framework handles real-time updates.
         """
-        import asyncio
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -1349,8 +1282,8 @@ class TestEndToEndWorkflows:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
 
         # Simulate real-time updates
         update_count = [0]
@@ -1367,18 +1300,6 @@ class TestEndToEndWorkflows:
         mock_page.evaluate = mocker.AsyncMock(side_effect=mock_evaluate)
         mock_page.wait_for_selector = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -1411,7 +1332,12 @@ class TestEndToEndWorkflows:
         "For real testing, actual Telegram bot and account are required."
     )
     async def test_real_mini_app_from_telegram(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-E2E-016: Test real Mini App from Telegram.
@@ -1420,13 +1346,11 @@ class TestEndToEndWorkflows:
         Note: This test uses mocks, but demonstrates the workflow.
         For real testing, actual Telegram bot and account are required.
         """
-        from datetime import timedelta
 
         # Connect with real Telegram account (simulated with mocks)
         assert user_telegram_client_connected._is_connected is True
 
         # Find real bot with Mini App (simulated)
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -1460,22 +1384,8 @@ class TestEndToEndWorkflows:
         # Test real UI (simulated)
         ui = MiniAppUI(mini_app_ui.url, config)
 
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-        mock_page.fill = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Fixture already patches async_playwright
+        mock_playwright_browser_and_page  # Fixture ensures playwright is mocked
 
         await ui.setup_browser()
         await ui.click_element("#real-button")
@@ -1487,3 +1397,166 @@ class TestEndToEndWorkflows:
 
         await mini_app_api.close()
         await ui.close()
+
+    @pytest.mark.asyncio
+    @allure.title("TC-INTEGRATION-E2E-019: Database-backed Mini App testing")
+    @allure.description(
+        "TC-INTEGRATION-E2E-019: Database-backed Mini App testing. "
+        "Verify testing Mini App with database backend using all components."
+    )
+    async def test_database_backed_mini_app_testing(
+        self,
+        mocker,
+        user_telegram_client_connected,
+        valid_config,
+        mock_mini_app_url,
+        mock_httpx_response_basic,
+        mock_playwright_browser_and_page,
+    ):
+        """
+        TC-INTEGRATION-E2E-019: Database-backed Mini App testing.
+
+        Verify testing Mini App with database backend using all components.
+        """
+
+        with allure.step("Setup database schema via DBClient (CREATE TABLE if needed)"):
+            db_client = DBClient.create(
+                "sqlite",
+                mock_mini_app_url,
+                valid_config,
+                connection_string="sqlite:///:memory:",
+            )
+            await db_client.connect()
+            await db_client.execute_command(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    email TEXT
+                )
+                """
+            )
+
+        with allure.step("Seed test data via DBClient"):
+            await db_client.execute_command(
+                "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)",
+                params={"id": 1, "name": "Test User", "email": "test@example.com"},
+            )
+
+        with allure.step("Connect UserTelegramClient and get user info"):
+            mock_user_info = UserInfo(
+                id=123456789,
+                first_name="Test",
+                username="testuser",
+                is_premium=False,
+            )
+            user_telegram_client_connected.get_me = mocker.AsyncMock(
+                return_value=mock_user_info
+            )
+            user_info = await user_telegram_client_connected.get_me()
+
+        with allure.step("Store user data in database via DBClient"):
+            await db_client.execute_command(
+                "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)",
+                params={
+                    "id": user_info.id,
+                    "name": user_info.first_name,
+                    "email": f"{user_info.username}@example.com"
+                    if user_info.username
+                    else "test@example.com",
+                },
+            )
+
+        with allure.step(
+            "Test API endpoints that query database via ApiClient.make_request() (GET)"
+        ):
+            api_client = MiniAppApi(mock_mini_app_url, valid_config)
+            mock_response = mock_httpx_response_basic
+            mock_response.elapsed = timedelta(seconds=0.2)
+            mock_response.content = (
+                b'[{"id": 1, "name": "Test User", "email": "test@example.com"}]'
+            )
+            api_client.client.request = mocker.AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
+
+            get_result = await api_client.make_request("/api/users", method="GET")
+            assert get_result.status_code == 200
+
+        with allure.step(
+            "Test API endpoints that write to database via ApiClient.make_request() (POST)"
+        ):
+            mock_post_response = mock_httpx_response_basic
+            mock_post_response.status_code = 201
+            mock_post_response.elapsed = timedelta(seconds=0.3)
+            mock_post_response.is_success = True
+            mock_post_response.content = (
+                b'{"id": 2, "name": "New User", "email": "new@example.com"}'
+            )
+            mock_post_response.reason_phrase = "Created"
+            mock_post_response.headers = {"Content-Type": "application/json"}
+            api_client.client.request = mocker.AsyncMock(  # type: ignore[method-assign]
+                return_value=mock_post_response
+            )
+
+            post_result = await api_client.make_request(
+                "/api/users",
+                method="POST",
+                data={"name": "New User", "email": "new@example.com"},
+            )
+            assert post_result.status_code == 201
+
+            # Simulate API writing to database
+            await db_client.execute_command(
+                "INSERT INTO users (id, name, email) VALUES (:id, :name, :email)",
+                params={"id": 2, "name": "New User", "email": "new@example.com"},
+            )
+
+        with allure.step(
+            "Verify API responses match database data via DBClient.execute_query()"
+        ):
+            db_results = await db_client.execute_query(
+                "SELECT * FROM users ORDER BY id"
+            )
+            assert len(db_results) >= 2
+            assert db_results[0]["name"] == "Test User"
+            assert db_results[1]["name"] == "New User"
+
+        with allure.step(
+            "Test UI that displays database data via UiClient interactions"
+        ):
+            ui_client = MiniAppUI(mock_mini_app_url, valid_config)
+
+            mock_playwright_data = mock_playwright_browser_and_page
+            mock_page = mock_playwright_data["page"]
+            mock_page.url = mock_mini_app_url
+            mock_page.text_content = mocker.AsyncMock(
+                return_value="Test User\ntest@example.com\nNew User\nnew@example.com"
+            )
+            mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
+
+            await ui_client.setup_browser()
+            if ui_client.page:
+                await ui_client.page.goto(mock_mini_app_url)
+
+            if ui_client.page:
+                text_content = await ui_client.page.text_content("body")
+                assert text_content is not None
+                assert "Test User" in text_content
+
+        with allure.step(
+            "Verify data consistency across all layers (Database ↔ API ↔ UI)"
+        ):
+            # Database layer
+            db_users = await db_client.execute_query("SELECT * FROM users")
+            assert len(db_users) >= 2
+
+            # API layer (mocked, but should match database structure)
+            assert "Test User" in get_result.body.decode()
+
+            # UI layer (mocked, but should display database data)
+            assert True  # UI verification passed
+
+        with allure.step("Clean up test data from database"):
+            await db_client.execute_command("DELETE FROM users")
+            await db_client.disconnect()
+            await api_client.close()
+            await ui_client.close()

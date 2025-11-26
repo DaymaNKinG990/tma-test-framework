@@ -7,25 +7,27 @@ from typing import Optional, Any, Self
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 
 # Local imports
-from .base import BaseMiniApp
+from .base_client import BaseClient
 from ..config import Config
 
 
-class MiniAppUI(BaseMiniApp):
+class UiClient(BaseClient):
     """
     Telegram Mini App UI testing client.
 
     Provides comprehensive UI testing capabilities using Playwright:
-    - Element interaction (click, fill, wait)
+    - Browser automation and page navigation
+    - Element interaction (click, fill, wait, hover, double-click)
+    - Form handling (checkboxes, selects, file uploads)
     - Screenshots and visual testing
     - JavaScript execution
-    - Navigation and page state
-    - Advanced Playwright features
+    - Page state inspection (title, URL, element text/attributes)
+    - Keyboard input simulation
     """
 
     def __init__(self, url: str, config: Optional[Config] = None) -> None:
         """
-        Initialize Mini App UI client.
+        Initialize UI client.
 
         Args:
             url: Mini App URL

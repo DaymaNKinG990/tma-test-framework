@@ -2,6 +2,17 @@
 
 Complete API documentation for TMA Framework.
 
+## Importing Classes
+
+```python
+# Recommended: Use new class names
+from tma_test_framework.clients import ApiClient, UiClient, UserTelegramClient, DBClient
+from tma_test_framework import Config
+
+# Backward compatibility: Old names are still available as aliases
+from tma_test_framework import MiniAppApi, MiniAppUI  # Aliases for ApiClient and UiClient
+```
+
 ## Core Classes
 
 ### UserTelegramClient
@@ -96,7 +107,7 @@ Interact with a bot by sending a command.
 response = await client.interact_with_bot("example_bot", "/start")
 ```
 
-##### `get_mini_app_from_bot(bot_username: str, start_param: Optional[str] = None) -> Optional[MiniAppUI]`
+##### `get_mini_app_from_bot(bot_username: str, start_param: Optional[str] = None) -> Optional[UiClient]`
 
 Get Mini App from bot by interacting with it.
 
@@ -104,20 +115,27 @@ Get Mini App from bot by interacting with it.
 - `bot_username` (str): Bot username (without @)
 - `start_param` (Optional[str]): Start parameter for Mini App
 
-**Returns:** `MiniAppUI` object if Mini App is found
+**Returns:** `UiClient` object if Mini App is found, None otherwise
 
 **Example:**
 ```python
-mini_app = await client.get_mini_app_from_bot("example_bot")
+ui_client = await client.get_mini_app_from_bot("example_bot")
+if ui_client:
+    await ui_client.setup_browser()
+    await ui_client.page.goto(ui_client.url)
 ```
 
-### MiniAppApi
+### ApiClient (MiniAppApi)
 
 Class for testing Mini App HTTP API endpoints.
+
+**Note:** `MiniAppApi` is an alias for `ApiClient` for backward compatibility.
 
 #### Constructor
 
 ```python
+ApiClient(url: str, config: Optional[Config] = None)
+# Or use alias:
 MiniAppApi(url: str, config: Optional[Config] = None)
 ```
 
@@ -170,13 +188,17 @@ Close HTTP client and cleanup resources.
 await api.close()
 ```
 
-### MiniAppUI
+### UiClient (MiniAppUI)
 
 Class for testing Mini App user interface using Playwright.
+
+**Note:** `MiniAppUI` is an alias for `UiClient` for backward compatibility.
 
 #### Constructor
 
 ```python
+UiClient(url: str, config: Optional[Config] = None)
+# Or use alias:
 MiniAppUI(url: str, config: Optional[Config] = None)
 ```
 
@@ -460,6 +482,157 @@ Close browser and cleanup resources.
 await ui.close()
 ```
 
+### DBClient
+
+Database client for testing Mini Apps with database backends.
+
+#### Factory Method
+
+```python
+DBClient.create(
+    url: str,
+    config: Config,
+    db_type: str,
+    connection_string: Optional[str] = None,
+    **kwargs: Any
+) -> DBClient
+```
+
+**Parameters:**
+- `url` (str): Mini App URL (for BaseClient compatibility)
+- `config` (Config): Configuration object
+- `db_type` (str): Database type ("postgresql", "sqlite", "mysql")
+- `connection_string` (Optional[str]): Database connection string
+- `**kwargs`: Additional database-specific parameters
+
+**Returns:** Database client instance (PostgreSQLAdapter, SQLiteAdapter, or MySQLAdapter)
+
+**Example:**
+```python
+# SQLite
+db = await DBClient.create(
+    "https://example.com/app",
+    config,
+    db_type="sqlite",
+    connection_string="sqlite:///:memory:"
+)
+
+# PostgreSQL
+db = await DBClient.create(
+    "https://example.com/app",
+    config,
+    db_type="postgresql",
+    connection_string="postgresql://user:pass@localhost/db"
+)
+
+# MySQL
+db = await DBClient.create(
+    "https://example.com/app",
+    config,
+    db_type="mysql",
+    host="localhost",
+    port=3306,
+    database="testdb",
+    user="testuser",
+    password="testpass"
+)
+```
+
+#### Methods
+
+##### `connect() -> None`
+
+Establish database connection.
+
+**Example:**
+```python
+await db.connect()
+```
+
+##### `disconnect() -> None`
+
+Close database connection.
+
+**Example:**
+```python
+await db.disconnect()
+```
+
+##### `execute_query(query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]`
+
+Execute SELECT query and return results.
+
+**Parameters:**
+- `query` (str): SQL query string
+- `params` (Optional[Dict[str, Any]]): Query parameters
+
+**Returns:** List of result rows as dictionaries
+
+**Example:**
+```python
+results = await db.execute_query(
+    "SELECT * FROM users WHERE id = :id",
+    {"id": 1}
+)
+```
+
+##### `execute_command(command: str, params: Optional[Dict[str, Any]] = None) -> int`
+
+Execute INSERT/UPDATE/DELETE command.
+
+**Parameters:**
+- `command` (str): SQL command string
+- `params` (Optional[Dict[str, Any]]): Command parameters
+
+**Returns:** Number of affected rows
+
+**Example:**
+```python
+rows_affected = await db.execute_command(
+    "INSERT INTO users (name) VALUES (:name)",
+    {"name": "Test User"}
+)
+```
+
+##### `begin_transaction() -> None`
+
+Start database transaction.
+
+**Example:**
+```python
+await db.begin_transaction()
+```
+
+##### `commit_transaction() -> None`
+
+Commit current transaction.
+
+**Example:**
+```python
+await db.commit_transaction()
+```
+
+##### `rollback_transaction() -> None`
+
+Rollback current transaction.
+
+**Example:**
+```python
+await db.rollback_transaction()
+```
+
+##### `transaction() -> AsyncContextManager`
+
+Context manager for transactions.
+
+**Example:**
+```python
+async with db.transaction():
+    await db.execute_command("INSERT INTO users (name) VALUES (:name)", {"name": "User 1"})
+    await db.execute_command("INSERT INTO users (name) VALUES (:name)", {"name": "User 2"})
+    # Transaction commits automatically on exit, or rolls back on exception
+```
+
 ### Config
 
 Configuration class for TMA Framework.
@@ -609,7 +782,7 @@ All methods may raise exceptions. Always use try-catch blocks:
 
 ```python
 try:
-    async with MiniAppApi(url, config) as api:
+    async with ApiClient(url, config) as api:  # Or use MiniAppApi alias
         result = await api.make_request("/api/test", "GET")
         if result.success:
             print("✅ Success")
@@ -637,7 +810,7 @@ TMA Framework uses type hints for better IDE support and code clarity:
 
 ```python
 from typing import Optional, Dict, Any
-from tma_framework import MiniAppApi, ApiResult
+from tma_test_framework import ApiClient, ApiResult  # Or use MiniAppApi alias
 
 async def test_api(api: MiniAppApi) -> Optional[ApiResult]:
     try:

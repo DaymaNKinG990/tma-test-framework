@@ -3,11 +3,14 @@ Integration tests for UserTelegramClient + MiniAppUI.
 Tests verify interaction between MTProto client and Mini App UI client.
 """
 
+import time
+
 import allure
 import pytest
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-from tma_test_framework.mtproto_client import MessageInfo, UserInfo, ChatInfo
-from tma_test_framework.mini_app.ui import MiniAppUI
+from tma_test_framework.clients.mtproto_client import MessageInfo, UserInfo, ChatInfo
+from tma_test_framework.clients.ui_client import UiClient as MiniAppUI
 
 
 @pytest.mark.integration
@@ -21,7 +24,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify complete flow: get Mini App from bot, then test its UI."
     )
     async def test_get_mini_app_and_test_ui(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-001: Get Mini App from bot and test UI.
@@ -29,7 +37,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify complete flow: get Mini App from bot, then test its UI.
         """
         # Mock get_mini_app_from_bot to return MiniAppUI
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -48,26 +55,11 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright browser and page
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.url = mock_mini_app_url
         mock_page.title = mocker.AsyncMock(return_value="Test Mini App")
-        mock_page.click = mocker.AsyncMock()
-        mock_page.fill = mocker.AsyncMock()
-        mock_page.wait_for_selector = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mocker.AsyncMock())
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         # Setup browser
         await ui.setup_browser()
@@ -94,7 +86,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify Mini App retrieval with start parameter and UI testing."
     )
     async def test_get_mini_app_with_start_param_and_test_ui(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url_with_start_param
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url_with_start_param,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-002: Get Mini App with start_param and test UI.
@@ -102,7 +99,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify Mini App retrieval with start parameter and UI testing.
         """
         # Mock get_mini_app_from_bot to return MiniAppUI with start param
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url_with_start_param
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -120,23 +116,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.url = mock_mini_app_url_with_start_param
         mock_page.title = mocker.AsyncMock(return_value="Test Mini App")
-        mock_page.click = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -152,7 +135,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify complete form submission in Mini App."
     )
     async def test_complete_form_submission_flow(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-004: Complete form submission flow.
@@ -160,7 +148,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify complete form submission in Mini App.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -175,24 +162,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.url = mock_mini_app_url
-        mock_page.fill = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
         mock_page.wait_for_load_state = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -221,7 +194,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify various button interactions."
     )
     async def test_button_interactions(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_mini_app_ui,
+        mock_playwright_browser_and_page,
     ):
         """
         TC-INTEGRATION-MTUI-005: Test button interactions.
@@ -229,7 +207,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify various button interactions.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -244,22 +221,9 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.dblclick = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -281,7 +245,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify dropdown and option selection."
     )
     async def test_dropdown_and_selection(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-006: Test dropdown and selection.
@@ -289,7 +258,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify dropdown and option selection.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -304,21 +272,9 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.select_option = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -337,7 +293,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify checkbox check/uncheck."
     )
     async def test_checkbox_interactions(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-007: Test checkbox interactions.
@@ -345,7 +306,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify checkbox check/uncheck.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -360,22 +320,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.check = mocker.AsyncMock()
         mock_page.uncheck = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -396,7 +344,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify navigation between pages."
     )
     async def test_page_navigation(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-008: Test page navigation.
@@ -404,7 +357,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify navigation between pages.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -419,24 +371,11 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.url = "https://example.com/mini-app/page2"
         mock_page.title = mocker.AsyncMock(return_value="Page 2")
-        mock_page.click = mocker.AsyncMock()
         mock_page.wait_for_load_state = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -462,7 +401,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify screenshot capture."
     )
     async def test_take_screenshot(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-010: Take screenshot of Mini App.
@@ -470,7 +414,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify screenshot capture.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -485,21 +428,8 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.screenshot = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
 
         await ui.setup_browser()
 
@@ -518,7 +448,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify JavaScript execution."
     )
     async def test_execute_javascript(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-012: Execute JavaScript in Mini App.
@@ -526,7 +461,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify JavaScript execution.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -541,21 +475,9 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.evaluate = mocker.AsyncMock(return_value={"data": "test"})
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -575,7 +497,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify context manager usage in integration."
     )
     async def test_context_manager_integration(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-017: Use context manager for full flow.
@@ -583,28 +510,13 @@ class TestMTProtoMiniAppUIIntegration:
         Verify context manager usage in integration.
         """
         # Mock get_mini_app_from_bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
         )
 
-        # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        # Fixture already patches async_playwright
+        mock_playwright_browser_and_page  # Fixture ensures playwright is mocked
 
         # Use context managers
         async with user_telegram_client_connected as client:
@@ -624,17 +536,20 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify Mini App UI loads in reasonable time."
     )
     async def test_ui_loading_performance(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-018: Test UI loading performance.
 
         Verify Mini App UI loads in reasonable time.
         """
-        import time
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -649,22 +564,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.goto = mocker.AsyncMock()
         mock_page.wait_for_load_state = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         # Measure time to navigate and load
         start_time = time.perf_counter()
@@ -689,17 +592,20 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify performance with multiple interactions."
     )
     async def test_multiple_ui_interactions_performance(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-019: Test multiple UI interactions performance.
 
         Verify performance with multiple interactions.
         """
-        import time
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -714,24 +620,8 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-        mock_page.fill = mocker.AsyncMock()
-        mock_page.check = mocker.AsyncMock()
-        mock_page.select_option = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
 
         await ui.setup_browser()
 
@@ -772,7 +662,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify Mini App retrieval from message media and UI testing."
     )
     async def test_get_mini_app_from_media_and_test_ui(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-003: Get Mini App from media and test UI.
@@ -804,7 +699,6 @@ class TestMTProtoMiniAppUIIntegration:
         )
 
         # Mock get_mini_app_from_bot to extract from media
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -823,21 +717,8 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
-        mock_page.click = mocker.AsyncMock()
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
 
         await ui.setup_browser()
         await ui.click_element("#button")
@@ -854,7 +735,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify scrolling to elements."
     )
     async def test_scrolling_and_element_visibility(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-009: Test scrolling and element visibility.
@@ -862,7 +748,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify scrolling to elements.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -877,24 +762,12 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_element = mocker.AsyncMock()
         mock_element.text_content = mocker.AsyncMock(return_value="Element text")
         mock_page.query_selector = mocker.AsyncMock(return_value=mock_element)
         mock_page.locator = mocker.MagicMock(return_value=mock_element)
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -917,7 +790,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify element-specific screenshot."
     )
     async def test_take_screenshot_of_specific_element(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-011: Take screenshot of specific element.
@@ -925,7 +803,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify element-specific screenshot.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -940,23 +817,11 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_element = mocker.AsyncMock()
         mock_element.screenshot = mocker.AsyncMock()
         mock_page.locator = mocker.MagicMock(return_value=mock_element)
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -976,7 +841,12 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify data extraction via JavaScript."
     )
     async def test_get_data_via_javascript(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-013: Get data via JavaScript.
@@ -984,7 +854,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify data extraction via JavaScript.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -999,22 +868,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_app_data = {"userId": 123, "theme": "dark"}
         mock_page.evaluate = mocker.AsyncMock(return_value=mock_app_data)
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
-        )
 
         await ui.setup_browser()
 
@@ -1062,17 +919,21 @@ class TestMTProtoMiniAppUIIntegration:
         "Verify error handling for missing UI elements."
     )
     async def test_handle_ui_element_not_found(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url, caplog
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        caplog,
+        mock_mini_app_ui,
+        mock_playwright_browser_and_page,
     ):
         """
         TC-INTEGRATION-MTUI-015: Handle UI element not found.
 
         Verify error handling for missing UI elements.
         """
-        from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -1087,22 +948,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.click = mocker.AsyncMock(
             side_effect=PlaywrightTimeoutError("Element not found")
-        )
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
         )
 
         await ui.setup_browser()
@@ -1125,7 +974,13 @@ class TestMTProtoMiniAppUIIntegration:
         "TC-INTEGRATION-MTUI-016: Handle browser errors. Verify browser error handling."
     )
     async def test_handle_browser_errors(
-        self, mocker, user_telegram_client_connected, mock_mini_app_url, caplog
+        self,
+        mocker,
+        user_telegram_client_connected,
+        mock_mini_app_url,
+        caplog,
+        mock_playwright_browser_and_page,
+        mock_mini_app_ui,
     ):
         """
         TC-INTEGRATION-MTUI-016: Handle browser errors.
@@ -1133,7 +988,6 @@ class TestMTProtoMiniAppUIIntegration:
         Verify browser error handling.
         """
         # Get Mini App from bot
-        mock_mini_app_ui = mocker.MagicMock()
         mock_mini_app_ui.url = mock_mini_app_url
         user_telegram_client_connected.get_mini_app_from_bot = mocker.AsyncMock(
             return_value=mock_mini_app_ui
@@ -1148,22 +1002,10 @@ class TestMTProtoMiniAppUIIntegration:
         ui = MiniAppUI(mini_app_ui.url, config)
 
         # Mock Playwright with browser error
-        mock_browser = mocker.AsyncMock()
-        mock_page = mocker.AsyncMock()
+        mock_playwright_data = mock_playwright_browser_and_page
+        mock_page = mock_playwright_data["page"]
         mock_page.evaluate = mocker.AsyncMock(
             side_effect=Exception("JavaScript error: Unexpected token")
-        )
-
-        mock_playwright = mocker.patch(
-            "tma_test_framework.mini_app.ui.async_playwright"
-        )
-        mock_playwright_instance = mocker.AsyncMock()
-        mock_playwright_instance.chromium.launch = mocker.AsyncMock(
-            return_value=mock_browser
-        )
-        mock_browser.new_page = mocker.AsyncMock(return_value=mock_page)
-        mock_playwright.return_value.start = mocker.AsyncMock(
-            return_value=mock_playwright_instance
         )
 
         await ui.setup_browser()

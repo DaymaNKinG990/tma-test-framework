@@ -13,8 +13,9 @@ TMA Framework is designed as a simple, focused library for testing Telegram Mini
 The framework separates different testing responsibilities:
 
 - **UserTelegramClient**: Handles MTProto user simulation and bot interactions
-- **MiniAppApi**: Focuses on HTTP API testing
-- **MiniAppUI**: Handles browser-based UI testing
+- **ApiClient** (aliased as `MiniAppApi`): Focuses on HTTP API testing
+- **UiClient** (aliased as `MiniAppUI`): Handles browser-based UI testing
+- **DBClient**: Database client for testing Mini Apps with database backends
 
 ### 2. Async-First Design
 
@@ -40,15 +41,15 @@ Configuration is handled through:
 ## Architecture Diagram
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│UserTelegramClient│   │   MiniAppApi    │    │   MiniAppUI     │
-│                 │    │                 │    │                 │
-│ • MTProto API   │    │ • HTTP Client   │    │ • Playwright    │
-│ • User Sim      │    │ • initData      │    │ • Browser       │
-│ • Bot Interact  │    │ • Validation    │    │ • UI Testing    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│UserTelegramClient│   │   ApiClient     │    │   UiClient      │    │   DBClient      │
+│                 │    │  (MiniAppApi)  │    │  (MiniAppUI)    │    │                 │
+│ • MTProto API   │    │ • HTTP Client   │    │ • Playwright    │    │ • PostgreSQL    │
+│ • User Sim      │    │ • initData      │    │ • Browser       │    │ • SQLite        │
+│ • Bot Interact  │    │ • Validation    │    │ • UI Testing    │    │ • MySQL         │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │                       │
+         └───────────────────────┼───────────────────────┼───────────────────────┘
                                  │
                     ┌─────────────────┐
                     │     Config      │
@@ -83,7 +84,7 @@ Configuration is handled through:
 - `interact_with_bot()` - Interact with bots
 - `get_mini_app_from_bot()` - Discover Mini Apps from bots
 
-### MiniAppApi
+### ApiClient (MiniAppApi)
 
 **Purpose**: Test Mini App HTTP API endpoints
 
@@ -91,6 +92,7 @@ Configuration is handled through:
 - HTTP request handling
 - initData validation
 - API response analysis
+- TMA authentication setup
 
 **Dependencies**:
 - `httpx` for HTTP client
@@ -100,13 +102,16 @@ Configuration is handled through:
 **Key Methods**:
 - `make_request()` - Make HTTP requests
 - `validate_init_data()` - Validate Telegram initData
+- `setup_tma_auth()` - Setup TMA authentication
 
 **Design Decisions**:
 - No browser dependencies (pure HTTP)
 - Focused on API testing only
 - HMAC validation without browser context
 
-### MiniAppUI
+**Note:** `MiniAppApi` is an alias for `ApiClient` for backward compatibility.
+
+### UiClient (MiniAppUI)
 
 **Purpose**: Test Mini App user interface
 
@@ -130,6 +135,46 @@ Configuration is handled through:
 - Uses Playwright for modern browser automation
 - No Telegram WebApp API methods (they only work inside Telegram WebView)
 - Focused on UI testing only
+
+**Note:** `MiniAppUI` is an alias for `UiClient` for backward compatibility.
+
+### DBClient
+
+**Purpose**: Database client for testing Mini Apps with database backends
+
+**Responsibilities**:
+- Database connection management
+- Query execution (SELECT, INSERT, UPDATE, DELETE)
+- Transaction handling
+- Support for multiple database backends
+
+**Dependencies**:
+- Database-specific libraries (asyncpg, psycopg, aiosqlite, aiomysql, pymysql)
+- `Config` for configuration
+
+**Supported Backends**:
+- **PostgreSQL**: via `asyncpg` or `psycopg`
+- **SQLite**: via `aiosqlite`
+- **MySQL**: via `aiomysql` or `pymysql`
+
+**Key Methods**:
+- `connect()` - Establish database connection
+- `disconnect()` - Close database connection
+- `execute_query()` - Execute SELECT queries
+- `execute_command()` - Execute INSERT/UPDATE/DELETE commands
+- `begin_transaction()` - Start transaction
+- `commit_transaction()` - Commit transaction
+- `rollback_transaction()` - Rollback transaction
+- `transaction()` - Context manager for transactions
+
+**Factory Method**:
+- `DBClient.create()` - Create database client instance based on `db_type`
+
+**Design Decisions**:
+- Pluggable adapter pattern for different database backends
+- Automatic adapter detection based on available libraries
+- Unified interface across all database backends
+- Support for both connection strings and keyword arguments
 
 ### Config
 

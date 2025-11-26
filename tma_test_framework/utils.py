@@ -10,7 +10,7 @@ from typing import Dict, Any, List, TYPE_CHECKING
 from urllib.parse import urlencode
 
 if TYPE_CHECKING:
-    from .mtproto_client import UserInfo
+    from .clients.mtproto_client import UserInfo
 
 
 def parse_json(body: bytes) -> Dict[str, Any]:

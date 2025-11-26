@@ -1,5 +1,5 @@
 """
-Telegram Mini App API client for interacting with Telegram WebApp API.
+Telegram Mini App API client for interacting with HTTP API endpoints.
 """
 
 # Python imports
@@ -11,27 +11,30 @@ from http import HTTPStatus
 from httpx import AsyncClient, Limits
 
 # Local imports
-from .base import BaseMiniApp
+from .base_client import BaseClient
 from .models import ApiResult
 from ..config import Config
 from ..utils import generate_telegram_init_data, user_info_to_tma_data
 
 if TYPE_CHECKING:
-    from ..mtproto_client import UserInfo
+    from .mtproto_client import UserInfo
 
 
-class MiniAppApi(BaseMiniApp):
+class ApiClient(BaseClient):
     """
     Telegram Mini App HTTP API client.
 
     Provides methods for testing HTTP API endpoints of Mini Apps:
-    - Testing REST API endpoints
-    - Validating initData with HMAC (without browser)
+    - HTTP request handling (GET, POST, PUT, DELETE, PATCH)
+    - Authentication token management
+    - initData validation using HMAC-SHA256
+    - TMA authentication setup
+    - Response analysis and validation
     """
 
     def __init__(self, url: str, config: Optional[Config] = None) -> None:
         """
-        Initialize Mini App API client.
+        Initialize API client.
 
         Args:
             url: Mini App URL
@@ -58,7 +61,7 @@ class MiniAppApi(BaseMiniApp):
             token_type: Token type (default: "Bearer")
 
         Example:
-            >>> client = MiniAppApi("http://api.example.com", config)
+            >>> client = ApiClient("http://api.example.com", config)
             >>> result = await client.make_request("v1/login/", method="POST", data=credentials)
             >>> token_data = json.loads(result.body)
             >>> client.set_auth_token(token_data["access"])
@@ -277,7 +280,7 @@ class MiniAppApi(BaseMiniApp):
 
         if user_info is None:
             # Import here to avoid circular dependency
-            from ..mtproto_client import UserTelegramClient
+            from .mtproto_client import UserTelegramClient
 
             # Try to get user info from UserTelegramClient
             try:

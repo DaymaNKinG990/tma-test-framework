@@ -18,7 +18,6 @@ repos:
         entry: uv run mypy
         language: system
         types: [python]
-        files: ^main\.py$
         pass_filenames: true
       - id: pytest
         name: pytest

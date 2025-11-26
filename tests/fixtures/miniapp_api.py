@@ -1,12 +1,12 @@
 """
-Fixtures for MiniAppApi testing.
+Fixtures for ApiClient testing.
 """
 
 from pytest import fixture
 from httpx import Response
 from datetime import timedelta
 
-from tma_test_framework.mini_app.api import MiniAppApi
+from tma_test_framework.clients.api_client import ApiClient
 from tma_test_framework.config import Config
 from tests.fixtures.base_miniapp import _get_base_config_data
 
@@ -103,6 +103,40 @@ def mock_httpx_response_101(mocker):
 
 
 @fixture
+def mock_httpx_response_201(mocker):
+    """Create a mock httpx.Response with status 201 (CREATED)."""
+    response = mocker.MagicMock(spec=Response)
+    response.status_code = 201
+    response.elapsed = timedelta(seconds=0.3)
+    response.is_informational = False
+    response.is_success = True
+    response.is_redirect = False
+    response.is_client_error = False
+    response.is_server_error = False
+    response.content = b'{"id": 1, "status": "created"}'
+    response.headers = {"Content-Type": "application/json", "Content-Length": "30"}
+    response.reason_phrase = "Created"
+    return response
+
+
+@fixture
+def mock_httpx_response_400(mocker):
+    """Create a mock httpx.Response with status 400 (BAD_REQUEST)."""
+    response = mocker.MagicMock(spec=Response)
+    response.status_code = 400
+    response.elapsed = timedelta(seconds=0.2)
+    response.is_informational = False
+    response.is_success = False
+    response.is_redirect = False
+    response.is_client_error = True
+    response.is_server_error = False
+    response.content = b'{"error": "Bad Request"}'
+    response.headers = {"Content-Type": "application/json"}
+    response.reason_phrase = "Bad Request"
+    return response
+
+
+@fixture
 def mock_httpx_client(mocker):
     """Create a mock httpx.AsyncClient instance."""
     client = mocker.AsyncMock()
@@ -113,11 +147,12 @@ def mock_httpx_client(mocker):
 
 @fixture
 def miniapp_api_with_config(mocker, valid_config, mock_httpx_client):
-    """Create MiniAppApi with valid config and mocked httpx client."""
+    """Create ApiClient with valid config and mocked httpx client."""
     mocker.patch(
-        "tma_test_framework.mini_app.api.AsyncClient", return_value=mock_httpx_client
+        "tma_test_framework.clients.api_client.AsyncClient",
+        return_value=mock_httpx_client,
     )
-    api = MiniAppApi("https://example.com/app", valid_config)
+    api = ApiClient("https://example.com/app", valid_config)
     api.client = mock_httpx_client
     return api
 

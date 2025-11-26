@@ -2,11 +2,11 @@
 Unit tests for TMA Framework configuration.
 """
 
-import allure
-
-
-# Python imports
 import os
+import re
+import tempfile
+
+import allure
 from msgspec import convert, to_builtins
 from pytest import mark, raises
 
@@ -899,7 +899,6 @@ class TestConfigFromEnv:
             mock_environment_missing_session_string: Mock environment variables missing TMA_SESSION_STRING.
         """
         # Environment is already set by fixture
-        import re
 
         pattern = re.escape(
             "Session required. Provide one of: session_string (for saved session) or session_file (for file session). You need to authenticate manually first to get a session."
@@ -2092,8 +2091,6 @@ class TestConfigFromYamlAdditional:
     @allure.description("TC-CONFIG-014: Test from_yaml with minimum boundary values.")
     def test_from_yaml_boundary_values_min(self) -> None:
         """Test from_yaml with minimum boundary values."""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with minimum values"):
             yaml_content = """api_id: 1
@@ -2126,8 +2123,6 @@ log_level: "DEBUG"
     @allure.description("TC-CONFIG-014: Test from_yaml with maximum boundary values.")
     def test_from_yaml_boundary_values_max(self) -> None:
         """Test from_yaml with maximum boundary values."""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with maximum values"):
             yaml_content = """api_id: 999999999
@@ -2160,8 +2155,6 @@ log_level: "CRITICAL"
     @allure.description("TC-CONFIG-037: Test from_yaml with missing api_id in YAML.")
     def test_from_yaml_missing_api_id(self) -> None:
         """Test from_yaml with missing api_id in YAML."""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file without api_id"):
             yaml_content = """api_hash: "12345678901234567890123456789012"
@@ -2185,8 +2178,6 @@ session_string: "test"
     @allure.description("TC-CONFIG-006: Test from_yaml with api_id = 0 in YAML.")
     def test_from_yaml_invalid_api_id_zero(self) -> None:
         """Test from_yaml with api_id = 0 in YAML."""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with api_id=0"):
             yaml_content = """api_id: 0
@@ -2213,8 +2204,6 @@ session_string: "test"
     )
     def test_from_yaml_invalid_log_level_lowercase(self) -> None:
         """Test from_yaml with lowercase log_level in YAML."""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with invalid log_level"):
             yaml_content = """api_id: 12345
@@ -2244,8 +2233,6 @@ log_level: "debug"
     )
     def test_from_yaml_override_api_hash_from_env(self, monkeypatch) -> None:
         """Test from_yaml overrides api_hash with TMA_API_HASH env variable. TC-CONFIG-044"""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with api_hash"):
             yaml_content = """api_id: 12345
@@ -2282,8 +2269,6 @@ session_string: "test_session"
     )
     def test_from_yaml_override_session_string_from_env(self, monkeypatch) -> None:
         """Test from_yaml overrides session_string with TMA_SESSION_STRING env variable. TC-CONFIG-045"""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with session_string"):
             yaml_content = """api_id: 12345
@@ -2328,8 +2313,6 @@ session_file: "old_session.session"
     )
     def test_from_yaml_override_session_file_from_env(self, monkeypatch) -> None:
         """Test from_yaml overrides session_file with TMA_SESSION_FILE env variable. TC-CONFIG-046"""
-        import tempfile
-        import os
 
         with allure.step("Create temporary YAML file with session_file"):
             yaml_content = """api_id: 12345

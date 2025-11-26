@@ -3,7 +3,7 @@ name = "tma-test-framework"
 version = "1.3.0"
 description = "Simple Python framework for working with Telegram API and Mini Apps"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "httpx>=0.28.1",
     "playwright>=1.56.0",
@@ -13,6 +13,7 @@ dependencies = [
     "aiofiles>=25.1.0",
     "cryptography>=46.0.3",
     "telethon>=1.42.0",
+    "aiosqlite>=0.21.0",
 ]
 
 [project.urls]
@@ -38,8 +39,6 @@ addopts = [
     "--cov=tma_test_framework",
     "--cov-report=html:htmlcov",
     "--cov-report=term-missing",
-    # Coverage threshold: CI will fail if coverage drops below 80%
-    # This is an industry-standard value that balances code quality with practical development
     "--cov-fail-under=80",
     "--strict-markers",
     "--strict-config",
@@ -80,7 +79,7 @@ dev = [
 ]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -97,7 +96,11 @@ show_error_codes = true
 exclude = [
     "tests/data/constants.py",
     "tests/fixtures",
+    "tests/fixtures/.*",
 ]
+
+# Use explicit package bases to avoid duplicate module detection
+explicit_package_bases = true
 
 # Ignore examples directory
 [[tool.mypy.overrides]]
@@ -111,6 +114,16 @@ ignore_errors = true
 module = [
     "constants",
     "tests.data.constants",
+]
+ignore_errors = true
+
+# Ignore duplicate module detection for fixtures
+[[tool.mypy.overrides]]
+module = [
+    "fixtures",
+    "tests.fixtures",
+    "fixtures.*",
+    "tests.fixtures.*",
 ]
 ignore_errors = true
 
@@ -133,8 +146,8 @@ ignore_missing_imports = true
 # Ignore msgspec.Struct frozen argument - mypy doesn't understand it
 [[tool.mypy.overrides]]
 module = [
-    "tma_test_framework.mtproto_client",
-    "tma_test_framework.mini_app.models",
+    "tma_test_framework.clients.mtproto_client",
+    "tma_test_framework.clients.models",
     "tma_test_framework.config",
 ]
 ignore_errors = true

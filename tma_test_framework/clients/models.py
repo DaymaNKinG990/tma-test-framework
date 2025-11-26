@@ -7,7 +7,11 @@ import msgspec
 
 
 class MiniAppInfo(msgspec.Struct, frozen=True):
-    """Mini App information."""
+    """
+    Mini App information.
+
+    Contains all information needed to identify and launch a Mini App.
+    """
 
     url: str
     start_param: Optional[str] = None
@@ -16,7 +20,12 @@ class MiniAppInfo(msgspec.Struct, frozen=True):
 
 
 class ApiResult(msgspec.Struct, frozen=True):
-    """Api request result."""
+    """
+    API request result.
+
+    Contains complete information about an HTTP API request and response,
+    including status, headers, body, and timing information.
+    """
 
     endpoint: str
     method: str

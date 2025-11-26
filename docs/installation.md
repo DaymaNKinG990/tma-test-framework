@@ -4,7 +4,7 @@ This guide will help you install and set up TMA Framework for testing Telegram M
 
 ## Prerequisites
 
-- Python 3.12 or higher
+- Python 3.13 (required)
 - pip or uv package manager
 - Git (for cloning the repository)
 
@@ -55,6 +55,11 @@ TMA Framework requires the following packages:
 - `pyyaml` - YAML configuration support
 - `aiofiles` - Async file operations
 - `cryptography` - HMAC validation for initData
+- `aiosqlite` - SQLite database adapter (for DBClient)
+
+### Optional Database Dependencies (for DBClient)
+- `asyncpg` or `psycopg` - PostgreSQL adapter
+- `aiomysql` or `pymysql` - MySQL adapter
 
 ### Development Dependencies
 - `pytest` - Testing framework

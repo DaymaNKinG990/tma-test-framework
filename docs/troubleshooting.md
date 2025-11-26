@@ -20,7 +20,7 @@ This guide helps you resolve common issues when using TMA Framework.
 
 **Problem**: Framework doesn't work with Python version
 
-**Solution**: Ensure you're using Python 3.12 or higher
+**Solution**: Ensure you're using Python 3.13
 
 ```bash
 # Check Python version
@@ -29,7 +29,7 @@ python --version
 # If using older version, upgrade Python
 # On Windows: Download from python.org
 # On macOS: brew install python@3.12
-# On Linux: sudo apt install python3.12
+# On Linux: sudo apt install python3.13
 ```
 
 ### Dependency Installation Failures
@@ -114,7 +114,7 @@ python --version
 
 3. **Use Config object directly**:
    ```python
-   from tma_framework import Config
+   from tma_test_framework import Config
 
    config = Config(
        api_id=12345,
@@ -443,17 +443,18 @@ result = await api.test_api("/api/test", "GET")
 result = await api.make_request("/api/test", "GET")
 ```
 
-### `'MiniAppUI' object has no attribute 'get_telegram_data'`
+### `'UiClient' object has no attribute 'get_telegram_data'`
 
-**Problem**: Method removed from MiniAppUI
+**Problem**: Method removed from UiClient (MiniAppUI)
 
-**Solution**: Use MiniAppApi for initData validation
+**Solution**: Use ApiClient for initData validation
 ```python
 # Old (incorrect)
 telegram_data = await ui.get_telegram_data()
 
 # New (correct)
-async with MiniAppApi(url, config) as api:
+from tma_test_framework.clients import ApiClient
+async with ApiClient(url, config) as api:  # Or use MiniAppApi alias
     is_valid = await api.validate_init_data(init_data, bot_token)
 ```
 
@@ -464,10 +465,10 @@ async with MiniAppApi(url, config) as api:
 **Solution**: Use separate classes
 ```python
 # Old (incorrect)
-from tma_framework import MiniApp
+from tma_test_framework.clients import ApiClient, UiClient
 
 # New (correct)
-from tma_framework import MiniAppApi, MiniAppUI
+from tma_test_framework.clients import ApiClient as MiniAppApi, UiClient as MiniAppUI
 ```
 
 ### `UnicodeEncodeError: 'charmap' codec can't encode character`
@@ -514,7 +515,7 @@ async def debug_test():
 
 ```python
 async def debug_ui():
-    async with MiniAppUI(url, config) as ui:
+    async with UiClient(url, config) as ui:  # Or use MiniAppUI alias
         await ui.setup_browser()
 
         # Enable console logging
@@ -531,7 +532,7 @@ async def debug_ui():
 
 ```python
 async def debug_with_screenshots():
-    async with MiniAppUI(url, config) as ui:
+    async with UiClient(url, config) as ui:  # Or use MiniAppUI alias
         await ui.setup_browser()
         await ui.page.goto(url)
 
@@ -549,7 +550,7 @@ async def debug_with_screenshots():
 
 ```python
 async def debug_network():
-    async with MiniAppUI(url, config) as ui:
+    async with UiClient(url, config) as ui:  # Or use MiniAppUI alias
         await ui.setup_browser()
 
         # Log all network requests
@@ -620,7 +621,8 @@ async with MiniAppApi(url, config) as api:
     result = await api.make_request("/api/test", "GET")
 
 # Don't forget to close manually if not using context manager
-api = MiniAppApi(url, config)
+from tma_test_framework.clients import ApiClient
+api = ApiClient(url, config)  # Or use MiniAppApi alias
 try:
     result = await api.make_request("/api/test", "GET")
 finally:

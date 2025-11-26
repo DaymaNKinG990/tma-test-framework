@@ -33,7 +33,7 @@ GitHub Actions are enabled by default. If disabled:
 
 The workflow file `.github/workflows/tests.yml` is already configured. It will:
 - Trigger on pushes to `main`, `master`, and `develop` branches
-- Run tests on Ubuntu with Python 3.12
+- Run tests on Ubuntu with Python 3.13
 - Generate Allure reports
 - Deploy to GitHub Pages (only for `main`/`master` branches)
 

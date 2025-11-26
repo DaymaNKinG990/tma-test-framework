@@ -100,7 +100,9 @@ async def get_session_string():
         print("2. Use it in your TMA Framework config:")
         print()
         print("```python")
-        print("from tma_test_framework.mtproto_client import UserTelegramClient")
+        print(
+            "from tma_test_framework.clients.mtproto_client import UserTelegramClient"
+        )
         print("from tma_test_framework.config import Config")
         print()
         print("config = Config(")

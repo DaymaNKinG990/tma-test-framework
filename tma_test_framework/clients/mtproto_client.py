@@ -16,13 +16,17 @@ from telethon.tl.types import Message, User, Channel, Chat  # type: ignore[impor
 from loguru import logger
 
 # Local imports
-from .config import Config
-from .mini_app import MiniAppUI
-from .utils import generate_telegram_init_data, user_info_to_tma_data
+from ..config import Config
+from .ui_client import UiClient
+from ..utils import generate_telegram_init_data, user_info_to_tma_data
 
 
 class UserInfo(Struct, frozen=True):
-    """User information from MTProto."""
+    """
+    User information from MTProto.
+
+    Represents a Telegram user with all available information.
+    """
 
     id: int
     first_name: str
@@ -35,7 +39,11 @@ class UserInfo(Struct, frozen=True):
 
 
 class ChatInfo(Struct, frozen=True):
-    """Chat information from MTProto."""
+    """
+    Chat information from MTProto.
+
+    Represents a Telegram chat (private, group, supergroup, or channel).
+    """
 
     id: int
     title: str
@@ -45,7 +53,11 @@ class ChatInfo(Struct, frozen=True):
 
 
 class MessageInfo(Struct, frozen=True):
-    """Message information from MTProto."""
+    """
+    Message information from MTProto.
+
+    Represents a Telegram message with all available metadata.
+    """
 
     id: int
     chat: ChatInfo
@@ -58,11 +70,16 @@ class MessageInfo(Struct, frozen=True):
 
 class UserTelegramClient:
     """
-    MTProto Api client for full user simulation.
+    MTProto client for full user simulation using Telethon.
 
-    This class provides methods to interact with Telegram as a user,
-    including sending messages to bots, interacting with Mini Apps,
-    and full user simulation capabilities.
+    This class provides methods to interact with Telegram as a user:
+    - User authentication and session management
+    - Sending and receiving messages
+    - Bot interaction and command execution
+    - Mini App discovery from bot interactions
+    - Entity information retrieval (users, chats, channels)
+    - Event handling and message listening
+    - Session string generation and management
     """
 
     def __init__(self, config: Config) -> None:
@@ -70,7 +87,7 @@ class UserTelegramClient:
         Initialize MTProto client.
 
         Args:
-            config: Configuration object with MTProto credentials
+            config: Configuration object with MTProto credentials (api_id, api_hash, session)
         """
         self.config = config
         self.logger = logger.bind(name="UserTelegramClient")
@@ -414,7 +431,7 @@ class UserTelegramClient:
 
     async def get_mini_app_from_bot(
         self, bot_username: str, start_param: Optional[str] = None
-    ) -> Optional[MiniAppUI]:
+    ) -> Optional[UiClient]:
         """
         Get Mini App from bot by interacting with it.
 
@@ -423,7 +440,7 @@ class UserTelegramClient:
             start_param: Start parameter for Mini App
 
         Returns:
-            MiniAppUI object if Mini App is found
+            UiClient object if Mini App is found
         """
         try:
             command = f"/start {start_param}" if start_param else "/start"
@@ -431,11 +448,11 @@ class UserTelegramClient:
             if response and response.text:
                 mini_app_url = self._extract_mini_app_url(response.text)
                 if mini_app_url:
-                    return MiniAppUI(url=mini_app_url, config=self.config)
+                    return UiClient(url=mini_app_url, config=self.config)
             messages = await self.get_messages(bot_username, limit=10)
             for message in messages:
                 if message.media and message.media.get("type") == "web_app":
-                    return MiniAppUI(url=message.media["url"], config=self.config)
+                    return UiClient(url=message.media["url"], config=self.config)
             self.logger.warning(f"No Mini App found for @{bot_username}")
             return None
         except Exception as e:

@@ -183,7 +183,7 @@ Tests for integration with external services: Telegram MTProto API, HTTP endpoin
   - Real HTTP endpoint URL (use httpbin.org or local mock server)
   - Endpoint is accessible
 - **Test Steps**:
-  1. Create MiniAppApi with base URL from fixture or environment variable
+  1. Create `ApiClient` (or use `MiniAppApi` alias) with base URL from fixture or environment variable
      - Default: `http://httpbin.org` (or `http://localhost:8000` for local mock server)
      - Use `MOCK_SERVER_URL` environment variable if available for CI
   2. Call `make_request("/get")` to httpbin.org/get endpoint
@@ -210,7 +210,7 @@ Tests for integration with external services: Telegram MTProto API, HTTP endpoin
 - **Purpose**: Verify HTTPS requests work correctly
 - **Preconditions**: HTTPS endpoint with valid SSL certificate
 - **Test Steps**:
-  1. Create MiniAppApi with HTTPS URL: `https://httpbin.org`
+  1. Create `ApiClient` (or use `MiniAppApi` alias) with HTTPS URL: `https://httpbin.org`
   2. Call `make_request("/get")` to https://httpbin.org/get endpoint
   3. Verify SSL/TLS handshake succeeds
   4. Verify response is received with status code 200
@@ -226,7 +226,7 @@ Tests for integration with external services: Telegram MTProto API, HTTP endpoin
   - HTTP endpoint requiring authentication (use httpbin.org/bearer or mock server)
   - Valid auth token
 - **Test Steps**:
-  1. Create MiniAppApi with base URL: `https://httpbin.org`
+  1. Create `ApiClient` (or use `MiniAppApi` alias) with base URL: `https://httpbin.org`
   2. Call `make_request("/bearer")` with auth header:
      - Header name: `Authorization`
      - Header format: `Bearer {token}`
@@ -249,7 +249,7 @@ Tests for integration with external services: Telegram MTProto API, HTTP endpoin
 - **Purpose**: Verify handling of HTTP error responses
 - **Preconditions**: Endpoints that return specific error codes
 - **Test Steps**:
-  1. Create MiniAppApi with base URL: `https://httpbin.org`
+  1. Create `ApiClient` (or use `MiniAppApi` alias) with base URL: `https://httpbin.org`
   2. Call `make_request("/status/404")` to endpoint returning 404
   3. Verify ApiResult has:
      - `status_code = 404`
@@ -303,7 +303,7 @@ Tests for integration with external services: Telegram MTProto API, HTTP endpoin
 - **Purpose**: Verify Playwright browser launches correctly
 - **Preconditions**: Playwright installed
 - **Test Steps**:
-  1. Create MiniAppUI
+  1. Create `UiClient` (or use `MiniAppUI` alias)
   2. Call `setup_browser()`
   3. Verify browser is launched
   4. Verify page is created
@@ -318,7 +318,7 @@ Tests for integration with external services: Telegram MTProto API, HTTP endpoin
   - Test fixture URL or stable external URL (e.g., `file:///path/to/tests/data/html_fixtures/test_page.html` or `https://example.com`)
   - Browser setup
 - **Test Steps**:
-  1. Create MiniAppUI with test URL: `file:///path/to/tests/data/html_fixtures/test_page.html` (or `https://example.com` as fallback)
+  1. Create `UiClient` (or use `MiniAppUI` alias) with test URL: `file:///path/to/tests/data/html_fixtures/test_page.html` (or `https://example.com` as fallback)
   2. Setup browser using `setup_browser()`
   3. Navigate to URL explicitly using `page.goto(url)`
   4. Wait for page load using `page.wait_for_load_state("domcontentloaded")`

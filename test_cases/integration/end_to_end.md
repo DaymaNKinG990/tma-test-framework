@@ -16,8 +16,8 @@ Complete user journey tests that verify full workflows from start to finish.
 - **Test Steps**:
   1. Create UserTelegramClient and connect
   2. Get Mini App from bot using `get_mini_app_from_bot()`
-  3. Create MiniAppApi and test API endpoints
-  4. Create MiniAppUI and test UI elements
+  3. Create `ApiClient` (or use `MiniAppApi` alias) and test API endpoints
+  4. Create `UiClient` (or use `MiniAppUI` alias) and test UI elements
   5. Verify both API and UI tests pass
   6. Clean up resources
 - **Expected Result**: Complete workflow executes successfully
@@ -60,7 +60,7 @@ Complete user journey tests that verify full workflows from start to finish.
   1. Connect UserTelegramClient
   2. Get Mini App from bot
   3. Get initData from Mini App
-  4. Validate initData using MiniAppApi
+  4. Validate initData using `ApiClient` (or `MiniAppApi` alias)
   5. Use validated initData for API requests
   6. Test UI with authenticated session
 - **Expected Result**: Authentication flow works correctly
@@ -127,33 +127,37 @@ Complete user journey tests that verify full workflows from start to finish.
 - **Coverage**: Error recovery integration
 - **Dependencies**: Network interruption simulation
 
-#### TC-INTEGRATION-E2E-009: Retry failed operations
-- **Purpose**: Verify retry mechanism in full workflow
-- **Preconditions**: Config with retry_count > 0
+#### TC-INTEGRATION-E2E-009: Sequential calls after failure
+- **Purpose**: Verify that sequential make_request calls work correctly after a failure
+- **Preconditions**: Mini App with API endpoint
 - **Test Steps**:
   1. Connect UserTelegramClient
   2. Get Mini App from bot
-  3. Simulate temporary API failure
-  4. Verify retry mechanism activates
-  5. Verify operation succeeds after retry
-- **Expected Result**: Retry mechanism works correctly
-- **Coverage**: Retry integration
-- **Dependencies**: Temporary failure simulation
+  3. Create `ApiClient` (or use `MiniAppApi` alias)
+  4. Simulate temporary API failure on first call
+  5. Verify first call fails
+  6. Make second sequential call (not automatic retry)
+  7. Verify second call succeeds
+- **Expected Result**: Sequential calls work correctly after failure
+- **Coverage**: Sequential request handling after failure
+- **Dependencies**: Mini App with API endpoint
 
 ### 5. Configuration Workflows
 
-#### TC-INTEGRATION-E2E-010: Load config from environment and test
-- **Purpose**: Verify config loading from environment
-- **Preconditions**: Environment variables set
+#### TC-INTEGRATION-E2E-010: Context manager full workflow
+- **Purpose**: Verify complete workflow using context managers
+- **Preconditions**: Valid config and bot
 - **Test Steps**:
-  1. Set environment variables (TMA_API_ID, etc.)
-  2. Create Config using `Config.from_env()`
-  3. Create UserTelegramClient with Config
-  4. Get Mini App and test
-  5. Verify all components use config correctly
-- **Expected Result**: Config from environment works
-- **Coverage**: Config loading integration
-- **Dependencies**: Environment variables
+  1. Use `async with UserTelegramClient(config) as client:`
+  2. Get Mini App from bot
+  3. Use `async with ApiClient(url, config) as api:` (or `MiniAppApi` alias)
+  4. Test API endpoints
+  5. Use `async with UiClient(url, config) as ui:` (or `MiniAppUI` alias)
+  6. Setup browser and test UI
+  7. Verify all close correctly on exit
+- **Expected Result**: Complete workflow works with context managers
+- **Coverage**: Context manager integration
+- **Dependencies**: Valid setup
 
 #### TC-INTEGRATION-E2E-011: Load config from YAML and test
 - **Purpose**: Verify config loading from YAML file
@@ -204,8 +208,8 @@ Complete user journey tests that verify full workflows from start to finish.
 - **Test Steps**:
   1. Execute full workflow
   2. Verify UserTelegramClient is connected
-  3. Verify MiniAppApi client is open
-  4. Verify MiniAppUI browser is open
+  3. Verify `ApiClient` (or `MiniAppApi`) client is open
+  4. Verify `UiClient` (or `MiniAppUI`) browser is open
   5. Exit context managers
   6. Verify all resources are closed
 - **Expected Result**: All resources cleaned up
@@ -267,3 +271,27 @@ Complete user journey tests that verify full workflows from start to finish.
 - **Expected Result**: Real-time updates handled correctly
 - **Coverage**: Real-time update handling
 - **Dependencies**: Mini App with real-time features
+
+### 9. Database Integration Workflows
+
+#### TC-INTEGRATION-E2E-019: Database-backed Mini App testing
+- **Purpose**: Verify testing Mini App with database backend using all components
+- **Preconditions**: 
+  - Mini App with database, API, and UI
+  - Database connection available (SQLite, PostgreSQL, or MySQL)
+  - Database schema prepared
+- **Test Steps**:
+  1. Setup database schema via `DBClient` (CREATE TABLE if needed)
+  2. Seed test data via `DBClient.execute_command()` (INSERT)
+  3. Connect `UserTelegramClient` and get user info
+  4. Store user data in database via `DBClient`
+  5. Test API endpoints that query database via `ApiClient.make_request()` (GET)
+  6. Test API endpoints that write to database via `ApiClient.make_request()` (POST)
+  7. Verify API responses match database data via `DBClient.execute_query()`
+  8. Test UI that displays database data via `UiClient` interactions
+  9. Verify UI content matches database data
+  10. Verify data consistency across all layers (Database ↔ API ↔ UI)
+  11. Clean up test data from database
+- **Expected Result**: Database-backed Mini App tested successfully with all components
+- **Coverage**: `DBClient` + `ApiClient` + `UiClient` + `UserTelegramClient` integration
+- **Dependencies**: Complete Mini App with database, all components available, database schema

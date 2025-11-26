@@ -1,11 +1,11 @@
 """
-Fixtures for BaseMiniApp testing.
+Fixtures for BaseClient testing.
 """
 
 from pytest import fixture
 
 from tma_test_framework.config import Config
-from tma_test_framework.mini_app.base import BaseMiniApp
+from tma_test_framework.clients.base_client import BaseClient
 
 
 def _get_base_config_data() -> dict:
@@ -18,6 +18,7 @@ def _get_base_config_data() -> dict:
         "retry_count": 3,
         "retry_delay": 1.0,
         "log_level": "DEBUG",
+        "bot_token": "test_bot_token_123456789",
     }
 
 
@@ -29,7 +30,7 @@ def valid_config() -> Config:
 
 @fixture
 def base_miniapp_urls():
-    """Valid URLs for BaseMiniApp testing."""
+    """Valid URLs for BaseClient testing."""
     return [
         "https://example.com/app",
         "https://t.me/mybot/app?start=123",
@@ -40,7 +41,7 @@ def base_miniapp_urls():
 
 @fixture
 def invalid_urls():
-    """Invalid URLs for BaseMiniApp testing."""
+    """Invalid URLs for BaseClient testing."""
     return [
         None,  # TypeError expected
         123,  # TypeError expected
@@ -50,13 +51,13 @@ def invalid_urls():
 
 @fixture
 def base_miniapp_with_config(valid_config):
-    """Create BaseMiniApp with valid config."""
-    return BaseMiniApp("https://example.com/app", valid_config)
+    """Create BaseClient with valid config."""
+    return BaseClient("https://example.com/app", valid_config)
 
 
 @fixture
 def base_miniapp_without_config():
-    """Create BaseMiniApp without config (will try to create default Config)."""
+    """Create BaseClient without config (will try to create default Config)."""
     # Note: This will fail because Config() requires api_id and api_hash
     # We'll test this in the test itself
     pass

@@ -1,5 +1,5 @@
 """
-Base class for Telegram Mini App testing.
+Base class for Telegram Mini App testing clients.
 """
 
 from typing import Optional
@@ -8,16 +8,20 @@ from loguru import logger
 from ..config import Config
 
 
-class BaseMiniApp:
+class BaseClient:
     """
-    Base class for Telegram Mini App testing.
+    Base class for Telegram Mini App testing clients.
 
-    Provides common functionality for both API and UI testing.
+    Provides common functionality for all client types:
+    - URL management
+    - Configuration handling
+    - Logging setup
+    - Context manager support
     """
 
     def __init__(self, url: str, config: Optional[Config] = None) -> None:
         """
-        Initialize base Mini App client.
+        Initialize base client.
 
         Args:
             url: Mini App URL

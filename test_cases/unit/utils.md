@@ -174,11 +174,11 @@ Tests for utility functions in `tma_test_framework.utils`:
 - **Coverage**: `generate_telegram_init_data()` hash validation
 
 #### TC-UTILS-017: Generate init data can be validated
-- **Purpose**: Verify generated init data can be validated by MiniAppApi.validate_init_data()
+- **Purpose**: Verify generated init data can be validated by ApiClient.validate_init_data()
 - **Preconditions**: Bot token and generated init data
 - **Test Steps**:
   1. Generate init data with bot_token
-  2. Call MiniAppApi.validate_init_data() with generated init_data and same bot_token
+  2. Call ApiClient.validate_init_data() with generated init_data and same bot_token
   3. Verify validation passes (if validation logic available)
 - **Expected Result**: Generated init data passes validation
 - **Coverage**: `generate_telegram_init_data()` validation compatibility

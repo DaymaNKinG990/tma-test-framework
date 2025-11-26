@@ -1,7 +1,7 @@
 # MTProto Client - Unit Test Cases
 
 ## Overview
-Tests for `tma_test_framework.mtproto_client` module:
+Tests for `tma_test_framework.clients.mtproto_client` module:
 - `UserTelegramClient` - MTProto client for user simulation
 - `UserInfo` - User information model
 - `ChatInfo` - Chat information model
@@ -467,8 +467,8 @@ Tests for `tma_test_framework.mtproto_client` module:
 - **Test Steps**:
   1. Mock interact_with_bot() to return message with URL
   2. Call await get_mini_app_from_bot("@bot")
-  3. Verify MiniAppUI created with URL
-- **Expected Result**: MiniAppUI returned
+  3. Verify UiClient created with URL
+- **Expected Result**: UiClient returned
 - **Coverage**: `get_mini_app_from_bot()` from text
 
 #### TC-CLIENT-039: Get Mini App from bot with start_param
@@ -486,8 +486,8 @@ Tests for `tma_test_framework.mtproto_client` module:
 - **Test Steps**:
   1. Mock get_messages() with web_app media
   2. Call get_mini_app_from_bot()
-  3. Verify MiniAppUI created from media URL
-- **Expected Result**: MiniAppUI from media
+  3. Verify UiClient created from media URL
+- **Expected Result**: UiClient from media
 - **Coverage**: `get_mini_app_from_bot()` from media
 
 #### TC-CLIENT-041: Get Mini App from bot not found
@@ -744,3 +744,85 @@ Tests for `tma_test_framework.mtproto_client` module:
   3. Verify client.disconnect() is called in finally block
 - **Expected Result**: Client disconnected
 - **Coverage**: `create_session()` cleanup
+
+### 8. Edge Cases
+
+#### TC-CLIENT-068: get_tma_data() without prior authorization
+- **Purpose**: Verify get_tma_data() raises ValueError when user is not authorized
+- **Preconditions**: UserTelegramClient instance, user not authorized (get_me() not called)
+- **Test Steps**:
+  1. Create UserTelegramClient instance
+  2. Do not call get_me() (user not authorized)
+  3. Call await client.get_tma_data()
+  4. Verify ValueError is raised with message "User not authorized. Call get_me() first."
+- **Expected Result**: ValueError raised: "User not authorized. Call get_me() first."
+- **Coverage**: `get_tma_data()` authorization check (lines 545-547)
+
+#### TC-CLIENT-069: generate_init_data() without bot_token
+- **Purpose**: Verify generate_init_data() raises ValueError when bot_token is missing
+- **Preconditions**: UserTelegramClient instance, user authorized, config without bot_token
+- **Test Steps**:
+  1. Create UserTelegramClient instance
+  2. Mock get_me() to authorize user
+  3. Create config without bot_token
+  4. Call await client.generate_init_data(config)
+  5. Verify ValueError is raised with message "bot_token is required in config"
+- **Expected Result**: ValueError raised: "bot_token is required in config"
+- **Coverage**: `generate_init_data()` bot_token validation (lines 569-570)
+
+#### TC-CLIENT-070: generate_init_data() without authorization
+- **Purpose**: Verify generate_init_data() raises ValueError when user is not authorized
+- **Preconditions**: UserTelegramClient instance, user not authorized, config with bot_token
+- **Test Steps**:
+  1. Create UserTelegramClient instance
+  2. Do not call get_me() (user not authorized)
+  3. Create config with bot_token
+  4. Call await client.generate_init_data(config)
+  5. Verify ValueError is raised with message "User not authorized. Call get_me() first."
+- **Expected Result**: ValueError raised: "User not authorized. Call get_me() first."
+- **Coverage**: `generate_init_data()` authorization check (lines 567-568)
+
+#### TC-CLIENT-071: Handle messages with various date formats
+- **Purpose**: Verify send_message() handles messages with different date formats correctly
+- **Preconditions**: UserTelegramClient instance, message with various date formats
+- **Test Steps**:
+  1. Create UserTelegramClient instance
+  2. Mock get_me() and send_message()
+  3. Create message with date as datetime object (has isoformat method)
+  4. Call await client.send_message() and verify date is converted to ISO format string
+  5. Create message with date as string (no isoformat method)
+  6. Call await client.send_message() and verify date is converted to string
+  7. Create message with date as None
+  8. Call await client.send_message() and verify None is handled correctly
+- **Expected Result**: All date formats handled correctly (datetime -> isoformat, string -> str, None -> None)
+- **Coverage**: `send_message()` date format handling (lines 369-372)
+
+#### TC-CLIENT-072: create_session() with config missing api_id or api_hash
+- **Purpose**: Verify create_session() raises ValueError when config is missing api_id or api_hash
+- **Preconditions**: Config object without api_id or api_hash
+- **Test Steps**:
+  1. Create Config without api_id (or without api_hash)
+  2. Call await UserTelegramClient.create_session(config=config)
+  3. Verify ValueError is raised with message "Config must have api_id and api_hash"
+- **Expected Result**: ValueError raised: "Config must have api_id and api_hash"
+- **Coverage**: `create_session()` config validation (line 664)
+
+#### TC-CLIENT-073: create_session() with interactive=False and unauthorized user
+- **Purpose**: Verify create_session() raises ValueError when interactive=False and user is not authorized
+- **Preconditions**: User not authorized, interactive=False
+- **Test Steps**:
+  1. Mock TelegramClient with is_user_authorized() returning False
+  2. Call await UserTelegramClient.create_session(api_id=123, api_hash="hash", phone_number="+1234567890", interactive=False)
+  3. Verify ValueError is raised with message "User not authorized and interactive=False. Cannot request code non-interactively."
+- **Expected Result**: ValueError raised: "User not authorized and interactive=False. Cannot request code non-interactively."
+- **Coverage**: `create_session()` interactive=False validation (lines 708-711)
+
+#### TC-CLIENT-074: create_session() with 2FA password when interactive=False
+- **Purpose**: Verify create_session() raises ValueError when 2FA password is required but interactive=False
+- **Preconditions**: Account with 2FA enabled, interactive=False
+- **Test Steps**:
+  1. Mock TelegramClient with sign_in() raising password error
+  2. Call await UserTelegramClient.create_session(api_id=123, api_hash="hash", phone_number="+1234567890", interactive=False)
+  3. Verify ValueError is raised with message "2FA password required but interactive=False. Cannot request password non-interactively."
+- **Expected Result**: ValueError raised: "2FA password required but interactive=False. Cannot request password non-interactively."
+- **Coverage**: `create_session()` 2FA password handling (lines 725-728)

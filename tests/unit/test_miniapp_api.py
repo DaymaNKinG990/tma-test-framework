@@ -1,17 +1,17 @@
 """
-Unit tests for MiniAppApi.
+Unit tests for ApiClient.
 """
+
+from urllib.parse import parse_qs, urlencode
 
 import allure
 import pytest
-
-# Removed unittest.mock import - using pytest-mock instead AsyncMock, MagicMock, patch
 from httpx import RequestError, TimeoutException
 
-from tma_test_framework.mini_app.api import MiniAppApi
-from tests.fixtures.miniapp_api import (
-    generate_valid_init_data,
-)
+from tma_test_framework.clients.api_client import ApiClient
+from tma_test_framework.clients.base_client import BaseClient
+from tma_test_framework.clients.models import ApiResult
+from tests.fixtures.miniapp_api import generate_valid_init_data
 
 
 # ============================================================================
@@ -19,10 +19,10 @@ from tests.fixtures.miniapp_api import (
 # ============================================================================
 
 
-class TestMiniAppApiInit:
-    """Test MiniAppApi initialization."""
+class TestApiClientInit:
+    """Test ApiClient initialization."""
 
-    @allure.title("Initialize MiniAppApi with URL and config")
+    @allure.title("Initialize ApiClient with URL and config")
     @allure.description(
         "Test successful initialization with url and config. TC-API-001"
     )
@@ -30,11 +30,11 @@ class TestMiniAppApiInit:
         """Test successful initialization with url and config. TC-API-001"""
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            api = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            api = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Verify api.url is set correctly"):
             assert api.url == "https://example.com/app"
@@ -43,19 +43,19 @@ class TestMiniAppApiInit:
         with allure.step("Verify api.client is initialized"):
             assert api.client is not None
 
-    @allure.title("TC-API-002: Initialize MiniAppApi with config=None raises error")
+    @allure.title("TC-API-002: Initialize ApiClient with config=None raises error")
     @allure.description("Test initialization with config=None raises error. TC-API-002")
     def test_init_with_config_none_raises_error(self, mocker, mock_httpx_client):
         """Test initialization with config=None raises error. TC-API-002"""
-        # BaseMiniApp raises ValueError when config is None
+        # BaseClient raises ValueError when config is None
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Attempt to create MiniAppApi with config=None"):
+        with allure.step("Attempt to create ApiClient with config=None"):
             with pytest.raises(ValueError, match="config is required"):
-                MiniAppApi("https://example.com/app", None)
+                ApiClient("https://example.com/app", None)
 
     @allure.title("TC-API-003: Verify AsyncClient is initialized with correct timeout")
     @allure.description("Test AsyncClient is created with correct timeout. TC-API-003")
@@ -65,11 +65,11 @@ class TestMiniAppApiInit:
         """Test AsyncClient is created with correct timeout. TC-API-003"""
         with allure.step("Mock AsyncClient class"):
             mock_client_class = mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            _ = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            _ = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Verify AsyncClient was called once"):
             mock_client_class.assert_called_once()
@@ -86,11 +86,11 @@ class TestMiniAppApiInit:
 
         with allure.step("Mock AsyncClient class"):
             mock_client_class = mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            _ = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            _ = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Verify AsyncClient was called once"):
             mock_client_class.assert_called_once()
@@ -104,11 +104,11 @@ class TestMiniAppApiInit:
             assert limits.max_connections == 10
 
 
-class TestMiniAppApiClose:
-    """Test MiniAppApi close method."""
+class TestApiClientClose:
+    """Test ApiClient close method."""
 
     @pytest.mark.asyncio
-    @allure.title("TC-API-005: Close MiniAppApi client")
+    @allure.title("TC-API-005: Close ApiClient client")
     @allure.description("Test close() calls await self.client.aclose(). TC-API-005")
     async def test_close_calls_client_aclose(self, miniapp_api_with_config):
         """Test close() calls await self.client.aclose(). TC-API-005"""
@@ -119,7 +119,7 @@ class TestMiniAppApiClose:
             miniapp_api_with_config.client.aclose.assert_called_once()
 
     @pytest.mark.asyncio
-    @allure.title("Close MiniAppApi is async")
+    @allure.title("Close ApiClient is async")
     @allure.description("Test close() is async and can be awaited.")
     async def test_close_is_async(self, miniapp_api_with_config):
         """Test close() is async and can be awaited."""
@@ -128,7 +128,7 @@ class TestMiniAppApiClose:
             await miniapp_api_with_config.close()
 
     @pytest.mark.asyncio
-    @allure.title("TC-API-006: Close MiniAppApi multiple times")
+    @allure.title("TC-API-006: Close ApiClient multiple times")
     @allure.description("Test close() can be called multiple times safely. TC-API-006")
     async def test_close_multiple_times(self, miniapp_api_with_config):
         """Test close() can be called multiple times safely. TC-API-006"""
@@ -153,8 +153,8 @@ class TestMiniAppApiClose:
 # ============================================================================
 
 
-class TestMiniAppApiValidateInitData:
-    """Test MiniAppApi validate_init_data method."""
+class TestApiClientValidateInitData:
+    """Test ApiClient validate_init_data method."""
 
     @pytest.mark.asyncio
     @allure.title("Validate init_data with empty init_data")
@@ -275,8 +275,6 @@ class TestMiniAppApiValidateInitData:
         with allure.step("Generate valid init_data"):
             init_data = generate_valid_init_data(bot_token, user_data)
         with allure.step("Reorder to put hash first"):
-            from urllib.parse import parse_qs, urlencode
-
             parsed = parse_qs(init_data)
             hash_value = parsed["hash"][0]
             del parsed["hash"]
@@ -346,7 +344,7 @@ class TestMiniAppApiValidateInitData:
 
         with allure.step("Mock compare_digest function"):
             mock_compare = mocker.patch(
-                "tma_test_framework.mini_app.api.compare_digest"
+                "tma_test_framework.clients.api_client.compare_digest"
             )
             mock_compare.return_value = True
         with allure.step("Call validate_init_data"):
@@ -404,7 +402,7 @@ class TestMiniAppApiValidateInitData:
             # Force an exception by mocking hmac.new to raise an exception
             with caplog.at_level("ERROR"):
                 mocker.patch(
-                    "tma_test_framework.mini_app.api.new",
+                    "tma_test_framework.clients.api_client.new",
                     side_effect=Exception("Test exception"),
                 )
         with allure.step("Call validate_init_data and capture error logs"):
@@ -447,8 +445,8 @@ class TestMiniAppApiValidateInitData:
 # ============================================================================
 
 
-class TestMiniAppApiMakeRequest:
-    """Test MiniAppApi make_request method."""
+class TestApiClientMakeRequest:
+    """Test ApiClient make_request method."""
 
     @pytest.mark.asyncio
     @allure.title("TC-API-021: Make request with absolute URL")
@@ -1015,8 +1013,8 @@ class TestMiniAppApiMakeRequest:
 # ============================================================================
 
 
-class TestMiniAppApiEdgeCases:
-    """Test MiniAppApi edge cases."""
+class TestApiClientEdgeCases:
+    """Test ApiClient edge cases."""
 
     @pytest.mark.asyncio
     @allure.title("Validate init_data with very long init_data")
@@ -1108,8 +1106,8 @@ class TestMiniAppApiEdgeCases:
 # ============================================================================
 
 
-class TestMiniAppApiSecurity:
-    """Test MiniAppApi security and reliability."""
+class TestApiClientSecurity:
+    """Test ApiClient security and reliability."""
 
     @pytest.mark.asyncio
     @allure.title("TC-API-036: Make request with very long endpoint")
@@ -1173,8 +1171,6 @@ class TestMiniAppApiSecurity:
         self, mocker, miniapp_api_with_config
     ):
         """Test make_request respects timeout settings by returning error result on slow request."""
-        with allure.step("Import TimeoutException"):
-            from httpx import TimeoutException
         with allure.step("Mock client.request to raise TimeoutException"):
             miniapp_api_with_config.client.request = mocker.AsyncMock(
                 side_effect=TimeoutException("Request timed out", request=None)
@@ -1201,8 +1197,8 @@ class TestMiniAppApiSecurity:
 # ============================================================================
 
 
-class TestMiniAppApiInheritance:
-    """Test MiniAppApi compatibility with BaseMiniApp."""
+class TestApiClientInheritance:
+    """Test ApiClient compatibility with BaseClient."""
 
     @pytest.mark.asyncio
     @allure.title("Async context manager calls close")
@@ -1220,30 +1216,28 @@ class TestMiniAppApiInheritance:
             miniapp_api_with_config.close.assert_called_once()
 
     @pytest.mark.asyncio
-    @allure.title("Logger is bound to MiniAppApi class name")
-    @allure.description("Test logger is bound to MiniAppApi class name.")
+    @allure.title("Logger is bound to ApiClient class name")
+    @allure.description("Test logger is bound to ApiClient class name.")
     async def test_logger_bound_to_class_name(self, miniapp_api_with_config):
-        """Test logger is bound to MiniAppApi class name."""
+        """Test logger is bound to ApiClient class name."""
         with allure.step("Verify logger is not None"):
             assert miniapp_api_with_config.logger is not None
-            # Logger should be bound to "MiniAppApi"
+            # Logger should be bound to "ApiClient"
 
-    @allure.title("MiniAppApi inherits from BaseMiniApp")
-    @allure.description("Test MiniAppApi inherits from BaseMiniApp.")
+    @allure.title("ApiClient inherits from BaseClient")
+    @allure.description("Test ApiClient inherits from BaseClient.")
     def test_inherits_from_base_miniapp(self, mocker, valid_config, mock_httpx_client):
-        """Test MiniAppApi inherits from BaseMiniApp."""
+        """Test ApiClient inherits from BaseClient."""
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            api = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            api = ApiClient("https://example.com/app", valid_config)
 
-        with allure.step("Verify api is instance of BaseMiniApp"):
-            from tma_test_framework.mini_app.base import BaseMiniApp
-
-            assert isinstance(api, BaseMiniApp)
+        with allure.step("Verify api is instance of BaseClient"):
+            assert isinstance(api, BaseClient)
 
 
 # ============================================================================
@@ -1251,8 +1245,8 @@ class TestMiniAppApiInheritance:
 # ============================================================================
 
 
-class TestMiniAppApiAuthToken:
-    """Test authentication token management in MiniAppApi."""
+class TestApiClientAuthToken:
+    """Test authentication token management in ApiClient."""
 
     @allure.title("TC-API-039: __init__ sets default auth token values")
     @allure.description("Test that __init__ sets default auth token values. TC-API-039")
@@ -1262,11 +1256,11 @@ class TestMiniAppApiAuthToken:
         """Test that __init__ sets default auth token values."""
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            api = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            api = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Verify default auth token values"):
             assert api._auth_token is None
@@ -1278,11 +1272,11 @@ class TestMiniAppApiAuthToken:
         """Test set_auth_token sets token and type."""
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            api = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            api = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Call set_auth_token"):
             api.set_auth_token("test_token_123", "Bearer")
@@ -1298,11 +1292,11 @@ class TestMiniAppApiAuthToken:
         """Test set_auth_token with custom token type."""
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            api = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            api = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Call set_auth_token with custom type"):
             api.set_auth_token("api_key_456", "ApiKey")
@@ -1316,11 +1310,11 @@ class TestMiniAppApiAuthToken:
         """Test clear_auth_token resets token to None."""
         with allure.step("Mock AsyncClient"):
             mocker.patch(
-                "tma_test_framework.mini_app.api.AsyncClient",
+                "tma_test_framework.clients.api_client.AsyncClient",
                 return_value=mock_httpx_client,
             )
-        with allure.step("Create MiniAppApi instance"):
-            api = MiniAppApi("https://example.com/app", valid_config)
+        with allure.step("Create ApiClient instance"):
+            api = ApiClient("https://example.com/app", valid_config)
 
         with allure.step("Set auth token first"):
             api.set_auth_token("test_token", "Bearer")
@@ -1580,3 +1574,400 @@ class TestMiniAppApiAuthToken:
             assert "?" not in call_kwargs["url"] or call_kwargs["url"].endswith(
                 "/api/data"
             )
+
+
+# ============================================================================
+# VIII. TMA Authentication Setup (setup_tma_auth)
+# ============================================================================
+
+
+class TestApiClientSetupTmaAuth:
+    """Test ApiClient setup_tma_auth method."""
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-053: Setup TMA auth with user_info and create_user=True")
+    @allure.description(
+        "Test setup_tma_auth() creates user and sets init_data token. TC-API-053"
+    )
+    async def test_setup_tma_auth_with_user_info_create_user(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() creates user and sets init_data token."""
+        with allure.step("Mock make_request to return 201 (CREATED)"):
+            mock_result_201 = ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=201,
+                response_time=0.3,
+                success=True,
+                redirect=False,
+                client_error=False,
+                server_error=False,
+                informational=False,
+                headers={"Content-Type": "application/json"},
+                body=b'{"id": 1}',
+                content_type="application/json",
+                reason="Created",
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result_201
+            )
+
+        with allure.step(
+            "Call await setup_tma_auth(user_info, config, create_user=True)"
+        ):
+            await miniapp_api_with_config.setup_tma_auth(
+                valid_user_info, miniapp_api_with_config.config, create_user=True
+            )
+
+        with allure.step(
+            "Verify make_request was called with POST to 'v1/create/tma/'"
+        ):
+            miniapp_api_with_config.make_request.assert_called_once()
+            call_args = miniapp_api_with_config.make_request.call_args
+            assert call_args[0][0] == "v1/create/tma/"
+            assert call_args[1]["method"] == "POST"
+            assert "data" in call_args[1]
+
+        with allure.step("Verify auth token is set with type 'tma'"):
+            assert miniapp_api_with_config._auth_token is not None
+            assert miniapp_api_with_config._auth_token_type == "tma"
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-054: Setup TMA auth with user_info and create_user=False")
+    @allure.description(
+        "Test setup_tma_auth() skips user creation when create_user=False. TC-API-054"
+    )
+    async def test_setup_tma_auth_with_user_info_no_create(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() skips user creation when create_user=False."""
+        with allure.step("Mock make_request"):
+            mock_make_request = mocker.patch.object(
+                miniapp_api_with_config, "make_request", new_callable=mocker.AsyncMock
+            )
+
+        with allure.step(
+            "Call await setup_tma_auth(user_info, config, create_user=False)"
+        ):
+            await miniapp_api_with_config.setup_tma_auth(
+                valid_user_info, miniapp_api_with_config.config, create_user=False
+            )
+
+        with allure.step("Verify make_request was NOT called"):
+            mock_make_request.assert_not_called()
+
+        with allure.step("Verify auth token is set with type 'tma'"):
+            assert miniapp_api_with_config._auth_token is not None
+            assert miniapp_api_with_config._auth_token_type == "tma"
+
+    @pytest.mark.asyncio
+    @allure.title(
+        "TC-API-055: Setup TMA auth without user_info (gets from UserTelegramClient)"
+    )
+    @allure.description(
+        "Test setup_tma_auth() gets user_info from UserTelegramClient when not provided. TC-API-055"
+    )
+    async def test_setup_tma_auth_without_user_info(
+        self,
+        mocker,
+        miniapp_api_with_config,
+        valid_user_info,
+        mock_telegram_client_context_manager,
+    ):
+        """Test setup_tma_auth() gets user_info from UserTelegramClient when not provided."""
+        with allure.step("Mock UserTelegramClient to return UserInfo"):
+            mock_tg_client = mock_telegram_client_context_manager
+
+            mocker.patch(
+                "tma_test_framework.clients.mtproto_client.UserTelegramClient",
+                return_value=mock_tg_client,
+            )
+
+        with allure.step("Mock make_request to return 201"):
+            mock_result_201 = ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=201,
+                response_time=0.3,
+                success=True,
+                redirect=False,
+                client_error=False,
+                server_error=False,
+                informational=False,
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result_201
+            )
+
+        with allure.step("Call await setup_tma_auth(config=config, user_info=None)"):
+            await miniapp_api_with_config.setup_tma_auth(
+                user_info=None, config=miniapp_api_with_config.config
+            )
+
+        with allure.step("Verify UserTelegramClient was used to get user_info"):
+            mock_tg_client.get_me.assert_called_once()
+
+        with allure.step("Verify auth token is set"):
+            assert miniapp_api_with_config._auth_token is not None
+            assert miniapp_api_with_config._auth_token_type == "tma"
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-056: Setup TMA auth with custom endpoint")
+    @allure.description(
+        "Test setup_tma_auth() uses custom create_user_endpoint. TC-API-056"
+    )
+    async def test_setup_tma_auth_with_custom_endpoint(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() uses custom create_user_endpoint."""
+        with allure.step("Mock make_request to return 201"):
+            mock_result_201 = ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=201,
+                response_time=0.3,
+                success=True,
+                redirect=False,
+                client_error=False,
+                server_error=False,
+                informational=False,
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result_201
+            )
+
+        with allure.step("Call await setup_tma_auth(...) with custom endpoint"):
+            custom_endpoint = "v1/custom/endpoint/"
+            await miniapp_api_with_config.setup_tma_auth(
+                valid_user_info,
+                miniapp_api_with_config.config,
+                create_user_endpoint=custom_endpoint,
+            )
+
+        with allure.step("Verify make_request was called with POST to custom endpoint"):
+            call_args = miniapp_api_with_config.make_request.call_args
+            assert call_args[0][0] == custom_endpoint
+            assert call_args[1]["method"] == "POST"
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-057: Setup TMA auth with config=None raises error")
+    @allure.description(
+        "Test setup_tma_auth() raises ValueError when config is None. TC-API-057"
+    )
+    async def test_setup_tma_auth_config_none_raises_error(
+        self, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() raises ValueError when config is None."""
+        with allure.step("Call await setup_tma_auth(user_info, config=None)"):
+            with pytest.raises(
+                ValueError, match="config is required for generating init_data"
+            ):
+                await miniapp_api_with_config.setup_tma_auth(
+                    valid_user_info, config=None
+                )
+
+    @pytest.mark.asyncio
+    @allure.title(
+        "TC-API-058: Setup TMA auth fails when UserTelegramClient cannot get user_info"
+    )
+    @allure.description(
+        "Test setup_tma_auth() raises ValueError when UserTelegramClient fails. TC-API-058"
+    )
+    async def test_setup_tma_auth_user_telegram_client_fails(
+        self, mocker, miniapp_api_with_config
+    ):
+        """Test setup_tma_auth() raises ValueError when UserTelegramClient fails."""
+        with allure.step("Mock UserTelegramClient to raise exception"):
+            mock_tg_client = mocker.AsyncMock()
+            mock_tg_client.__aenter__ = mocker.AsyncMock(
+                side_effect=Exception("Connection failed")
+            )
+            mock_tg_client.__aexit__ = mocker.AsyncMock(return_value=None)
+
+            mocker.patch(
+                "tma_test_framework.clients.mtproto_client.UserTelegramClient",
+                return_value=mock_tg_client,
+            )
+
+        with allure.step("Call await setup_tma_auth(config=config, user_info=None)"):
+            with pytest.raises(
+                ValueError, match="Failed to get user info from Telegram"
+            ):
+                await miniapp_api_with_config.setup_tma_auth(
+                    user_info=None, config=miniapp_api_with_config.config
+                )
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-059: Setup TMA auth handles user already exists (400 status)")
+    @allure.description(
+        "Test setup_tma_auth() handles 400 status (user already exists) gracefully. TC-API-059"
+    )
+    async def test_setup_tma_auth_user_already_exists(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() handles 400 status (user already exists) gracefully."""
+        with allure.step("Mock make_request to return 400 (BAD_REQUEST)"):
+            mock_result_400 = ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=400,
+                response_time=0.2,
+                success=False,
+                redirect=False,
+                client_error=True,
+                server_error=False,
+                informational=False,
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result_400
+            )
+
+        with allure.step(
+            "Call await setup_tma_auth(user_info, config, create_user=True)"
+        ):
+            # Should not raise exception
+            await miniapp_api_with_config.setup_tma_auth(
+                valid_user_info, miniapp_api_with_config.config, create_user=True
+            )
+
+        with allure.step(
+            "Verify make_request was called with POST to 'v1/create/tma/'"
+        ):
+            miniapp_api_with_config.make_request.assert_called_once()
+            call_args = miniapp_api_with_config.make_request.call_args
+            assert call_args[0][0] == "v1/create/tma/"
+            assert call_args[1]["method"] == "POST"
+            assert "data" in call_args[1]
+
+        with allure.step("Verify auth token is still set"):
+            assert miniapp_api_with_config._auth_token is not None
+            assert miniapp_api_with_config._auth_token_type == "tma"
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-060: Setup TMA auth raises error on user creation failure")
+    @allure.description(
+        "Test setup_tma_auth() raises error when user creation fails (non-400/201 status). TC-API-060"
+    )
+    async def test_setup_tma_auth_user_creation_failure(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() raises error when user creation fails."""
+        with allure.step("Mock make_request to return 500 (SERVER_ERROR)"):
+            ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=500,
+                response_time=1.0,
+                success=False,
+                redirect=False,
+                client_error=False,
+                server_error=True,
+                informational=False,
+            )
+            # Create a mock that will raise when raise_for_status is called
+            mock_result = mocker.MagicMock()
+            mock_result.status_code = 500
+            mock_result.raise_for_status = mocker.Mock(
+                side_effect=Exception("Server error")
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result
+            )
+
+        with allure.step(
+            "Call await setup_tma_auth(user_info, config, create_user=True)"
+        ):
+            # raise_for_status will be called and raise exception
+            with pytest.raises(Exception, match="Server error"):
+                await miniapp_api_with_config.setup_tma_auth(
+                    valid_user_info, miniapp_api_with_config.config, create_user=True
+                )
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-061: Setup TMA auth generates correct init_data")
+    @allure.description(
+        "Test setup_tma_auth() generates init_data with correct user data. TC-API-061"
+    )
+    async def test_setup_tma_auth_generates_correct_init_data(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() generates init_data with correct user data."""
+        with allure.step("Mock make_request to return 201"):
+            mock_result_201 = ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=201,
+                response_time=0.3,
+                success=True,
+                redirect=False,
+                client_error=False,
+                server_error=False,
+                informational=False,
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result_201
+            )
+
+        with allure.step("Mock generate_telegram_init_data to verify it's called"):
+            mock_generate = mocker.patch(
+                "tma_test_framework.clients.api_client.generate_telegram_init_data",
+                return_value="test_init_data_string",
+            )
+
+        with allure.step("Call await setup_tma_auth(user_info, config)"):
+            await miniapp_api_with_config.setup_tma_auth(
+                valid_user_info, miniapp_api_with_config.config
+            )
+
+        with allure.step(
+            "Verify generate_telegram_init_data called with user_info fields"
+        ):
+            mock_generate.assert_called_once()
+            call_kwargs = mock_generate.call_args[1]
+            assert call_kwargs["user_id"] == valid_user_info.id
+            assert call_kwargs["username"] == (valid_user_info.username or "")
+            assert call_kwargs["first_name"] == valid_user_info.first_name
+            assert call_kwargs["is_premium"] == valid_user_info.is_premium
+            # Verify bot_token is passed from config (not empty string)
+            # This is critical: without bot_token, init_data will have invalid HMAC signature
+            assert call_kwargs["bot_token"] == miniapp_api_with_config.config.bot_token
+            assert call_kwargs["bot_token"] is not None
+            assert call_kwargs["bot_token"] != ""
+
+    @pytest.mark.asyncio
+    @allure.title("TC-API-062: Setup TMA auth sets token type to 'tma'")
+    @allure.description(
+        "Test setup_tma_auth() sets auth token with type 'tma'. TC-API-062"
+    )
+    async def test_setup_tma_auth_sets_token_type_tma(
+        self, mocker, miniapp_api_with_config, valid_user_info
+    ):
+        """Test setup_tma_auth() sets auth token with type 'tma'."""
+        with allure.step("Mock make_request to return 201"):
+            mock_result_201 = ApiResult(
+                endpoint="v1/create/tma/",
+                method="POST",
+                status_code=201,
+                response_time=0.3,
+                success=True,
+                redirect=False,
+                client_error=False,
+                server_error=False,
+                informational=False,
+            )
+            miniapp_api_with_config.make_request = mocker.AsyncMock(
+                return_value=mock_result_201
+            )
+
+        with allure.step("Call await setup_tma_auth(user_info, config)"):
+            await miniapp_api_with_config.setup_tma_auth(
+                valid_user_info, miniapp_api_with_config.config
+            )
+
+        with allure.step("Verify _auth_token_type is 'tma'"):
+            assert miniapp_api_with_config._auth_token_type == "tma"
+
+        with allure.step("Verify _auth_token is set (init_data string)"):
+            assert miniapp_api_with_config._auth_token is not None
+            assert isinstance(miniapp_api_with_config._auth_token, str)

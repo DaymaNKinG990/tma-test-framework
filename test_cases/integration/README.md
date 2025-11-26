@@ -8,17 +8,26 @@ This directory contains test case documentation for integration tests of the TMA
 
 Integration tests are organized by component interactions:
 
-1. **mtproto_miniapp_api.md** - Integration between UserTelegramClient and MiniAppApi
-2. **mtproto_miniapp_ui.md** - Integration between UserTelegramClient and MiniAppUI
+1. **mtproto_miniapp_api.md** - Integration between UserTelegramClient and ApiClient (MiniAppApi)
+2. **mtproto_miniapp_ui.md** - Integration between UserTelegramClient and UiClient (MiniAppUI)
 3. **end_to_end.md** - End-to-end workflows (full user journeys)
 4. **external_services.md** - Integration with external services (Telegram API, HTTP endpoints)
+5. **mtproto_api_auth.md** - Integration for `setup_tma_auth` method (NEW - 7 test cases)
+6. **db_client_integration.md** - Integration for DBClient with all components (NEW - 9 test cases)
+7. **MISSING_INTEGRATION_TEST_CASES.md** - Analysis of missing integration test cases (reference)
+
+> **Note**: All previously identified missing test cases have been added. See [MISSING_INTEGRATION_TEST_CASES.md](./MISSING_INTEGRATION_TEST_CASES.md) for original analysis.
 
 ## Test Categories
 
 ### 1. Component Integration Tests
 Tests that verify interaction between two or more components:
-- UserTelegramClient ↔ MiniAppApi
-- UserTelegramClient ↔ MiniAppUI
+- UserTelegramClient ↔ ApiClient (MiniAppApi) - see [mtproto_miniapp_api.md](./mtproto_miniapp_api.md)
+- UserTelegramClient ↔ UiClient (MiniAppUI) - see [mtproto_miniapp_ui.md](./mtproto_miniapp_ui.md)
+- UserTelegramClient ↔ DBClient - see [db_client_integration.md](./db_client_integration.md)
+- ApiClient ↔ DBClient - see [db_client_integration.md](./db_client_integration.md)
+- UiClient ↔ DBClient - see [db_client_integration.md](./db_client_integration.md)
+- ApiClient.setup_tma_auth ↔ UserTelegramClient - see [mtproto_api_auth.md](./mtproto_api_auth.md)
 - Config ↔ All components
 
 ### 2. End-to-End Tests
